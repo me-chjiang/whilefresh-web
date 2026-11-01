@@ -2,6 +2,8 @@ import { createHash } from "node:crypto";
 import { lstat, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
+import { abortError, isAbortError } from "../ai/chat-client.js";
+import { IngredientClassifier } from "../ai/ingredient-classifier.js";
 import {
   CategoryCode,
   DateOrigin,
@@ -51,6 +53,13 @@ import {
   type DateParse,
 } from "../domain/date-text.js";
 import {
+  nameKey,
+  NameSource,
+  resolveName,
+  unresolvedNames,
+  type NameMappingStore,
+} from "../domain/vocabulary-resolver.js";
+import {
   MAX_IMAGES_PER_IMPORT,
   MAX_IMAGE_BYTES,
   MAX_IMPORT_BYTES,
@@ -80,6 +89,7 @@ export interface DraftItem {
   item: FridgeItem;
   category: ItemCategory;
   selected: boolean;
+  nameSource: NameSource;
   production: ParsedDraftDate;
   purchase: ParsedDraftDate;
   expiry: ParsedDraftDate;
@@ -114,6 +124,9 @@ export interface ImportServiceOptions {
   builtin: BuiltinData;
   clock: Clock;
   recognizer: Recognizer;
+  mappings?: NameMappingStore;
+  classifier?: IngredientClassifier;
+  classifierConfigured?: boolean;
   demo?: boolean;
   importsDirectory?: string;
 }
@@ -362,6 +375,9 @@ export class ImportService {
   private readonly builtin: BuiltinData;
   private readonly clock: Clock;
   private readonly recognizer: Recognizer;
+  private readonly mappings: NameMappingStore | undefined;
+  private readonly classifier: IngredientClassifier | undefined;
+  private readonly classifierConfigured: boolean;
   private readonly demo: boolean;
   private readonly importsDirectory: string | null;
 
@@ -378,6 +394,9 @@ export class ImportService {
     builtin,
     clock,
     recognizer,
+    mappings,
+    classifier,
+    classifierConfigured,
     demo = false,
     importsDirectory,
   }: ImportServiceOptions) {
@@ -385,6 +404,10 @@ export class ImportService {
     this.builtin = builtin;
     this.clock = clock;
     this.recognizer = recognizer;
+    this.mappings = mappings;
+    this.classifier = classifier;
+    this.classifierConfigured =
+      classifierConfigured ?? classifier !== undefined;
     this.demo = demo;
     this.importsDirectory = importsDirectory
       ? resolve(importsDirectory)
@@ -625,11 +648,20 @@ export class ImportService {
       ) {
         return false;
       }
-      this.acceptRecognition(result);
+      await this.acceptRecognition(result);
+      if (
+        controller.signal.aborted ||
+        requestNumber !== this.requestSequence ||
+        this.controller !== controller ||
+        !this.received
+      ) {
+        return false;
+      }
       return true;
     } catch (error) {
       if (
         controller.signal.aborted ||
+        isAbortError(error) ||
         requestNumber !== this.requestSequence ||
         this.controller !== controller ||
         !this.received
@@ -684,6 +716,7 @@ export class ImportService {
         item.displayName = name;
         if (canonical !== item.canonicalName) {
           item.canonicalName = canonical;
+          next.nameSource = NameSource.UserEdited;
           item.aiDays = {};
           item.referenceConditionsConfirmed = false;
         }
@@ -945,6 +978,9 @@ export class ImportService {
         return record.id!;
       });
 
+      if (importId > 0) {
+        this.rememberNames(draft.items);
+      }
       this.payload = null;
       this.draftValue = null;
       this.received = false;
@@ -1079,7 +1115,7 @@ export class ImportService {
     };
   }
 
-  private acceptRecognition(result: RecognitionResult): void {
+  private async acceptRecognition(result: RecognitionResult): Promise<void> {
     const draft = this.draftValue;
     if (!draft) {
       return;
@@ -1092,24 +1128,16 @@ export class ImportService {
 
     const rules = this.store.ruleBook();
     const cache = this.store.aiEstimateCache();
+    const rawNames: string[] = [];
+    const resolutions: ReturnType<typeof resolveName>[] = [];
     for (const recognized of result.items) {
-      const canonical =
-        this.builtin.catalog.resolve(recognized.canonicalName) ===
-        recognized.canonicalName
-          ? recognized.canonicalName
-          : UNCATEGORIZED_NAME;
-      const entryDate = this.clock.today();
-      const storage = suggestStorage(
-        canonical,
-        storageOf(recognized.storage),
-        recognized.category === ItemCategory.Seasoning,
-        {
-          catalog: this.builtin.catalog,
-          table: this.builtin.shelfLife,
-          rules,
-          aiCache: cache,
-        },
+      const resolution = resolveName(
+        recognized.rawName,
+        recognized.canonicalName,
+        this.builtin.catalog,
+        this.mappings,
       );
+      const canonical = resolution.canonical || UNCATEGORIZED_NAME;
       const item: FridgeItem = {
         canonicalName: canonical,
         displayName:
@@ -1120,12 +1148,11 @@ export class ImportService {
         category: this.builtin.catalog.categoryOf(canonical),
         quantityText: recognized.quantityText,
         count: recognized.count,
-        entryDate,
         aiDays: aiDays({
           aiDays: recognized.shelfLifeDays,
         }),
-        storage: storage.storage,
-        storageSource: storage.source,
+        storage: Storage.Fridge,
+        storageSource: StorageSource.Default,
         useFirst: false,
         status: ItemStatus.InStock,
         purchaseDate: emptyDate(),
@@ -1147,12 +1174,91 @@ export class ImportService {
         selected:
           recognized.selected &&
           recognized.category !== ItemCategory.Irrelevant,
+        nameSource: resolution.source,
         production: { status: "empty", text: "" },
         purchase: { status: "empty", text: "" },
         expiry: { status: "empty", text: "" },
       };
-      this.parseDates(draftItem);
       draft.items.push(draftItem);
+      if (recognized.category !== ItemCategory.Irrelevant) {
+        rawNames.push(recognized.rawName);
+        resolutions.push(resolution);
+      }
+    }
+
+    const unresolved = unresolvedNames(rawNames, resolutions);
+    if (
+      unresolved.length > 0 &&
+      this.classifier &&
+      this.classifierConfigured
+    ) {
+      try {
+        const signal = this.controller?.signal;
+        const classification = await this.classifier.classify(
+          unresolved,
+          this.builtin.catalog,
+          signal,
+        );
+        if (signal?.aborted) {
+          throw abortError(signal.reason);
+        }
+        for (const item of draft.items) {
+          if (item.nameSource !== NameSource.Unresolved) {
+            continue;
+          }
+          const canonical = classification.canonical.get(
+            nameKey(item.recognized.rawName),
+          );
+          if (
+            canonical &&
+            this.builtin.catalog.resolve(canonical) === canonical
+          ) {
+            item.item.canonicalName = canonical;
+            item.nameSource = NameSource.AiClassified;
+          }
+        }
+      } catch (error) {
+        if (this.controller?.signal.aborted || isAbortError(error)) {
+          throw error;
+        }
+        console.warn("import: classification failed");
+      }
+    }
+
+    this.finishDraft(draft, rules, cache);
+  }
+
+  private finishDraft(
+    draft: ImportDraft,
+    rules: ReturnType<Store["ruleBook"]>,
+    cache: ReturnType<Store["aiEstimateCache"]>,
+  ): void {
+    for (const draftItem of draft.items) {
+      const recognized = draftItem.recognized;
+      const item = draftItem.item;
+      const canonical = item.canonicalName ?? UNCATEGORIZED_NAME;
+      item.canonicalName = canonical;
+      item.displayName =
+        canonical === UNCATEGORIZED_NAME ? recognized.rawName : canonical;
+      item.rawName = recognized.rawName;
+      item.category = this.builtin.catalog.categoryOf(canonical);
+      item.quantityText = recognized.quantityText;
+      item.count = recognized.count;
+      item.entryDate = this.clock.today();
+      const storage = suggestStorage(
+        canonical,
+        storageOf(recognized.storage),
+        recognized.category === ItemCategory.Seasoning,
+        {
+          catalog: this.builtin.catalog,
+          table: this.builtin.shelfLife,
+          rules,
+          aiCache: cache,
+        },
+      );
+      item.storage = storage.storage;
+      item.storageSource = storage.source;
+      this.parseDates(draftItem);
     }
 
     draft.ready = true;
@@ -1235,6 +1341,29 @@ export class ImportService {
     return rules;
   }
 
+  private rememberNames(items: readonly DraftItem[]): void {
+    if (!this.mappings) {
+      return;
+    }
+    for (const draft of items) {
+      const canonical = draft.item.canonicalName ?? "";
+      if (
+        !draft.selected ||
+        draft.category === ItemCategory.Irrelevant ||
+        canonical.length === 0 ||
+        this.builtin.catalog.resolve(canonical) !== canonical ||
+        (draft.nameSource !== NameSource.AiClassified &&
+          draft.nameSource !== NameSource.UserEdited)
+      ) {
+        continue;
+      }
+      this.mappings.remember(
+        draft.recognized.rawName,
+        canonical,
+      );
+    }
+  }
+
   private itemDto(item: DraftItem, index: number): DraftItemDto {
     const value = item.item;
     return {
@@ -1268,6 +1397,7 @@ export class ImportService {
       packageExpiresAt: value.packageExpiry?.date ?? "",
       group: draftGroup(item),
       needsDate: needsDateConfirmation(item),
+      aiClassified: item.nameSource === NameSource.AiClassified,
     };
   }
 

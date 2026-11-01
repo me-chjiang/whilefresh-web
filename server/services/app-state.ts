@@ -18,7 +18,11 @@ import {
 } from "../../shared/enums.js";
 import type { BuiltinData } from "../data/builtin.js";
 import { openDatabase } from "../data/db.js";
-import { Store, type FridgeItem } from "../data/store.js";
+import {
+  SqliteNameMappingStore,
+  Store,
+  type FridgeItem,
+} from "../data/store.js";
 import { addDays, type Clock } from "../domain/clock.js";
 import {
   evaluateFreshness,
@@ -30,6 +34,7 @@ import {
 } from "../ai/deepseek-chat-client.js";
 import { EnvCredentialProvider } from "../ai/credentials.js";
 import type { ChatClient } from "../ai/chat-client.js";
+import { IngredientClassifier } from "../ai/ingredient-classifier.js";
 import { DeepSeekRecognizer } from "../recognition/deepseek.js";
 import { DemoRecognizer } from "../recognition/replay.js";
 import type { Recognizer } from "../recognition/types.js";
@@ -52,6 +57,8 @@ interface AppSession {
   readonly store: Store;
   readonly kitchen: KitchenService;
   readonly importService: ImportService;
+  readonly names?: SqliteNameMappingStore;
+  readonly classifier?: IngredientClassifier;
 }
 
 const DATABASE_NOTICE = "无法打开本机数据库，数据无法保存";
@@ -368,15 +375,32 @@ export class AppState {
       const recognizer =
         (demo ? this.demoRecognizer : this.realRecognizer) ??
         (demo ? new DemoRecognizer() : new DeepSeekRecognizer(this.chatClient));
+      const names = demo
+        ? undefined
+        : new SqliteNameMappingStore(database, this.clock);
+      const classifier = demo
+        ? undefined
+        : new IngredientClassifier(this.chatClient);
       const importService = new ImportService({
         store,
         builtin: this.builtin,
         clock: this.clock,
         recognizer,
+        mappings: names,
+        classifier,
+        classifierConfigured: !demo && this.chatClient.isConfigured(),
         demo,
         importsDirectory: this.importsDir,
       });
-      return { demo, database, store, kitchen, importService };
+      return {
+        demo,
+        database,
+        store,
+        kitchen,
+        importService,
+        names,
+        classifier,
+      };
     } catch (error) {
       database.close();
       throw error;

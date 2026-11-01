@@ -122,6 +122,7 @@ $FEEDBACK"
     "${TIMEOUT_CMD[@]}" "$PER_TASK" codex exec \
       --cd "$PROJECT_DIR" \
       --dangerously-bypass-approvals-and-sandbox \
+      -c mcp_servers.playwright.enabled=false \
       --color never \
       --output-last-message "$LAST_MSG" \
       "$PROMPT" < /dev/null > "$LOG" 2>&1

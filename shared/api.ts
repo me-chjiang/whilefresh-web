@@ -48,6 +48,7 @@ export interface DraftItemDto {
   packageExpiresAt: string;
   group: DraftItemGroup;
   needsDate: boolean;
+  aiClassified: boolean;
 }
 
 export interface RecipeSummaryDto {
