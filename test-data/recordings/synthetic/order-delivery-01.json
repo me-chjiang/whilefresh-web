@@ -1,0 +1,50 @@
+{
+  "batches": [
+    {
+      "firstImage": 0,
+      "lastImage": 0
+    }
+  ],
+  "format": 1,
+  "request": {
+    "imageCount": 1,
+    "inputKind": "screenshot",
+    "promptVersion": "v2",
+    "textLength": 0
+  },
+  "responses": [
+    {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "logprobs": null,
+          "message": {
+            "content": "{\"source_type\": \"order\", \"items\": [{\"raw_name\": \"乐牧鲜牛奶 巴氏杀菌\", \"canonical_name\": \"牛奶\", \"quantity_text\": \"950ml\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": \"今天生产\", \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-20 10:33:00\", \"storage\": \"fridge\", \"shelf_life_days\": {\"fridge\": 7, \"freezer\": null, \"room\": null}, \"image_index\": 1}, {\"raw_name\": \"切片吐司 原味\", \"canonical_name\": \"吐司\", \"quantity_text\": \"350g\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": \"到期日 2026-10-24\", \"purchase_date_text\": \"2026-10-20 10:33:00\", \"storage\": \"room\", \"shelf_life_days\": {\"fridge\": 7, \"freezer\": 60, \"room\": 4}, \"image_index\": 1}, {\"raw_name\": \"鲜切火腿片\", \"canonical_name\": \"火腿\", \"quantity_text\": \"150g\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-20 10:33:00\", \"storage\": \"fridge\", \"shelf_life_days\": {\"fridge\": 7, \"freezer\": 60, \"room\": null}, \"image_index\": 1}, {\"raw_name\": \"鲜鸡蛋 30枚装\", \"canonical_name\": \"鸡蛋\", \"quantity_text\": \"30枚1.5kg\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-20 10:33:00\", \"storage\": \"fridge\", \"shelf_life_days\": {\"fridge\": 30, \"freezer\": null, \"room\": 15}, \"image_index\": 1}, {\"raw_name\": \"烟台红富士\", \"canonical_name\": \"苹果\", \"quantity_text\": \"约1kg\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-20 10:33:00\", \"storage\": \"fridge\", \"shelf_life_days\": {\"fridge\": 30, \"freezer\": null, \"room\": 7}, \"image_index\": 1}, {\"raw_name\": \"一次性湿厕纸\", \"canonical_name\": \"未归类\", \"quantity_text\": \"40片\", \"count\": 1, \"category\": \"irrelevant\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-20 10:33:00\", \"storage\": \"room\", \"shelf_life_days\": {\"fridge\": null, \"freezer\": null, \"room\": null}, \"image_index\": 1}], \"ignored_summary\": \"包装费、配送费、商家满减、平台红包、合计金额、会员免配送费开通横幅、订单号与支付方式等信息\"}",
+            "reasoning_content": "Let me extract items.\n\n1. 乐牧鲜牛奶 巴氏杀菌, 950ml, ×1, ¥18.90, production 今天生产, food, canonical 牛奶, storage fridge, shelf life fridge ~7 days.\n2. 切片吐司 原味, 350g, ×1, 到期日 2026-10-24, canonical 吐司, storage room, shelf life room ~7.\n3. 鲜切火腿片, 150g, ×1, canonical 火腿, storage fridge, fridge ~7 days.\n4. 鲜鸡蛋 30枚装, 30枚1.5kg, ×1, canonical 鸡蛋, storage fridge, 30 days.\n5. 烟台红富士 约1kg, ×1, canonical 苹果, storage fridge, fridge 30.\n6. 一次性湿厕纸 40片, ×1, category irrelevant, canonical 未归类, storage room, shelf_life null.\n\npurchase_date_text: 2026-10-20 10:33:00.\n\nignored: 包装费、配送费、商家满减、平台红包、会员开通横幅、订单号/支付方式等。\n\nsource_type: order.\n\nimage_index: all 1.\n\nGift: none.\n\nFor 一次性湿厕纸 storage: room, shelf_life_days all null.",
+            "role": "assistant"
+          }
+        }
+      ],
+      "created": 1792539380,
+      "id": "2d8cd661-b727-48fb-9992-b1a74c39cbe1",
+      "model": "deepseek-flash",
+      "object": "chat.completion",
+      "system_fingerprint": "e72d3c7f663d3e1383b00b3884cb4501",
+      "usage": {
+        "completion_tokens": 1122,
+        "completion_tokens_details": {
+          "reasoning_tokens": 288
+        },
+        "prompt_cache_hit_tokens": 2432,
+        "prompt_cache_miss_tokens": 2403,
+        "prompt_tokens": 4835,
+        "prompt_tokens_details": {
+          "cached_tokens": 2432
+        },
+        "total_tokens": 5957
+      }
+    }
+  ],
+  "elapsed_ms": 4157
+}

@@ -1,0 +1,50 @@
+{
+  "batches": [
+    {
+      "firstImage": 0,
+      "lastImage": 0
+    }
+  ],
+  "format": 1,
+  "request": {
+    "imageCount": 1,
+    "inputKind": "screenshot",
+    "promptVersion": "v2",
+    "textLength": 0
+  },
+  "responses": [
+    {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "logprobs": null,
+          "message": {
+            "content": "{\"source_type\":\"order\",\"items\":[{\"raw_name\":\"有机菠菜\",\"canonical_name\":\"菠菜\",\"quantity_text\":\"250g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 18:43:25\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":3,\"freezer\":null,\"room\":null},\"image_index\":1},{\"raw_name\":\"牛里脊 嫩切\",\"canonical_name\":\"牛里脊\",\"quantity_text\":\"300g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":\"今天生产\",\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 18:43:25\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":3,\"freezer\":90,\"room\":null},\"image_index\":1},{\"raw_name\":\"鲜鸡蛋\",\"canonical_name\":\"鸡蛋\",\"quantity_text\":\"10枚530g\",\"count\":2,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 18:43:25\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":30,\"freezer\":null,\"room\":15},\"image_index\":1},{\"raw_name\":\"绿豆芽\",\"canonical_name\":\"豆芽\",\"quantity_text\":\"300g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 18:43:25\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":2,\"freezer\":null,\"room\":null},\"image_index\":1},{\"raw_name\":\"冰鲜三文鱼 刺身级\",\"canonical_name\":\"三文鱼\",\"quantity_text\":\"200g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":\"今天生产\",\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 18:43:25\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":2,\"freezer\":60,\"room\":null},\"image_index\":1},{\"raw_name\":\"鼎味轩 蒸鱼豉油\",\"canonical_name\":\"蒸鱼豉油\",\"quantity_text\":\"400ml\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 18:43:25\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":540},\"image_index\":1},{\"raw_name\":\"赠品 大葱 1根\",\"canonical_name\":\"大葱\",\"quantity_text\":\"1根\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":true,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 18:43:25\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":14,\"freezer\":null,\"room\":14},\"image_index\":1},{\"raw_name\":\"洗洁精 柠檬香\",\"canonical_name\":\"未归类\",\"quantity_text\":\"500g\",\"count\":1,\"category\":\"irrelevant\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 18:43:25\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":null},\"image_index\":1}],\"ignored_summary\":\"商品总额、配送费、包装费、新客立减券、满减优惠、实付金额、订单编号、支付方式、联系客服与再来一单按钮\"}",
+            "reasoning_content": "Let me extract items.\n\n1. 有机菠菜 250g x1 → 菠菜, food, fridge\n2. 牛里脊 嫩切 今天生产 300g x1 → 牛里脊, food, fridge, production_date \"今天生产\"\n3. 鲜鸡蛋 10枚530g x2 → 鸡蛋, count 2\n4. 绿豆芽 300g x1 → 豆芽 (词表有豆芽), food, fridge\n5. 冰鲜三文鱼 刺身级 今天生产 200g x1 → 三文鱼, food, fridge; production date 今天生产\n6. 鼎味轩 蒸鱼豉油 400ml x1 → 蒸鱼豉油, seasoning, room\n7. 赠品 大葱 1根 赠品 ¥0.00 x1 → 大葱, is_gift true, food, room\n8. 洗洁精 柠檬香 500g x1 → 未归类, irrelevant, room\n\npurchase_date_text: 2026-10-19 18:43:25\n\nimage_index all 1.\n\nshelf_life_days estimates: 菠菜 fridge 3; 牛里脊 fridge 3, freezer 90; 鸡蛋 fridge 30, room 15; 豆芽 fridge 2; 三文鱼 fridge 2, freezer 60; 蒸鱼豉油 room 540; 大葱 room 14, fridge 14; 洗洁精 null.\n\nignored_summary: 配送费、包装费、新客立减券、满减优惠、联系客服/再来一单按钮.",
+            "role": "assistant"
+          }
+        }
+      ],
+      "created": 1792539355,
+      "id": "ed95349e-c8d9-4947-875a-37758ca4d4a0",
+      "model": "deepseek-flash",
+      "object": "chat.completion",
+      "system_fingerprint": "e72d3c7f663d3e1383b00b3884cb4501",
+      "usage": {
+        "completion_tokens": 1255,
+        "completion_tokens_details": {
+          "reasoning_tokens": 360
+        },
+        "prompt_cache_hit_tokens": 2432,
+        "prompt_cache_miss_tokens": 3051,
+        "prompt_tokens": 5483,
+        "prompt_tokens_details": {
+          "cached_tokens": 2432
+        },
+        "total_tokens": 6738
+      }
+    }
+  ],
+  "elapsed_ms": 4484
+}

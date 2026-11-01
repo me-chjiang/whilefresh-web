@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "id": "order-delivery-01",
+  "sample_kind": "screenshot",
+  "style": "order-delivery",
+  "source_type": "order",
+  "capture_date": "2026-10-20",
+  "file": "order-delivery-01.png",
+  "items": [
+    {
+      "canonical_name": "牛奶",
+      "raw_name": "乐牧鲜牛奶 巴氏杀菌",
+      "quantity_text": "950ml",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": "今天生产",
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-20 10:33:00",
+      "optional": false
+    },
+    {
+      "canonical_name": "吐司",
+      "raw_name": "切片吐司 原味",
+      "quantity_text": "350g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": "到期日 2026-10-24",
+      "purchase_date_text": "2026-10-20 10:33:00",
+      "optional": false
+    },
+    {
+      "canonical_name": "火腿",
+      "raw_name": "鲜切火腿片",
+      "quantity_text": "150g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-20 10:33:00",
+      "optional": false
+    },
+    {
+      "canonical_name": "鸡蛋",
+      "raw_name": "鲜鸡蛋 30枚装",
+      "quantity_text": "30枚1.5kg",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-20 10:33:00",
+      "optional": false
+    },
+    {
+      "canonical_name": "苹果",
+      "raw_name": "烟台红富士",
+      "quantity_text": "约1kg",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-20 10:33:00",
+      "optional": false
+    },
+    {
+      "canonical_name": "未归类",
+      "raw_name": "一次性湿厕纸",
+      "quantity_text": "40片",
+      "count": 1,
+      "category": "irrelevant",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-20 10:33:00",
+      "optional": false
+    }
+  ],
+  "ignored_kinds": [
+    "优惠券",
+    "包装费",
+    "广告横幅",
+    "满减",
+    "配送费"
+  ],
+  "ignored_items": [
+    {
+      "raw_name": "包装费",
+      "kind": "包装费"
+    },
+    {
+      "raw_name": "配送费",
+      "kind": "配送费"
+    },
+    {
+      "raw_name": "商家满减",
+      "kind": "优惠券"
+    },
+    {
+      "raw_name": "平台红包",
+      "kind": "满减"
+    }
+  ]
+}

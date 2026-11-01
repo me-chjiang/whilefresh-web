@@ -1,0 +1,50 @@
+{
+  "batches": [
+    {
+      "firstImage": 0,
+      "lastImage": 0
+    }
+  ],
+  "format": 1,
+  "request": {
+    "imageCount": 1,
+    "inputKind": "receipt",
+    "promptVersion": "v2",
+    "textLength": 0
+  },
+  "responses": [
+    {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "logprobs": null,
+          "message": {
+            "content": "{\"source_type\": \"receipt\", \"items\": [{\"raw_name\": \"土豆\", \"canonical_name\": \"土豆\", \"quantity_text\": \"1.34kg\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-21 08:12:37\", \"storage\": \"room\", \"shelf_life_days\": {\"fridge\": 30, \"freezer\": null, \"room\": 21}, \"image_index\": 1}, {\"raw_name\": \"胡萝卜\", \"canonical_name\": \"胡萝卜\", \"quantity_text\": \"0.62kg\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-21 08:12:37\", \"storage\": \"fridge\", \"shelf_life_days\": {\"fridge\": 14, \"freezer\": 90, \"room\": 5}, \"image_index\": 1}, {\"raw_name\": \"青椒\", \"canonical_name\": \"青椒\", \"quantity_text\": \"0.31kg\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-21 08:12:37\", \"storage\": \"fridge\", \"shelf_life_days\": {\"fridge\": 7, \"freezer\": 60, \"room\": 3}, \"image_index\": 1}, {\"raw_name\": \"鲈鱼(现杀)\", \"canonical_name\": \"鲈鱼\", \"quantity_text\": \"0.72kg\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-21 08:12:37\", \"storage\": \"fridge\", \"shelf_life_days\": {\"fridge\": 2, \"freezer\": 90, \"room\": null}, \"image_index\": 1}, {\"raw_name\": \"基围虾\", \"canonical_name\": \"基围虾\", \"quantity_text\": \"0.45kg\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-21 08:12:37\", \"storage\": \"freezer\", \"shelf_life_days\": {\"fridge\": 1, \"freezer\": 90, \"room\": null}, \"image_index\": 1}, {\"raw_name\": \"绿豆芽\", \"canonical_name\": \"豆芽\", \"quantity_text\": \"0.30kg\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-21 08:12:37\", \"storage\": \"fridge\", \"shelf_life_days\": {\"fridge\": 3, \"freezer\": null, \"room\": 1}, \"image_index\": 1}, {\"raw_name\": \"韭菜\", \"canonical_name\": \"韭菜\", \"quantity_text\": null, \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-21 08:12:37\", \"storage\": \"fridge\", \"shelf_life_days\": {\"fridge\": 5, \"freezer\": null, \"room\": 1}, \"image_index\": 1}, {\"raw_name\": \"加碘盐500g\", \"canonical_name\": \"盐\", \"quantity_text\": \"500g\", \"count\": 1, \"category\": \"seasoning\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-21 08:12:37\", \"storage\": \"room\", \"shelf_life_days\": {\"fridge\": null, \"freezer\": null, \"room\": 730}, \"image_index\": 2}, {\"raw_name\": \"洗洁精1kg\", \"canonical_name\": \"未归类\", \"quantity_text\": \"1kg\", \"count\": 1, \"category\": \"irrelevant\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-21 08:12:37\", \"storage\": \"room\", \"shelf_life_days\": {\"fridge\": null, \"freezer\": null, \"room\": null}, \"image_index\": 2}], \"ignored_summary\": \"交易时间、收银台、流水号等小票抬头信息，实收合计与商品数量统计，条形码及“谢谢惠顾”等结语；序号07商品名被遮挡，仅可辨认“韭菜”，序号08商品名称被完全遮挡无法识别，均未登记\"}",
+            "reasoning_content": "Let me parse the receipt.\n\nItems visible:\n01 土豆 1.34kg ×1 单价3.90/kg 5.23\n02 胡萝卜 0.62kg ×1 3.50/kg 2.17\n03 青椒 0.31kg ×1 7.80/kg 2.42\n04 鲈鱼(现杀) 0.72kg ×1 38.00/kg 27.36\n05 基围虾 0.45kg ×1 98.00/kg 44.10\n06 绿豆芽 0.30kg ×1 6.00/kg 1.80\n07 韭菜 ... 2.24 — partially covered; \"07 韭菜\" visible with amount 2.24 but obscured by a shape. Actually item 07 韭菜 is partially visible text \"07 韭菜\" and price 2.24. Hmm, in slice 1 bottom shows \"07 韭菜\" partly covered. The blurred rectangle covers part. There's 2.24 and 2.00 amounts. Item 07's name partially hidden but \"韭菜\" readable. Actually it says \"07 韭菜\" with more text obscured? The blue box covers part. There is 2.24. And 2.00 likely item 08 (name fully hidden). \n\nHmm, should I include item 08? Name is not identifiable — the box covers it. The amount 2.00 appears. I don't know the name. Better to mention in ignored_summary? Or include as 未归类? The rule: items only what identifiable. Since raw_name unavailable, I'll omit it and mention in ignored_summary that one item (序号08) name is obscured.\n\nActually maybe safer to skip and note \"序号08商品名称被遮挡无法识别\".\n\nItem 07 韭菜 — 韭菜 is in the vegetable list. raw_name \"韭菜\", quantity_text? Size unclear, hidden. The unit price line is covered. So quantity_text null, count 1.\n\nWait, is item 07's name fully visible? \"07 韭菜\" — appears \"07 韭菜\" then covered. Could be \"韭菜\" alone or \"韭菜xxx\". I'll use raw_name \"韭菜\".\n\n09 加碘盐500g 500g ×1 单价1.90/件 1.90 → canonical 盐, seasoning, quantity_text \"500g\"\n10 洗洁精1kg 1kg ×1 7.90 → irrelevant, canonical 未归类, category irrelevant.\n\nTotal 10件 confirms 10 items, so item 08 exists unknown.\n\nPurchase date: 交易时间 2026-10-21 08:12:37.\n\nStorage and shelf life:\n土豆 room, fridge 30, room 14?  Let's give reasonable: potato room 30 days, fridge 30, freezer null.\n胡萝卜 fridge 14, room 7.\n青椒 fridge 7.\n鲈鱼 fridge 2, freezer 90.\n基围虾 fridge 2, freezer 90 (fresh shrimp).\n绿豆芽 fridge 3.\n韭菜 fridge 3.\n盐 room, shelf life room 730, fridge null, freezer null.\n洗洁精 irrelevant: storage room, null.\n\nselected true all (receipt).\nis_gift false all.\n\ncanonical names: 土豆, 胡萝卜, 青椒, 鲈鱼, 基围虾, 豆芽, 韭菜, 盐, 未归类.\n\n绿豆芽 → 豆芽 is in list. Good.\n\nimage_index: all 1 (first image index 1).\n\nsource_type: receipt.\n\nignored_summary: mention 实收合计、商品数量、条形码、感谢语 and obscured item 08.",
+            "role": "assistant"
+          }
+        }
+      ],
+      "created": 1792539451,
+      "id": "8c962c54-59a0-4a7f-b389-38f074d41e85",
+      "model": "deepseek-flash",
+      "object": "chat.completion",
+      "system_fingerprint": "e72d3c7f663d3e1383b00b3884cb4501",
+      "usage": {
+        "completion_tokens": 2019,
+        "completion_tokens_details": {
+          "reasoning_tokens": 788
+        },
+        "prompt_cache_hit_tokens": 2432,
+        "prompt_cache_miss_tokens": 1928,
+        "prompt_tokens": 4360,
+        "prompt_tokens_details": {
+          "cached_tokens": 2432
+        },
+        "total_tokens": 6379
+      }
+    }
+  ],
+  "elapsed_ms": 7579
+}

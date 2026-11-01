@@ -1,0 +1,50 @@
+{
+  "batches": [
+    {
+      "firstImage": -1,
+      "lastImage": -1
+    }
+  ],
+  "format": 1,
+  "request": {
+    "imageCount": 0,
+    "inputKind": "order-text",
+    "promptVersion": "v2",
+    "textLength": 268
+  },
+  "responses": [
+    {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "logprobs": null,
+          "message": {
+            "content": "{\"source_type\":\"order\",\"items\":[{\"raw_name\":\"乐牧鲜牛奶 巴氏杀菌\",\"canonical_name\":\"牛奶\",\"quantity_text\":\"950ml\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"今天 10:33\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":7,\"freezer\":null,\"room\":null},\"image_index\":null},{\"raw_name\":\"切片吐司 原味\",\"canonical_name\":\"吐司\",\"quantity_text\":\"350g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"今天 10:33\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":7,\"freezer\":30,\"room\":5},\"image_index\":null},{\"raw_name\":\"鲜切火腿片\",\"canonical_name\":\"火腿\",\"quantity_text\":\"150g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"今天 10:33\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":7,\"freezer\":30,\"room\":null},\"image_index\":null},{\"raw_name\":\"鲜鸡蛋 30枚装\",\"canonical_name\":\"鸡蛋\",\"quantity_text\":\"30枚1.5kg\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"今天 10:33\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":30,\"freezer\":null,\"room\":15},\"image_index\":null},{\"raw_name\":\"烟台红富士\",\"canonical_name\":\"苹果\",\"quantity_text\":\"约1kg\",\"count\":2,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"今天 10:33\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":60,\"freezer\":null,\"room\":30},\"image_index\":null},{\"raw_name\":\"一次性湿厕纸\",\"canonical_name\":\"未归类\",\"quantity_text\":\"40片\",\"count\":1,\"category\":\"irrelevant\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"今天 10:33\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":null},\"image_index\":null}],\"ignored_summary\":\"包装费、配送费、商家满减\"}",
+            "reasoning_content": "We need answer JSON only. Need parse order. Need items purchased: 乐牧鲜牛奶 巴氏杀菌 950ml, 切片吐司 原味 350g, 鲜切火腿片 150g, 鲜鸡蛋 30枚装 30枚1.5kg, 烟台红富士 约1kg count 2, 一次性湿厕纸 40片. Exclude packaging delivery discounts. source_type order. selected true all. is_gift false all. Dates: order says 今天 10:33. purchase_date_text? \"今天 10:33\" visible; likely use that. Production/expiry null. category: milk food canonical 牛奶; toast canonical 吐司? staple list has 吐司. ham slices processed canonical 火腿? \"火腿\" in processed. Egg canonical 鸡蛋. Apple canonical 苹果. Wet toilet paper irrelevant, canonical 未归类? It's nonfood not in list. Need canonical_name only from list; 未归类 allowed. storage: milk fridge, shelf life days common: fridge maybe 7, freezer null, room null? Pasteurized milk refrigerator 5-7 days. Toast room maybe 5? freezer 60? fridge 7? But instructions estimate common. Need reasonable. Ham slices fridge maybe 7; freezer 30? room null. Eggs room maybe 30 or fridge 40? Usually eggs fridge 30-40, room 15? Need estimate. Apples room 30, fridge 60? Wet wipes room null. Need count integer. Quantity_text exactly from original: \"950ml\", \"350g\", \"150g\", \"30枚1.5kg\", \"约1kg\", \"40片\". raw_name exact lines. For apple raw \"烟台红富士\". Purchase date \"今天 10:33\" for all. image_index null.\n\nNeed ensure JSON valid. No markdown. Use true booleans. Category \"irrelevant\" for wet wipes. selected true. is_gift false. For canonical of wet wipes: \"未归类\" because no suitable. shelf_life_days object with integers/null.\n\nNeed consider \"切片吐司 原味\" canonical \"吐司\", storage room maybe 5, fridge 7? freezer 30. For ham slices canonical \"火腿\" maybe processed. \"鲜切火腿片\" is ham. shelf life fridge 7, freezer 30. Milk canonical 牛奶, storage fridge, shelf: fridge 7, freezer null, room null. Eggs storage fridge? Common eggs fridge; shelf fridge 30, room 15? Freezer null. Apples room, shelf room 30, fridge 60. Toast room, shelf room 5, fridge 10, freezer 30. Ham fridge 7 freezer 30. Wet wipes room null all.\n\nNeed maybe count for apples 2. quantity_text \"约1kg\" though count 2; okay. count for other 1.\n\nignored_summary concise \"包装费、配送费、商家满减\". The order header? no.\n\nOutput object only.",
+            "role": "assistant"
+          }
+        }
+      ],
+      "created": 1792539465,
+      "id": "d55f3dc6-3cd6-4d1c-be11-254574de787b",
+      "model": "deepseek-flash",
+      "object": "chat.completion",
+      "system_fingerprint": "e72d3c7f663d3e1383b00b3884cb4501",
+      "usage": {
+        "completion_tokens": 1248,
+        "completion_tokens_details": {
+          "reasoning_tokens": 640
+        },
+        "prompt_cache_hit_tokens": 2304,
+        "prompt_cache_miss_tokens": 454,
+        "prompt_tokens": 2758,
+        "prompt_tokens_details": {
+          "cached_tokens": 2304
+        },
+        "total_tokens": 4006
+      }
+    }
+  ],
+  "elapsed_ms": 5694
+}

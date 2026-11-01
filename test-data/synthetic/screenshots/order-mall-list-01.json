@@ -1,0 +1,251 @@
+{
+  "schema_version": 1,
+  "id": "order-mall-list-01",
+  "sample_kind": "screenshot",
+  "style": "order-mall-list",
+  "source_type": "order",
+  "capture_date": "2026-10-19",
+  "file": "order-mall-list-01.png",
+  "items": [
+    {
+      "canonical_name": "大米",
+      "raw_name": "【产地直发】禾田东北大米 新米",
+      "quantity_text": "5kg",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-14 21:05:33",
+      "optional": false
+    },
+    {
+      "canonical_name": "菜籽油",
+      "raw_name": "禾田 压榨一级菜籽油",
+      "quantity_text": "5L",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-14 21:05:33",
+      "optional": false
+    },
+    {
+      "canonical_name": "三文鱼",
+      "raw_name": "【冷链配送】冰鲜三文鱼中段",
+      "quantity_text": "500g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": "10月16日生产",
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-17 12:40:18",
+      "optional": false
+    },
+    {
+      "canonical_name": "白虾",
+      "raw_name": "冷冻大虾 白虾",
+      "quantity_text": "500g",
+      "count": 2,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-17 12:40:18",
+      "optional": false
+    },
+    {
+      "canonical_name": "牛奶",
+      "raw_name": "乐牧纯牛奶 整箱",
+      "quantity_text": "250ml*24盒",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-18 08:22:47",
+      "optional": false
+    },
+    {
+      "canonical_name": "芝士片",
+      "raw_name": "乐牧芝士片 儿童",
+      "quantity_text": "200g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-18 08:22:47",
+      "optional": false
+    },
+    {
+      "canonical_name": "酸奶",
+      "raw_name": "乐牧希腊酸奶",
+      "quantity_text": "135g*6杯",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-18 08:22:47",
+      "optional": false
+    },
+    {
+      "canonical_name": "生抽",
+      "raw_name": "鼎味轩 特级酿造生抽",
+      "quantity_text": "1.28L",
+      "count": 1,
+      "category": "seasoning",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-18 20:15:09",
+      "optional": false
+    },
+    {
+      "canonical_name": "陈醋",
+      "raw_name": "鼎味轩 陈醋 五年",
+      "quantity_text": "500ml",
+      "count": 2,
+      "category": "seasoning",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-18 20:15:09",
+      "optional": false
+    },
+    {
+      "canonical_name": "芝麻香油",
+      "raw_name": "纯芝麻香油",
+      "quantity_text": "300ml",
+      "count": 1,
+      "category": "seasoning",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-18 20:15:09",
+      "optional": false
+    },
+    {
+      "canonical_name": "花椒油",
+      "raw_name": "藤椒油",
+      "quantity_text": "250ml",
+      "count": 1,
+      "category": "seasoning",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-18 20:15:09",
+      "optional": false
+    },
+    {
+      "canonical_name": "未归类",
+      "raw_name": "调料收纳盒 套装",
+      "quantity_text": "6件套",
+      "count": 1,
+      "category": "irrelevant",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-18 20:15:09",
+      "optional": false
+    },
+    {
+      "canonical_name": "核桃",
+      "raw_name": "每日坚果 薄壳核桃",
+      "quantity_text": "500g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 09:30:55",
+      "optional": false
+    },
+    {
+      "canonical_name": "枣",
+      "raw_name": "新疆灰枣 一等",
+      "quantity_text": "1kg",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 09:30:55",
+      "optional": false
+    },
+    {
+      "canonical_name": "枸杞",
+      "raw_name": "宁夏枸杞 特优",
+      "quantity_text": "250g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 09:30:55",
+      "optional": false
+    },
+    {
+      "canonical_name": "榴莲",
+      "raw_name": "【产地直发】金枕榴莲 果肉",
+      "quantity_text": "400g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 11:02:10",
+      "optional": false
+    },
+    {
+      "canonical_name": "鸡翅",
+      "raw_name": "新奥尔良烤翅",
+      "quantity_text": "500g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 11:02:10",
+      "optional": false
+    }
+  ],
+  "ignored_kinds": [
+    "优惠券",
+    "广告横幅",
+    "猜你喜欢"
+  ],
+  "ignored_items": [
+    {
+      "raw_name": "店铺优惠券 满 100 减 10",
+      "kind": "优惠券"
+    },
+    {
+      "raw_name": "锦厨火锅底料",
+      "kind": "猜你喜欢"
+    },
+    {
+      "raw_name": "海泊虾皮",
+      "kind": "猜你喜欢"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "batches": [
+    {
+      "firstImage": -1,
+      "lastImage": -1
+    }
+  ],
+  "format": 1,
+  "request": {
+    "imageCount": 0,
+    "inputKind": "order-text",
+    "promptVersion": "v2",
+    "textLength": 319
+  },
+  "responses": [
+    {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "logprobs": null,
+          "message": {
+            "content": "{\"source_type\":\"order\",\"items\":[{\"raw_name\":\"【产地直发】鲜鸡蛋 整箱\",\"canonical_name\":\"鸡蛋\",\"quantity_text\":\"40枚2kg\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026年10月18日 03:45\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":30,\"freezer\":null,\"room\":15},\"image_index\":null},{\"raw_name\":\"草饲牛腩 切块 冷冻\",\"canonical_name\":\"牛腩\",\"quantity_text\":\"1kg\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026年10月18日 03:45\",\"storage\":\"freezer\",\"shelf_life_days\":{\"fridge\":3,\"freezer\":180,\"room\":null},\"image_index\":null},{\"raw_name\":\"烟台红富士 一级\",\"canonical_name\":\"苹果\",\"quantity_text\":\"5斤\",\"count\":2,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026年10月18日 03:45\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":30,\"freezer\":null,\"room\":15},\"image_index\":null},{\"raw_name\":\"赠品 脐橙 2个\",\"canonical_name\":\"橙子\",\"quantity_text\":\"2个\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":true,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026年10月18日 03:45\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":30,\"freezer\":null,\"room\":7},\"image_index\":null},{\"raw_name\":\"鼎味轩 特级酿造生抽\",\"canonical_name\":\"生抽\",\"quantity_text\":\"1.28L\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026年10月18日 03:45\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":365},\"image_index\":null},{\"raw_name\":\"调料收纳盒 套装\",\"canonical_name\":\"未归类\",\"quantity_text\":\"6件套\",\"count\":1,\"category\":\"irrelevant\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026年10月18日 03:45\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":null},\"image_index\":null}],\"ignored_summary\":\"运费、店铺优惠券、订单编号与订单状态等非商品信息\"}",
+            "reasoning_content": "We need answer only JSON object no code block. Need parse. Need determine source_type order. Items actual purchased including gift. Need canonical names from list.\n\nLet's inspect order text:\n\n商家：鲜农生鲜旗舰店\n[商品列表]\n【产地直发】鲜鸡蛋 整箱 规格：40枚2kg 单价 ¥39.90 数量 ×1\n草饲牛腩 切块 冷冻 规格：1kg 单价 ¥69.00 数量 ×1\n烟台红富士 一级 规格：5斤 单价 ¥29.90 数量 ×2\n赠品 脐橙 2个 规格：2个 单价 ¥0.00 数量 ×1\n鼎味轩 特级酿造生抽 规格：1.28L 单价 ¥21.90 数量 ×1\n调料收纳盒 套装 规格：6件套 单价 ¥19.90 数量 ×1\n运费 ¥0.00\n店铺优惠券 -¥10.00\n下单时间：2026年10月18日 03:45\n\nNeed selected all true for order. is_gift true for 脐橙.\n\ncanonical_name:\n鲜鸡蛋 -> 鸡蛋 (egg_dairy), category food. quantity_text \"40枚2kg\" (原文规格). count 1. storage fridge. shelf_life_days: egg fridge maybe 30 days? Need integer or null. Common shelf life estimate from purchase day. Eggs fridge 30-45. Use 30? Need consistent. The instruction says estimate common. Could be null if uncertain. But can infer. Need maybe shelf_life_days {\"fridge\":30,\"freezer\":null,\"room\":15}. But unsure. It's okay. For eggs common fridge 30, room 15. Could put room null? Need choose. For food storage \"fridge\". Shelf_life days is storage-specific all three. For eggs room maybe 15, fridge 30. Since ordered fresh eggs. We'll set fridge 30, freezer null, room 15. But maybe shelf life not asked exact? It's okay.\n\n牛腩: canonical_name 牛腩, category food, quantity_text \"1kg\", count 1, storage freezer (frozen), shelf_life_days fridge 3, freezer 180, room null? Beef brisket frozen 180. Maybe fridge 3. Good.\n\n烟台红富士 -> fruit 苹果. quantity_text \"5斤\"; count 2 (数量 ×2). storage fridge? Apples often room or fridge. Best fridge. shelf_life_days fridge 30, room 15. category food. raw_name \"烟台红富士 一级\". Hmm raw_name should be original product name, maybe \"烟台红富士 一级\" exactly. quantity_text \"5斤\". count 2.\n\n赠品 脐橙 2个 -> canonical_name 橙子 (or 柑橘? 脐橙 is orange, list has 橙子; also 柑橘. Use 橙子). raw_name \"赠品 脐橙 2个\" or product name includes gift? Rule raw_name original商品名逐字转写. The product line is \"赠品 脐橙 2个\"; quantity_text \"2个\"; count 1; is_gift true. category food; storage fridge; shelf_life_days fridge 30 room 7? Oranges fridge 30, room 7-10. Use fridge 30, room 7.\n\n生抽 -> seasoning 生抽. raw_name \"鼎味轩 特级酿造生抽\". quantity_text \"1.28L\"; count 1; category seasoning; storage room; shelf_life_days room 365? Fridge? Soy sauce room 365; can be 365. Since seasoning. Use storage room, shelf_life_days room 365, fridge 365? It's okay. But \"最适合存放位置\" room. category seasoning.\n\n调料收纳盒 套装 -> nonfood irrelevant. canonical_name 未归类. raw_name \"调料收纳盒 套装\"; quantity_text \"6件套\"; count 1; category irrelevant; selected true; is_gift false; storage room; shelf_life_days all null. image_index null.\n\nNo image indices; all null.\n\nIgnored summary: 运费、店铺优惠券、订单编号/状态? \"被排除内容简短概括，如 换购推荐、热卖推荐、优惠横幅、配送费\". We excluded shipping, coupon, order metadata. Could say \"运费、店铺优惠券、订单编号与状态等订单信息\". Need concise. Are order metadata considered excluded? yes maybe. Items only products. ignored_summary should mention non-items: 运费、店铺优惠券、订单编号、状态. That's fine.\n\nNeed ensure JSON valid. Only JSON object. No markdown. Need decide shelf_life_days values. Are there rules that \"shelf_life_days 是从购买当天起，在冷藏、冷冻、常温三种存放方式下常见的保质天数估计，不确定或不适用的填 null.\" We can estimate. Need all integers or null.\n\nLet's think if \"调料收纳盒\" category irrelevant; shelf_life null. storage? The schema requires storage fridge|freezer|room. For nonfood, room. That's okay. canonical_name 未归类 allowed.\n\nPotential issue: \"鲜鸡蛋 整箱\" canonical_name 鸡蛋. Quantity_text \"40枚2kg\" exact. Purchase date \"2026年10月18日 03:45\" for all items. expiry_date_text null. production_date_text null. Note order says 下单时间 not purchase? Purchase_date_text should \"订单或小票上可见的下单或购买时间原文\" so exactly \"2026年10月18日 03:45\".\n\nNeed perhaps include \"订单编号\" not in ignored? Fine.\n\nNeed decide for each item's selected true. Yes.\n\nNo image indices since text input => null.\n\nNeed source_type \"order\".\n\nNeed maybe include item \"店铺优惠券\" no. No.\n\nNeed maybe \"调料收纳盒\" is a purchased product, category irrelevant, selected true, included because it's actual purchased. Rule 1 says items only actual purchased. Yes include even irrelevant? Category irrelevant for日用品. Yes include. It is not food but purchased. So include.\n\nCanonical_name must be from list; for 收纳盒 no suitable => 未归类. Good.\n\nPotential issue: \"赠品 脐橙 2个\" raw_name could be \"脐橙 2个\" or whole product name \"赠品 脐橙 2个\". Rule raw_name原文商品名逐字转写. The line begins \"赠品 脐橙 2个\"; include whole. Quantity_text \"2个\". is_gift true. Good.\n\nPotential issue: canonical_name for 脐橙: \"橙子\" or \"柑橘\"? List includes 橙子 and 柑橘. 脐橙 is a type of orange; choose 橙子. Good.\n\nPotential issue: canonical_name for 红富士: 苹果. raw_name \"烟台红富士 一级\", qty \"5斤\", count 2. Good.\n\nPotential issue: egg shelf life. Let's set \"fridge\": 30, \"freezer\": null, \"room\": 15. For eggs, room shelf life can be 10-15. Fine.\n\nBeef: storage freezer, shelf life: fridge 3, freezer 180, room null. If frozen brisket. Good.\n\nApples: storage fridge, shelf_life_days fridge 30, freezer null, room 15. Good.\n\nOrange: fridge 30, room 7. Good.\n\nSoy sauce: storage room, shelf_life_days room 365, fridge 365? \"n/a\" maybe null for fridge/freezer. It can be stored room; shelf life at fridge not typical. Use fridge null, freezer null, room 365. Good.\n\nContainer: all null.\n\nCould also set \"expiry_date_text\": null for all; \"production_date_text\": null. For eggs maybe no production date. Good.\n\nNeed JSON object with items array. No other text.\n\nLet's craft final JSON. Ensure no code block. Need maybe Chinese punctuation. JSON valid.\n\nUse \"quantity_text\": \"40枚2kg\" no spaces. \"1kg\" etc. \"5斤\". \"1.28L\". \"6件套\". \"2个\".\n\nRaw names:\n\"【产地直发】鲜鸡蛋 整箱\"\n\"草饲牛腩 切块 冷冻\"\n\"烟台红富士 一级\"\n\"赠品 脐橙 2个\"\n\"鼎味轩 特级酿造生抽\"\n\"调料收纳盒 套装\"\n\nCounts: 1,1,2,1,1,1.\n\nPurchase date same.\n\nIgnored summary: \"运费、店铺优惠券、订单编号与订单状态等非商品信息\". Good.\n\nNeed final only JSON.",
+            "role": "assistant"
+          }
+        }
+      ],
+      "created": 1792539471,
+      "id": "c8f746db-050f-4ee5-b6ac-8c8e029350a8",
+      "model": "deepseek-flash",
+      "object": "chat.completion",
+      "system_fingerprint": "e72d3c7f663d3e1383b00b3884cb4501",
+      "usage": {
+        "completion_tokens": 2546,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1877
+        },
+        "prompt_cache_hit_tokens": 2304,
+        "prompt_cache_miss_tokens": 476,
+        "prompt_tokens": 2780,
+        "prompt_tokens_details": {
+          "cached_tokens": 2304
+        },
+        "total_tokens": 5326
+      }
+    }
+  ],
+  "elapsed_ms": 10833
+}

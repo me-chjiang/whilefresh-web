@@ -1,0 +1,50 @@
+{
+  "batches": [
+    {
+      "firstImage": 0,
+      "lastImage": 0
+    }
+  ],
+  "format": 1,
+  "request": {
+    "imageCount": 1,
+    "inputKind": "receipt",
+    "promptVersion": "v2",
+    "textLength": 0
+  },
+  "responses": [
+    {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "logprobs": null,
+          "message": {
+            "content": "{\"source_type\": \"receipt\", \"items\": [{\"raw_name\": \"全麦吐司片\", \"canonical_name\": \"吐司\", \"quantity_text\": \"400g\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-20 19:05:41\", \"storage\": \"room\", \"shelf_life_days\": {\"fridge\": null, \"freezer\": 30, \"room\": 5}, \"image_index\": 1}, {\"raw_name\": \"火腿切片\", \"canonical_name\": \"火腿\", \"quantity_text\": \"150g\", \"count\": 2, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-20 19:05:41\", \"storage\": \"fridge\", \"shelf_life_days\": {\"fridge\": 7, \"freezer\": 60, \"room\": null}, \"image_index\": 1}, {\"raw_name\": \"乐牧原味酸奶8杯\", \"canonical_name\": \"酸奶\", \"quantity_text\": \"100g*8\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-20 19:05:41\", \"storage\": \"fridge\", \"shelf_life_days\": {\"fridge\": 21, \"freezer\": null, \"room\": null}, \"image_index\": 1}, {\"raw_name\": \"脐橙（散称）\", \"canonical_name\": \"橙子\", \"quantity_text\": \"1.12kg\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-20 19:05:41\", \"storage\": \"room\", \"shelf_life_days\": {\"fridge\": 30, \"freezer\": null, \"room\": 14}, \"image_index\": 1}, {\"raw_name\": \"紫洋葱\", \"canonical_name\": \"洋葱\", \"quantity_text\": \"0.55kg\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-20 19:05:41\", \"storage\": \"room\", \"shelf_life_days\": {\"fridge\": 30, \"freezer\": null, \"room\": 30}, \"image_index\": 1}, {\"raw_name\": \"冷鲜鸡胸肉\", \"canonical_name\": \"鸡胸肉\", \"quantity_text\": \"420g\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-20 19:05:41\", \"storage\": \"fridge\", \"shelf_life_days\": {\"fridge\": 2, \"freezer\": 90, \"room\": null}, \"image_index\": 1}, {\"raw_name\": \"锦厨蚝油510g\", \"canonical_name\": \"蚝油\", \"quantity_text\": \"510g\", \"count\": 1, \"category\": \"seasoning\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-20 19:05:41\", \"storage\": \"room\", \"shelf_life_days\": {\"fridge\": 365, \"freezer\": null, \"room\": 365}, \"image_index\": 1}, {\"raw_name\": \"5号电池8粒\", \"canonical_name\": \"未归类\", \"quantity_text\": \"8粒\", \"count\": 1, \"category\": \"irrelevant\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-20 19:05:41\", \"storage\": \"room\", \"shelf_life_days\": {\"fridge\": null, \"freezer\": null, \"room\": null}, \"image_index\": 1}, {\"raw_name\": \"鲜切面条\", \"canonical_name\": \"鲜面条\", \"quantity_text\": \"500g\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-20 19:05:41\", \"storage\": \"fridge\", \"shelf_life_days\": {\"fridge\": 3, \"freezer\": 30, \"room\": 1}, \"image_index\": 1}], \"ignored_summary\": \"仅包含小票抬头、交易时间、收银台、流水号、实收合计和商品数量等票据信息，没有推荐、换购或优惠内容\"}",
+            "reasoning_content": "Let me extract items.\n\n1. 全麦吐司片 400g ×1 — canonical: 吐司 (staple), count 1, quantity_text \"400g\", storage room, shelf_life room ~5? Let's give fridge 7? Bread commonly room 3-5 days, fridge not ideal, freezer 30. I'll fill: fridge null? Better provide reasonable: fridge 7, freezer 30, room 5. Hmm, guidance: common shelf life estimates. I'll do room 5, freezer 30, fridge null? I'll give fridge 7.\n\nActually simpler: storage \"room\", shelf_life_days {\"fridge\": null, \"freezer\": 30, \"room\": 5}.\n\n2. 火腿切片 150g ×2 — canonical 火腿 (processed), count 2, quantity \"150g\", storage fridge, shelf: fridge 7, freezer 60, room null. purchase date 2026-10-20 19:05:41.\n\n3. 乐牧原味酸奶8杯 — canonical 酸奶 (egg_dairy), quantity \"100g*8\", count 1, fridge, shelf 21.\n\n4. 脐橙(散称) 1.12kg — canonical 橙子 (fruit), quantity \"1.12kg\", count 1, room, shelf 14.\n\n5. 紫洋葱 0.55kg — canonical 洋葱 (vegetable), room, shelf 30.\n\n6. 冷鲜鸡胸肉 420g — 鸡胸肉 (meat), fridge, shelf 2, freezer 90.\n\n7. 锦厨蚝油510g — 蚝油 (seasoning), room, shelf 365.\n\n8. 5号电池8粒 — irrelevant, canonical 未归类. Should it be included in items? It's purchased but non-food daily good — include with category irrelevant, selected true. Yes include.\n\n9. 鲜切面条 500g — 鲜面条 (staple), fridge, shelf 3, freezer 30.\n\nPurchase date for all: \"2026-10-20 19:05:41\".\n\nimage_index 1 for all.\n\nignored_summary: 小票无推荐/优惠内容，仅标题与合计信息（无排除商品）.",
+            "role": "assistant"
+          }
+        }
+      ],
+      "created": 1792539445,
+      "id": "d969c097-a013-4cb0-89f3-d2c83bacba95",
+      "model": "deepseek-flash",
+      "object": "chat.completion",
+      "system_fingerprint": "e72d3c7f663d3e1383b00b3884cb4501",
+      "usage": {
+        "completion_tokens": 1701,
+        "completion_tokens_details": {
+          "reasoning_tokens": 489
+        },
+        "prompt_cache_hit_tokens": 2432,
+        "prompt_cache_miss_tokens": 1838,
+        "prompt_tokens": 4270,
+        "prompt_tokens_details": {
+          "cached_tokens": 2432
+        },
+        "total_tokens": 5971
+      }
+    }
+  ],
+  "elapsed_ms": 6217
+}

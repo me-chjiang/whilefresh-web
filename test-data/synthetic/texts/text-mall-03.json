@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "id": "text-mall-03",
+  "sample_kind": "text",
+  "style": "text-mall",
+  "source_type": "text",
+  "capture_date": "2026-10-18",
+  "file": "text-mall-03.txt",
+  "items": [
+    {
+      "canonical_name": "鸡蛋",
+      "raw_name": "【产地直发】鲜鸡蛋 整箱",
+      "quantity_text": "40枚2kg",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026年10月18日 03:45",
+      "optional": false
+    },
+    {
+      "canonical_name": "牛腩",
+      "raw_name": "草饲牛腩 切块 冷冻",
+      "quantity_text": "1kg",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026年10月18日 03:45",
+      "optional": false
+    },
+    {
+      "canonical_name": "苹果",
+      "raw_name": "烟台红富士 一级",
+      "quantity_text": "5斤",
+      "count": 2,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026年10月18日 03:45",
+      "optional": false
+    },
+    {
+      "canonical_name": "橙子",
+      "raw_name": "赠品 脐橙 2个",
+      "quantity_text": "2个",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": true,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026年10月18日 03:45",
+      "optional": false
+    },
+    {
+      "canonical_name": "生抽",
+      "raw_name": "鼎味轩 特级酿造生抽",
+      "quantity_text": "1.28L",
+      "count": 1,
+      "category": "seasoning",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026年10月18日 03:45",
+      "optional": false
+    },
+    {
+      "canonical_name": "未归类",
+      "raw_name": "调料收纳盒 套装",
+      "quantity_text": "6件套",
+      "count": 1,
+      "category": "irrelevant",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026年10月18日 03:45",
+      "optional": false
+    }
+  ],
+  "ignored_kinds": [
+    "优惠券",
+    "配送费"
+  ],
+  "ignored_items": [
+    {
+      "raw_name": "运费",
+      "kind": "配送费"
+    },
+    {
+      "raw_name": "店铺优惠券",
+      "kind": "优惠券"
+    }
+  ]
+}

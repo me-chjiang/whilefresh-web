@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "id": "text-darkstore-01",
+  "sample_kind": "text",
+  "style": "text-darkstore",
+  "source_type": "text",
+  "capture_date": "2026-10-19",
+  "file": "text-darkstore-01.txt",
+  "items": [
+    {
+      "canonical_name": "西红柿",
+      "raw_name": "新鲜沙瓤西红柿",
+      "quantity_text": "500g±20g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 18:43:25",
+      "optional": false
+    },
+    {
+      "canonical_name": "肥牛",
+      "raw_name": "火锅肥牛片 精选",
+      "quantity_text": "250g",
+      "count": 2,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 18:43:25",
+      "optional": false
+    },
+    {
+      "canonical_name": "鸡蛋",
+      "raw_name": "【产地直发】鲜鸡蛋",
+      "quantity_text": "10枚530g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 18:43:25",
+      "optional": false
+    },
+    {
+      "canonical_name": "上海青",
+      "raw_name": "上海青 嫩叶",
+      "quantity_text": "300g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 18:43:25",
+      "optional": false
+    },
+    {
+      "canonical_name": "豆腐",
+      "raw_name": "老豆腐 现做",
+      "quantity_text": "400g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 18:43:25",
+      "optional": false
+    },
+    {
+      "canonical_name": "蚝油",
+      "raw_name": "锦厨 蚝油",
+      "quantity_text": "510g",
+      "count": 1,
+      "category": "seasoning",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 18:43:25",
+      "optional": false
+    },
+    {
+      "canonical_name": "香菜",
+      "raw_name": "赠品 香菜",
+      "quantity_text": "约50g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": true,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 18:43:25",
+      "optional": false
+    },
+    {
+      "canonical_name": "未归类",
+      "raw_name": "抽取式纸巾",
+      "quantity_text": "6包",
+      "count": 1,
+      "category": "irrelevant",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 18:43:25",
+      "optional": false
+    }
+  ],
+  "ignored_kinds": [
+    "优惠券",
+    "配送费"
+  ],
+  "ignored_items": [
+    {
+      "raw_name": "配送费",
+      "kind": "配送费"
+    },
+    {
+      "raw_name": "新客立减券",
+      "kind": "优惠券"
+    }
+  ]
+}

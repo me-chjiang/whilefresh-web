@@ -1,0 +1,31 @@
+{
+  "format": 1,
+  "request": {
+    "inputKind": "order-text",
+    "imageCount": 0,
+    "textLength": 48,
+    "promptVersion": "v2"
+  },
+  "responses": [
+    {
+      "id": "synthetic-0001",
+      "object": "chat.completion",
+      "model": "deepseek-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\"source_type\": \"text\", \"items\": [{\"raw_name\": \"演示 火锅肥牛片 200g\", \"canonical_name\": \"肥牛\", \"quantity_text\": \"200g\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": null, \"storage\": \"freezer\", \"shelf_life_days\": {\"fridge\": null, \"freezer\": null, \"room\": null}, \"image_index\": 1}, {\"raw_name\": \"演示 西兰花 1颗\", \"canonical_name\": \"西兰花\", \"quantity_text\": \"1颗\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": null, \"storage\": \"fridge\", \"shelf_life_days\": {\"fridge\": null, \"freezer\": null, \"room\": null}, \"image_index\": 1}, {\"raw_name\": \"演示 原味酸奶 4杯\", \"canonical_name\": \"酸奶\", \"quantity_text\": \"4杯\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": null, \"storage\": \"fridge\", \"shelf_life_days\": {\"fridge\": null, \"freezer\": null, \"room\": null}, \"image_index\": 1}], \"ignored_summary\": \"演示订单文字：已忽略配送费和优惠券\"}"
+          },
+          "finish_reason": "stop"
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0
+      }
+    }
+  ]
+}

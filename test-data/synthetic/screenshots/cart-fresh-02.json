@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "id": "cart-fresh-02",
+  "sample_kind": "screenshot",
+  "style": "cart-fresh",
+  "source_type": "cart",
+  "capture_date": "2026-10-21",
+  "file": "cart-fresh-02.png",
+  "items": [
+    {
+      "canonical_name": "牛腩",
+      "raw_name": "牛腩 带筋 冷冻",
+      "quantity_text": "500g",
+      "count": 1,
+      "category": "food",
+      "selected": false,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "羊肉卷",
+      "raw_name": "内蒙羊肉卷",
+      "quantity_text": "300g",
+      "count": 1,
+      "category": "food",
+      "selected": false,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "西芹",
+      "raw_name": "西芹 嫩",
+      "quantity_text": "300g",
+      "count": 1,
+      "category": "food",
+      "selected": false,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "莲藕",
+      "raw_name": "九孔莲藕",
+      "quantity_text": "约500g",
+      "count": 1,
+      "category": "food",
+      "selected": false,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "生菜",
+      "raw_name": "球生菜",
+      "quantity_text": "1个约350g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "豆腐干",
+      "raw_name": "五香豆腐干",
+      "quantity_text": "200g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "面包",
+      "raw_name": "德式碱水面包",
+      "quantity_text": "6个",
+      "count": 1,
+      "category": "food",
+      "selected": false,
+      "is_gift": false,
+      "production_date_text": "今天生产",
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "未归类",
+      "raw_name": "洗衣液 薰衣草香",
+      "quantity_text": "2kg",
+      "count": 1,
+      "category": "irrelevant",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "花椒",
+      "raw_name": "麻椒 特麻",
+      "quantity_text": "50g",
+      "count": 1,
+      "category": "seasoning",
+      "selected": false,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    }
+  ],
+  "ignored_kinds": [
+    "凑单提示",
+    "广告横幅",
+    "热卖推荐"
+  ],
+  "ignored_items": [
+    {
+      "raw_name": "锦厨酸汤肥牛",
+      "kind": "热卖推荐"
+    },
+    {
+      "raw_name": "海泊鲜虾",
+      "kind": "热卖推荐"
+    }
+  ]
+}

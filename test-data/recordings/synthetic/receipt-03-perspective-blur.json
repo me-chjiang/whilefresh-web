@@ -1,0 +1,50 @@
+{
+  "batches": [
+    {
+      "firstImage": 0,
+      "lastImage": 0
+    }
+  ],
+  "format": 1,
+  "request": {
+    "imageCount": 1,
+    "inputKind": "receipt",
+    "promptVersion": "v2",
+    "textLength": 0
+  },
+  "responses": [
+    {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "logprobs": null,
+          "message": {
+            "content": "{\"source_type\":\"receipt\",\"items\":[{\"raw_name\":\"全麦吐司片\",\"canonical_name\":\"吐司\",\"quantity_text\":\"400g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-20 19:05:41\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":10,\"freezer\":60,\"room\":5},\"image_index\":1},{\"raw_name\":\"火腿切片\",\"canonical_name\":\"火腿\",\"quantity_text\":\"150g\",\"count\":2,\"category\":\"processed\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-20 19:05:41\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":7,\"freezer\":60,\"room\":1},\"image_index\":1},{\"raw_name\":\"乐牧原味酸奶8杯\",\"canonical_name\":\"酸奶\",\"quantity_text\":\"100g*8\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-20 19:05:41\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":21,\"freezer\":null,\"room\":1},\"image_index\":1},{\"raw_name\":\"脐橙(散称)\",\"canonical_name\":\"橙子\",\"quantity_text\":\"1.12kg\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-20 19:05:41\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":30,\"freezer\":null,\"room\":14},\"image_index\":1},{\"raw_name\":\"紫洋葱\",\"canonical_name\":\"洋葱\",\"quantity_text\":\"0.55kg\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-20 19:05:41\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":30,\"freezer\":null,\"room\":30},\"image_index\":1},{\"raw_name\":\"冷鲜鸡胸肉\",\"canonical_name\":\"鸡胸肉\",\"quantity_text\":\"420g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-20 19:05:41\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":3,\"freezer\":90,\"room\":1},\"image_index\":1},{\"raw_name\":\"锦厨蚝油510g\",\"canonical_name\":\"蚝油\",\"quantity_text\":\"510g\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-20 19:05:41\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":540},\"image_index\":1},{\"raw_name\":\"5号电池8粒\",\"canonical_name\":\"未归类\",\"quantity_text\":\"8粒\",\"count\":1,\"category\":\"irrelevant\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-20 19:05:41\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":null},\"image_index\":1},{\"raw_name\":\"鲜切面条\",\"canonical_name\":\"面条\",\"quantity_text\":\"500g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-20 19:05:41\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":3,\"freezer\":60,\"room\":1},\"image_index\":2}],\"ignored_summary\":\"小票抬头、收银台号、流水号、实收合计、商品数量合计、条形码、致谢语，均非商品条目\"}",
+            "reasoning_content": "Let me extract items.\n\n1. 全麦吐司片 400g ×1 9.90 → 吐司, food, fridge? 吐司 room or fridge. storage room, shelf_life_days room 3? Let's give fridge 7, room 3, freezer 30. Actually keep simple: storage room, fridge null... Let's think: 吐司 best stored room, shelf_life_days room 5, fridge 10, freezer 60.\n\n2. 火腿切片 150g ×2 17.00 → 火腿, processed, count 2, fridge, shelf_life fridge 7.\n\n3. 乐牧原味酸奶8杯 100g*8 ×1 → 酸奶, food, fridge, 21 days.\n\n4. 脐橙(散称) 1.12kg ×1 → 橙子, fruit, room, 14.\n\n5. 紫洋葱 0.55kg ×1 → 洋葱, vegetable, room, 30.\n\n6. 冷鲜鸡胸肉 420g ×1 → 鸡胸肉, meat, fridge, 3.\n\n7. 锦厨蚝油510g → 蚝油, seasoning, room, 365.\n\n8. 5号电池8粒 → 未归类, irrelevant, count 1, room, null.\n\n9. 鲜切面条 500g ×1 → 面条, staple, fridge, 3.\n\npurchase_date_text: 2026-10-20 19:05:41.\n\nAll selected true. is_gift false.\n\nignored_summary: 无（小票无推荐/优惠信息）.",
+            "role": "assistant"
+          }
+        }
+      ],
+      "created": 1792539439,
+      "id": "c92dcca4-2714-4a5a-802b-30e0a150c387",
+      "model": "deepseek-flash",
+      "object": "chat.completion",
+      "system_fingerprint": "e72d3c7f663d3e1383b00b3884cb4501",
+      "usage": {
+        "completion_tokens": 1333,
+        "completion_tokens_details": {
+          "reasoning_tokens": 352
+        },
+        "prompt_cache_hit_tokens": 2432,
+        "prompt_cache_miss_tokens": 1838,
+        "prompt_tokens": 4270,
+        "prompt_tokens_details": {
+          "cached_tokens": 2432
+        },
+        "total_tokens": 5603
+      }
+    }
+  ],
+  "elapsed_ms": 5599
+}

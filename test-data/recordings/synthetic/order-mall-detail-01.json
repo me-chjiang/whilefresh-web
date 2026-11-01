@@ -1,0 +1,50 @@
+{
+  "batches": [
+    {
+      "firstImage": 0,
+      "lastImage": 0
+    }
+  ],
+  "format": 1,
+  "request": {
+    "imageCount": 1,
+    "inputKind": "screenshot",
+    "promptVersion": "v2",
+    "textLength": 0
+  },
+  "responses": [
+    {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "logprobs": null,
+          "message": {
+            "content": "{\"source_type\":\"order\",\"items\":[{\"raw_name\":\"【产地直发】鲜鸡蛋 整箱\",\"canonical_name\":\"鸡蛋\",\"quantity_text\":\"40枚2kg\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-20 15:48:21\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":30,\"freezer\":null,\"room\":15},\"image_index\":1},{\"raw_name\":\"草饲牛腩 切块 冷冻\",\"canonical_name\":\"牛腩\",\"quantity_text\":\"1kg\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-20 15:48:21\",\"storage\":\"freezer\",\"shelf_life_days\":{\"fridge\":3,\"freezer\":90,\"room\":null},\"image_index\":1},{\"raw_name\":\"黑猪后腿肉\",\"canonical_name\":\"猪肉\",\"quantity_text\":\"500g±20g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":\"今天生产\",\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-20 15:48:21\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":3,\"freezer\":90,\"room\":null},\"image_index\":1},{\"raw_name\":\"烟台红富士 一级\",\"canonical_name\":\"苹果\",\"quantity_text\":\"5斤\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-20 15:48:21\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":30,\"freezer\":null,\"room\":7},\"image_index\":1},{\"raw_name\":\"赠品 脐橙 2个\",\"canonical_name\":\"橙子\",\"quantity_text\":\"2个\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":true,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-20 15:48:21\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":30,\"freezer\":null,\"room\":7},\"image_index\":1}],\"ignored_summary\":\"为你推荐（海泊虾仁、山野核桃）、运费、店铺优惠券、平台立减、实付款等金额信息\"}",
+            "reasoning_content": "Let me parse the items.\n\n1. 【产地直发】鲜鸡蛋 整箱, 规格:40枚2kg, ¥39.90 x1, canonical: 鸡蛋, food, fridge, shelf life fridge 30, freezer null, room null? Eggs: fridge 30 days, room 15 days. Image 1.\n2. 草饲牛腩 切块 冷冻, 规格:1kg, ¥69.00, canonical: 牛腩, food, freezer, shelf_life_days freezer 90, fridge 3.\n3. 黑猪后腿肉 今天生产, 规格:500g±20g, ¥23.90, canonical: 猪肉 (后腿肉 not in list; 前腿肉 is, but 后腿肉 → 猪肉). production_date_text \"今天生产\". fridge 3 days.\n4. 烟台红富士 一级, 规格:5斤, ¥29.90, canonical: 苹果, food, fridge, 30 days.\n5. 赠品 脐橙 2个 赠品, 规格:2个, ¥0.00, canonical: 橙子, is_gift true, food, fridge, 30 days.\n\nPurchase date: 2026-10-20 15:48:21 下单时间.\n\nignored_summary: 为你推荐（海泊虾仁、山野核桃）、运费、店铺优惠券、平台立减。",
+            "role": "assistant"
+          }
+        }
+      ],
+      "created": 1792539411,
+      "id": "329a9967-0bfe-4f8a-b5d0-8582c5012ad0",
+      "model": "deepseek-flash",
+      "object": "chat.completion",
+      "system_fingerprint": "e72d3c7f663d3e1383b00b3884cb4501",
+      "usage": {
+        "completion_tokens": 892,
+        "completion_tokens_details": {
+          "reasoning_tokens": 311
+        },
+        "prompt_cache_hit_tokens": 2432,
+        "prompt_cache_miss_tokens": 2761,
+        "prompt_tokens": 5193,
+        "prompt_tokens_details": {
+          "cached_tokens": 2432
+        },
+        "total_tokens": 6085
+      }
+    }
+  ],
+  "elapsed_ms": 4503
+}

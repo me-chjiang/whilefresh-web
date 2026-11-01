@@ -1,0 +1,50 @@
+{
+  "batches": [
+    {
+      "firstImage": 0,
+      "lastImage": 0
+    }
+  ],
+  "format": 1,
+  "request": {
+    "imageCount": 1,
+    "inputKind": "screenshot",
+    "promptVersion": "v2",
+    "textLength": 0
+  },
+  "responses": [
+    {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "logprobs": null,
+          "message": {
+            "content": "{\"source_type\":\"order\",\"items\":[{\"raw_name\":\"葱 小香葱\",\"canonical_name\":\"小葱\",\"quantity_text\":\"100g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-17 19:22:09\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":7,\"freezer\":60,\"room\":2},\"image_index\":1},{\"raw_name\":\"老姜\",\"canonical_name\":\"姜\",\"quantity_text\":\"200g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-17 19:22:09\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":30,\"freezer\":90,\"room\":30},\"image_index\":1},{\"raw_name\":\"紫皮大蒜\",\"canonical_name\":\"蒜\",\"quantity_text\":\"250g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-17 19:22:09\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":60,\"freezer\":90,\"room\":30},\"image_index\":1},{\"raw_name\":\"鼎味轩 头道生抽\",\"canonical_name\":\"生抽\",\"quantity_text\":\"1L\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-17 19:22:09\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":365},\"image_index\":1},{\"raw_name\":\"锦厨 蚝油\",\"canonical_name\":\"蚝油\",\"quantity_text\":\"700g\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-17 19:22:09\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":365},\"image_index\":1},{\"raw_name\":\"鼎味轩 老抽\",\"canonical_name\":\"老抽\",\"quantity_text\":\"500ml\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-17 19:22:09\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":365},\"image_index\":1},{\"raw_name\":\"四川红花椒\",\"canonical_name\":\"花椒\",\"quantity_text\":\"100g\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-17 19:22:09\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":365},\"image_index\":1},{\"raw_name\":\"八角 大料\",\"canonical_name\":\"八角\",\"quantity_text\":\"50g\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-17 19:22:09\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":365},\"image_index\":1},{\"raw_name\":\"黄皮洋葱\",\"canonical_name\":\"洋葱\",\"quantity_text\":\"1kg\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-17 19:22:09\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":30,\"freezer\":null,\"room\":30},\"image_index\":1},{\"raw_name\":\"奥尔良鸡翅中\",\"canonical_name\":\"鸡翅\",\"quantity_text\":\"500g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-17 19:22:09\",\"storage\":\"freezer\",\"shelf_life_days\":{\"fridge\":2,\"freezer\":90,\"room\":null},\"image_index\":1},{\"raw_name\":\"5号电池 碱性\",\"canonical_name\":\"未归类\",\"quantity_text\":\"4粒\",\"count\":1,\"category\":\"irrelevant\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-17 19:22:09\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":null},\"image_index\":1},{\"raw_name\":\"洗洁精\",\"canonical_name\":\"未归类\",\"quantity_text\":\"1kg\",\"count\":2,\"category\":\"irrelevant\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-17 19:22:09\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":null},\"image_index\":1}],\"ignored_summary\":\"配送费、红包抵扣、商品总额与实付金额、订单编号、支付方式、联系客服与再来一单按钮\"}",
+            "reasoning_content": "Let me extract items.\n\n1. 葱 小香葱 100g ¥2.50 x1 — canonical: 小葱 (词表有 小葱 and 葱). raw \"葱 小香葱\". Choose 小葱. category food, storage fridge, shelf_life_days fridge 7, freezer 60, room 2? 小葱 room 1-2 days. Let's give fridge 7, freezer 60, room 2.\n\n2. 老姜 200g — canonical 姜. food, storage room (or fridge). 姜 room 30, fridge 30, freezer 60.\nActually storage for 姜: room is fine. Let's say room, fridge 30, room 30, freezer 90.\n\n3. 紫皮大蒜 250g — canonical 蒜. room 30.\n\n4. 鼎味轩 头道生抽 1L — canonical 生抽. seasoning. room. fridge null, room 365.\n\n5. 锦厨 蚝油 700g — canonical 蚝油. seasoning. room 365 (after opening fridge). room 365.\n\n6. 鼎味轩 老抽 500ml — 老抽. seasoning.\n\n7. 四川红花椒 100g — 花椒. seasoning. room 365.\n\n8. 八角 大料 50g — 八角. seasoning. room 365.\n\n9. 黄皮洋葱 1kg — 洋葱. food. room 30.\n\n10. 奥尔良鸡翅中 500g — 鸡翅. food. freezer 90, fridge 2.\n\n11. 5号电池 碱性 4粒 — irrelevant. Not food. Should it be in items? Rule 1 says items only user actually purchased goods; rule 4 category includes irrelevant for 日用品. So include with category irrelevant. Yes include, category irrelevant, canonical_name 未归类, storage room, shelf_life null.\n\n12. 洗洁精 1kg x2 — irrelevant, count 2.\n\nIgnored summary: 配送费、红包抵扣、订单编号/支付方式、再来一单、联系客服.\n\npurchase_date_text: 2026-10-17 19:22:09.\n\nimage_index: 1 for all.\n\nNote: 生抽 1L appearance first in slice1 bottom / slice2 — image index 1.\n\nNow shelf_life_days estimates:\n- 小葱: fridge 7, freezer 60, room 2\n- 姜: fridge 30, freezer 90, room 30\n- 蒜: fridge 60, freezer 90, room 30\n- 生抽: room 365, fridge null, freezer null\n- 蚝油: room 365\n- 老抽: room 365\n- 花椒: room 365\n- 八角: room 365\n- 洋葱: room 30, fridge 30, freezer null\n- 鸡翅: fridge 2, freezer 90, room null\n- 电池: all null\n- 洗洁精: all null\n\nselected true for all (order).",
+            "role": "assistant"
+          }
+        }
+      ],
+      "created": 1792539373,
+      "id": "47fa7517-5b5b-48f9-aa78-ab0a9ccfc412",
+      "model": "deepseek-flash",
+      "object": "chat.completion",
+      "system_fingerprint": "e72d3c7f663d3e1383b00b3884cb4501",
+      "usage": {
+        "completion_tokens": 1937,
+        "completion_tokens_details": {
+          "reasoning_tokens": 664
+        },
+        "prompt_cache_hit_tokens": 2432,
+        "prompt_cache_miss_tokens": 3778,
+        "prompt_tokens": 6210,
+        "prompt_tokens_details": {
+          "cached_tokens": 2432
+        },
+        "total_tokens": 8147
+      }
+    }
+  ],
+  "elapsed_ms": 7346
+}

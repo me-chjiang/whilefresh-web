@@ -1,0 +1,50 @@
+{
+  "batches": [
+    {
+      "firstImage": 0,
+      "lastImage": 0
+    }
+  ],
+  "format": 1,
+  "request": {
+    "imageCount": 1,
+    "inputKind": "screenshot",
+    "promptVersion": "v2",
+    "textLength": 0
+  },
+  "responses": [
+    {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "logprobs": null,
+          "message": {
+            "content": "{\"source_type\":\"cart\",\"items\":[{\"raw_name\":\"牛腩 带筋 冷冻\",\"canonical_name\":\"牛腩\",\"quantity_text\":\"500g\",\"count\":1,\"category\":\"food\",\"selected\":false,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":null,\"storage\":\"freezer\",\"shelf_life_days\":{\"fridge\":2,\"freezer\":180,\"room\":null},\"image_index\":1},{\"raw_name\":\"内蒙羊肉卷\",\"canonical_name\":\"羊肉卷\",\"quantity_text\":\"300g\",\"count\":1,\"category\":\"food\",\"selected\":false,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":null,\"storage\":\"freezer\",\"shelf_life_days\":{\"fridge\":2,\"freezer\":180,\"room\":null},\"image_index\":1},{\"raw_name\":\"西芹 嫩\",\"canonical_name\":\"西芹\",\"quantity_text\":\"300g\",\"count\":1,\"category\":\"food\",\"selected\":false,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":null,\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":7,\"freezer\":null,\"room\":2},\"image_index\":1},{\"raw_name\":\"九孔莲藕\",\"canonical_name\":\"莲藕\",\"quantity_text\":\"约500g\",\"count\":1,\"category\":\"food\",\"selected\":false,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":null,\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":7,\"freezer\":null,\"room\":2},\"image_index\":1},{\"raw_name\":\"球生菜\",\"canonical_name\":\"生菜\",\"quantity_text\":\"1个约350g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":null,\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":5,\"freezer\":null,\"room\":1},\"image_index\":1},{\"raw_name\":\"五香豆腐干\",\"canonical_name\":\"豆腐干\",\"quantity_text\":\"200g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":null,\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":15,\"freezer\":60,\"room\":1},\"image_index\":1},{\"raw_name\":\"德式碱水面包\",\"canonical_name\":\"面包\",\"quantity_text\":\"6个\",\"count\":1,\"category\":\"food\",\"selected\":false,\"is_gift\":false,\"production_date_text\":\"今天生产\",\"expiry_date_text\":null,\"purchase_date_text\":null,\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":7,\"freezer\":60,\"room\":3},\"image_index\":1},{\"raw_name\":\"洗衣液 薰衣草香\",\"canonical_name\":\"未归类\",\"quantity_text\":\"2kg\",\"count\":1,\"category\":\"irrelevant\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":null,\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":null},\"image_index\":1},{\"raw_name\":\"麻椒 特麻\",\"canonical_name\":\"花椒\",\"quantity_text\":\"50g\",\"count\":1,\"category\":\"seasoning\",\"selected\":false,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":null,\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":365},\"image_index\":1}],\"ignored_summary\":\"满减活动横幅（秋日暖胃季·汤锅食材满减）、起送凑单提示、热卖推荐（锦厨酸汤肥牛、海泊鲜虾）、配送时间说明、合计金额\"}",
+            "reasoning_content": "Let me extract items from the cart.\n\nCart items (9 total in cart, but visible list):\n1. 牛腩 带筋 冷冻 500g ¥39.90, not selected\n2. 内蒙羊肉卷 300g ¥28.00, not selected\n3. 西芹 嫩 300g ¥4.50, not selected\n4. 九孔莲藕 约500g ¥9.90, not selected\n5. 球生菜 1个约350g ¥4.90, selected ✓\n6. 五香豆腐干 200g ¥5.50, selected ✓\n7. 德式碱水面包 6个 ¥14.90, 今天生产, not selected\n8. 洗衣液 薰衣草香 2kg ¥29.90, selected ✓\n9. 麻椒 特麻 50g ¥8.80, not selected\n\nSelected count = 3, matches \"去结算(3)\". Good.\n\nNow canonical names:\n- 牛腩 带筋 冷冻 → 牛腩, food\n- 内蒙羊肉卷 → 羊肉卷\n- 西芹 嫩 → 西芹\n- 九孔莲藕 → 莲藕\n- 球生菜 → 生菜 (or 罗马生菜? 球生菜 is iceberg lettuce; 生菜 is best)\n- 五香豆腐干 → 豆腐干\n- 德式碱水面包 → 面包\n- 洗衣液 → 未归类, category irrelevant\n- 麻椒 特麻 → 花椒 (麻椒 is a type of Sichuan pepper). Canonical 花椒. category seasoning.\n\nStorage & shelf life:\n- 牛腩: freezer, fridge 2, freezer 180, room null\n- 羊肉卷: freezer, freezer 180, fridge 2\n- 西芹: fridge 7\n- 莲藕: fridge 7\n- 生菜: fridge 5\n- 豆腐干: fridge 15? It's vacuum packed tofu dried; fridge 30. Use fridge 15.\n- 面包: room 3, fridge 7? Bread: room 3 days, freezer 60.\n- 洗衣液: room, non-food, storage room, shelf life null\n- 麻椒: room 365\n\npurchase_date_text: cart shows \"明日 08:00-10:00 送达\" — not a purchase date. So null. Nothing.\n\nimage_index: all 1.\n\nGift: none.\n\nignored_summary: 优惠横幅（秋日暖胃季汤锅食材满减）、凑单提示、热卖推荐（锦厨酸汤肥牛、海泊鲜虾）.\n\nselected field for non-selected items false.\n\nOutput JSON.",
+            "role": "assistant"
+          }
+        }
+      ],
+      "created": 1792539349,
+      "id": "dae410e0-356f-4db3-9c0c-a98511e3f5bc",
+      "model": "deepseek-flash",
+      "object": "chat.completion",
+      "system_fingerprint": "e72d3c7f663d3e1383b00b3884cb4501",
+      "usage": {
+        "completion_tokens": 1497,
+        "completion_tokens_details": {
+          "reasoning_tokens": 596
+        },
+        "prompt_cache_hit_tokens": 2432,
+        "prompt_cache_miss_tokens": 2952,
+        "prompt_tokens": 5384,
+        "prompt_tokens_details": {
+          "cached_tokens": 2432
+        },
+        "total_tokens": 6881
+      }
+    }
+  ],
+  "elapsed_ms": 6112
+}

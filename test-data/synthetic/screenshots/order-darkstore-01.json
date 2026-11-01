@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "id": "order-darkstore-01",
+  "sample_kind": "screenshot",
+  "style": "order-darkstore",
+  "source_type": "order",
+  "capture_date": "2026-10-19",
+  "file": "order-darkstore-01.png",
+  "items": [
+    {
+      "canonical_name": "菠菜",
+      "raw_name": "有机菠菜",
+      "quantity_text": "250g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 18:43:25",
+      "optional": false
+    },
+    {
+      "canonical_name": "牛里脊",
+      "raw_name": "牛里脊 嫩切",
+      "quantity_text": "300g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": "今天生产",
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 18:43:25",
+      "optional": false
+    },
+    {
+      "canonical_name": "鸡蛋",
+      "raw_name": "鲜鸡蛋",
+      "quantity_text": "10枚530g",
+      "count": 2,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 18:43:25",
+      "optional": false
+    },
+    {
+      "canonical_name": "豆芽",
+      "raw_name": "绿豆芽",
+      "quantity_text": "300g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 18:43:25",
+      "optional": false
+    },
+    {
+      "canonical_name": "三文鱼",
+      "raw_name": "冰鲜三文鱼 刺身级",
+      "quantity_text": "200g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": "今天生产",
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 18:43:25",
+      "optional": false
+    },
+    {
+      "canonical_name": "蒸鱼豉油",
+      "raw_name": "鼎味轩 蒸鱼豉油",
+      "quantity_text": "400ml",
+      "count": 1,
+      "category": "seasoning",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 18:43:25",
+      "optional": false
+    },
+    {
+      "canonical_name": "大葱",
+      "raw_name": "赠品 大葱 1根",
+      "quantity_text": "1根",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": true,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 18:43:25",
+      "optional": false
+    },
+    {
+      "canonical_name": "未归类",
+      "raw_name": "洗洁精 柠檬香",
+      "quantity_text": "500g",
+      "count": 1,
+      "category": "irrelevant",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 18:43:25",
+      "optional": false
+    }
+  ],
+  "ignored_kinds": [
+    "优惠券",
+    "包装费",
+    "满减",
+    "配送费"
+  ],
+  "ignored_items": [
+    {
+      "raw_name": "配送费",
+      "kind": "配送费"
+    },
+    {
+      "raw_name": "包装费",
+      "kind": "包装费"
+    },
+    {
+      "raw_name": "新客立减券",
+      "kind": "优惠券"
+    },
+    {
+      "raw_name": "满 60 减 6",
+      "kind": "满减"
+    }
+  ]
+}

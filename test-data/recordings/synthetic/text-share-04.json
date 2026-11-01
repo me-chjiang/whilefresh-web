@@ -1,0 +1,50 @@
+{
+  "batches": [
+    {
+      "firstImage": -1,
+      "lastImage": -1
+    }
+  ],
+  "format": 1,
+  "request": {
+    "imageCount": 0,
+    "inputKind": "order-text",
+    "promptVersion": "v2",
+    "textLength": 243
+  },
+  "responses": [
+    {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "logprobs": null,
+          "message": {
+            "content": "{\"source_type\":\"cart\",\"items\":[{\"raw_name\":\"鸡胸肉 冷鲜（400g）\",\"canonical_name\":\"鸡胸肉\",\"quantity_text\":\"400g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":null,\"storage\":\"freezer\",\"shelf_life_days\":{\"fridge\":2,\"freezer\":180,\"room\":null},\"image_index\":null},{\"raw_name\":\"西兰花 新鲜（约350g）\",\"canonical_name\":\"西兰花\",\"quantity_text\":\"约350g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":null,\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":7,\"freezer\":240,\"room\":2},\"image_index\":null},{\"raw_name\":\"绿秋葵 嫩（250g）\",\"canonical_name\":\"秋葵\",\"quantity_text\":\"250g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":null,\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":5,\"freezer\":180,\"room\":2},\"image_index\":null},{\"raw_name\":\"乐牧高钙牛奶（250ml*10盒）\",\"canonical_name\":\"牛奶\",\"quantity_text\":\"250ml*10盒\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":null,\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":7,\"freezer\":null,\"room\":180},\"image_index\":null},{\"raw_name\":\"鲜鸡蛋 土鸡蛋（10枚530g）\",\"canonical_name\":\"鸡蛋\",\"quantity_text\":\"10枚530g\",\"count\":2,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":null,\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":30,\"freezer\":null,\"room\":15},\"image_index\":null},{\"raw_name\":\"鼎味轩 酿造酱油（500ml）\",\"canonical_name\":\"酱油\",\"quantity_text\":\"500ml\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":null,\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":180,\"freezer\":null,\"room\":365},\"image_index\":null},{\"raw_name\":\"糯玉米 真空装（4根）\",\"canonical_name\":\"玉米\",\"quantity_text\":\"4根\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":null,\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":7,\"freezer\":180,\"room\":180},\"image_index\":null}],\"ignored_summary\":\"配送费、购物清单标题及页面说明文字\"}",
+            "reasoning_content": "We need answer JSON only. Need parse items. Need determine source_type: order? It says 分享购物清单 已选商品, likely cart? Contains selected? \"已选商品\" all items. source_type maybe cart because \"已选商品\" and x quantities. But \"来自...商品清单\" no order date. Could be cart. Need choose cart|order|receipt|text|other. It says 分享购物清单, 已选商品 => cart. Items all selected true? Rule 1 cart selected true if checked. They are under 已选商品, so true.\n\nNeed canonical names from list:\n1 鸡胸肉 冷鲜（400g） -> 鸡胸肉 (meat). quantity_text \"400g\" maybe \"（400g）\" visible. count 1. category food. storage freezer? Chicken breast best freezer, shelf_life_days fridge maybe 2, freezer 180, room null. Need common estimates. For raw chicken, fridge 2 days, freezer 180 days, room null. selected true, gift false, production/expiry null, purchase_date null, image_index null.\n2 西兰花 新鲜（约350g） -> 西兰花. qty \"约350g\" or \"（约350g）\". count 1. food. storage fridge. shelf life fridge 7, freezer 180? room 2? Broccoli room short 1-2; but best fridge. We need fill all three shelf_life_days estimates. Could set fridge 7, freezer 240, room 2. But uncertain maybe null? They want integer or null. Need reasonable. I can set fridge 7, freezer 300, room 2? Hmm.\n3 绿秋葵 嫩（250g） -> 秋葵. qty 250g. food. storage fridge. shelf: fridge 5, freezer null, room 1-2. Use 5, null, 2.\n4 乐牧高钙牛奶（250ml*10盒） -> 牛奶. quantity_text \"250ml*10盒\". count 1. food. storage fridge. shelf life? UHT or pasteurized unknown. Milk common fridge 7 days after purchase? If shelf-stable maybe room 180. But storage best fridge. shelf_life_days fridge 7, freezer null, room null? Could be 250ml*10 boxes likely shelf-stable? \"高钙牛奶\" maybe boxed UHT, room 180. But storage could room? Milk best fridge after opening, unopened room for UHT. The instruction storage is best location. For milk, fridge generally. shelf fridge 7, room 180? Need not overthink. Maybe set fridge 7, freezer null, room 180. But if fresh milk 7. \"乐牧高钙牛奶（250ml*10盒）\" likely boxed milk, storage room; but family fridge management maybe put fridge. Hmm.\n5 鲜鸡蛋 土鸡蛋（10枚530g） x2 -> 鸡蛋. quantity_text \"10枚530g\". count 2. food. storage fridge. shelf fridge 30, freezer null, room 15? Eggs often room 7-15, fridge 30-40. Use fridge 30, freezer null, room 15.\n6 鼎味轩 酿造酱油（500ml） -> 酱油. qty 500ml. count1. category seasoning. storage room. shelf life: room 365? fridge 365? freezer null. Soy sauce best room; shelf 365 or 540. Use room 365, fridge 365, freezer null.\n7 糯玉米 真空装（4根） -> 玉米. quantity \"4根\". count 1. food. storage room? Vacuum packed corn room; or fridge. Best room if vacuum. shelf room 180, fridge 7? Hmm. Vacuum corn can room 180-365, fridge 7-15, freezer 180. If fresh vacuum packed, room maybe 90. Use storage room, shelf room 180, fridge 7, freezer 180. But \"糯玉米 真空装\" can be room. Maybe canonical 玉米.\n\nNeed ignored_summary: 配送费. Also maybe \"分享购物清单\" not item. \"来自青禾鲜市的商品清单\" not item. Include 配送费. There are no recommendations etc. Could mention 配送费.\n\nNeed each item purchase_date_text null (no date). production/expiry null. raw_name exact. For item 1 raw_name \"鸡胸肉 冷鲜（400g）\" maybe include all. item 2 exact \"西兰花 新鲜（约350g）\". item3 \"绿秋葵 嫩（250g）\". item4 \"乐牧高钙牛奶（250ml*10盒）\". item5 \"鲜鸡蛋 土鸡蛋（10枚530g）\". item6 \"鼎味轩 酿造酱油（500ml）\". item7 \"糯玉米 真空装（4根）\". quantity_text: \"400g\", \"约350g\", \"250g\", \"250ml*10盒\", \"10枚530g\", \"500ml\", \"4根\". Count x2 for eggs. price not included.\n\nNeed ensure JSON valid. No code block. Only JSON object. Need no trailing comments.\n\nNeed decide source_type. \"分享购物清单\" \"已选商品\" indicates cart. source_type cart.\n\nPotential issue \"selected\" for cart: all under 已选商品. true. Good.\n\nNeed maybe category for 酱油 seasoning. others food. No irrelevant.\n\nNeed choose canonical exact. 鸡胸肉 yes in meat. 西兰花 vegetable. 秋葵 vegetable. 牛奶 egg_dairy. 鸡蛋 egg_dairy. 酱油 seasoning. 玉米 vegetable.\n\nNeed storage for eggs room? Best fridge. For milk best fridge. For soy sauce room. For vacuum corn room. For chicken freezer. Broccoli/okra fridge.\n\nShelf life estimates. Need be reasonable. Let's formulate:\n\n鸡胸肉: fridge 2, freezer 180, room null. Actually raw chicken room not applicable. okay.\n西兰花: fridge 7, freezer 240, room 2.\n秋葵: fridge 5, freezer 180? Okra can freeze blanch 8-12 months. room 2. Use freezer 180.\n牛奶: fridge 7, freezer null, room 180? Need if boxed UHT. But \"高钙牛奶（250ml*10盒）\" likely常温奶. Storage room. Hmm storage should be room if UHT boxed. But many family put milk fridge. \"最适合存放位置\" for unopened UHT milk room, after opening fridge. Since quantity boxes, room. Shelf: room 180, fridge 7? This is odd. Maybe set storage room, shelf room 180, fridge 7, freezer null. But if it's fresh milk, room 1. The product \"乐牧高钙牛奶\" likely is boxed milk shelf-stable? \"250ml*10盒\" yes UHT. So storage room. However the app manages fridge; but storage can room. Use room. shelf_life_days: room 180, fridge 7 (after opening), freezer null. But \"from purchase date\" common保质天数 for room. Good.\n鸡蛋: storage fridge. shelf fridge 30, freezer null, room 15.\n酱油: storage room. shelf room 365, fridge 365? Unopened 365-540; after opening fridge 180. Use room 365, fridge 180, freezer null.\n玉米 vacuum: storage room. shelf room 180, fridge 7, freezer 180. Actually vacuum corn room 180. Good.\n\nPotential issue for milk: canonical 牛奶. category food. is_gift false.\n\nNeed image_index null all.\n\nNeed ignored_summary maybe \"配送费、购物清单标题及页面说明文字\". Good.\n\nNeed output only JSON. Ensure no markdown. Use double quotes.\n\nLet's final.",
+            "role": "assistant"
+          }
+        }
+      ],
+      "created": 1792539483,
+      "id": "2fa37c7b-b1fe-4f05-8536-70225bf18d41",
+      "model": "deepseek-flash",
+      "object": "chat.completion",
+      "system_fingerprint": "e72d3c7f663d3e1383b00b3884cb4501",
+      "usage": {
+        "completion_tokens": 2411,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1697
+        },
+        "prompt_cache_hit_tokens": 2304,
+        "prompt_cache_miss_tokens": 440,
+        "prompt_tokens": 2744,
+        "prompt_tokens_details": {
+          "cached_tokens": 2304
+        },
+        "total_tokens": 5155
+      }
+    }
+  ],
+  "elapsed_ms": 11261
+}

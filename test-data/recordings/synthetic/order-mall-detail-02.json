@@ -1,0 +1,50 @@
+{
+  "batches": [
+    {
+      "firstImage": 0,
+      "lastImage": 0
+    }
+  ],
+  "format": 1,
+  "request": {
+    "imageCount": 1,
+    "inputKind": "screenshot",
+    "promptVersion": "v2",
+    "textLength": 0
+  },
+  "responses": [
+    {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "logprobs": null,
+          "message": {
+            "content": "{\"source_type\":\"order\",\"items\":[{\"raw_name\":\"鼎味轩 零添加生抽\",\"canonical_name\":\"生抽\",\"quantity_text\":\"500ml\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-18 03:45:02\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":540},\"image_index\":1},{\"raw_name\":\"鼎味轩 红烧老抽\",\"canonical_name\":\"老抽\",\"quantity_text\":\"500ml\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-18 03:45:02\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":540},\"image_index\":1},{\"raw_name\":\"锦厨 黄酒料酒\",\"canonical_name\":\"料酒\",\"quantity_text\":\"1L\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-18 03:45:02\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":540},\"image_index\":1},{\"raw_name\":\"鼎味轩 香醋\",\"canonical_name\":\"香醋\",\"quantity_text\":\"500ml\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-18 03:45:02\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":720},\"image_index\":1},{\"raw_name\":\"禾田 海盐\",\"canonical_name\":\"盐\",\"quantity_text\":\"350g\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-18 03:45:02\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":1000},\"image_index\":1},{\"raw_name\":\"禾田 绵白糖\",\"canonical_name\":\"白糖\",\"quantity_text\":\"500g\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-18 03:45:02\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":720},\"image_index\":1},{\"raw_name\":\"单晶冰糖\",\"canonical_name\":\"冰糖\",\"quantity_text\":\"400g\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-18 03:45:02\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":720},\"image_index\":1},{\"raw_name\":\"八角\",\"canonical_name\":\"八角\",\"quantity_text\":\"100g\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-18 03:45:02\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":720},\"image_index\":1},{\"raw_name\":\"二荆条辣椒干\",\"canonical_name\":\"干辣椒\",\"quantity_text\":\"100g\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-18 03:45:02\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":365},\"image_index\":1},{\"raw_name\":\"汉源花椒\",\"canonical_name\":\"花椒\",\"quantity_text\":\"100g\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-18 03:45:02\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":540},\"image_index\":1},{\"raw_name\":\"锦厨 白胡椒粉\",\"canonical_name\":\"白胡椒\",\"quantity_text\":\"50g\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-18 03:45:02\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":540},\"image_index\":1},{\"raw_name\":\"纯芝麻酱\",\"canonical_name\":\"芝麻酱\",\"quantity_text\":\"300g\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-18 03:45:02\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":180,\"freezer\":null,\"room\":180},\"image_index\":1},{\"raw_name\":\"古法甜面酱\",\"canonical_name\":\"甜面酱\",\"quantity_text\":\"300g\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-18 03:45:02\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":180,\"freezer\":null,\"room\":270},\"image_index\":1},{\"raw_name\":\"蒜蓉辣酱\",\"canonical_name\":\"蒜蓉酱\",\"quantity_text\":\"230g\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-18 03:45:02\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":180,\"freezer\":null,\"room\":270},\"image_index\":1},{\"raw_name\":\"日式咖喱块\",\"canonical_name\":\"咖喱\",\"quantity_text\":\"100g\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-18 03:45:02\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":365},\"image_index\":1},{\"raw_name\":\"东北干香菇 冬菇\",\"canonical_name\":\"干香菇\",\"quantity_text\":\"150g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-18 03:45:02\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":365},\"image_index\":1},{\"raw_name\":\"黑木耳 干货\",\"canonical_name\":\"干木耳\",\"quantity_text\":\"200g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-18 03:45:02\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":365},\"image_index\":1},{\"raw_name\":\"手工腐竹\",\"canonical_name\":\"腐竹\",\"quantity_text\":\"250g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-18 03:45:02\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":365},\"image_index\":1},{\"raw_name\":\"无沙紫菜\",\"canonical_name\":\"紫菜\",\"quantity_text\":\"50g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-18 03:45:02\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":365},\"image_index\":1},{\"raw_name\":\"调料瓶 玻璃 6件套\",\"canonical_name\":\"未归类\",\"quantity_text\":\"6件\",\"count\":1,\"category\":\"irrelevant\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-18 03:45:02\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":null},\"image_index\":1},{\"raw_name\":\"厨房一次性手套\",\"canonical_name\":\"未归类\",\"quantity_text\":\"100只\",\"count\":1,\"category\":\"irrelevant\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-18 03:45:02\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":null},\"image_index\":1}],\"ignored_summary\":\"评价领红包横幅、猜你喜欢推荐（鼎味轩蚝油、锦厨火锅蘸料、禾田淀粉）、运费、店铺满减、订单编号与支付方式等信息\"}",
+            "reasoning_content": "Let me list items from the order.\n\n1. 鼎味轩 零添加生抽, 规格:500ml, x1, seasoning, 生抽, 500ml, storage room\n2. 鼎味轩 红烧老抽, 500ml, 老抽\n3. 锦厨 黄酒料酒, 1L, 料酒\n4. 鼎味轩 香醋, 500ml, 香醋\n5. 禾田 海盐, 350g, 盐\n6. 禾田 绵白糖, 500g, 白糖\n7. 单晶冰糖, 400g, 冰糖\n8. 八角, 100g, 八角\n9. 二荆条辣椒干, 100g, 干辣椒\n10. 汉源花椒, 100g, 花椒\n11. 锦厨 白胡椒粉, 50g, 白胡椒\n12. 纯芝麻酱, 300g, 芝麻酱\n13. 古法甜面酱, 300g, 甜面酱\n14. 蒜蓉辣酱, 230g, 辣椒酱? 蒜蓉酱 is in list. 蒜蓉辣酱 → 蒜蓉酱\n15. 日式咖喱块, 100g, 咖喱\n16. 东北干香菇 冬菇, 150g, 干香菇\n17. 黑木耳 干货, 200g, 干木耳\n18. 手工腐竹, 250g, 腐竹\n19. 无沙紫菜, 50g, 紫菜\n20. 调料瓶 玻璃 6件套, 6件, irrelevant\n21. 厨房一次性手套, 100只, irrelevant\n\nIgnored: 猜你喜欢推荐（鼎味轩蚝油、锦厨火锅蘸料、禾田淀粉）、红包横幅、运费、店铺满减。\n\npurchase_date_text: 2026-10-18 03:45:02\n\nshelf_life_days: for seasonings, room storage; soy sauce ~365 days, etc. I'll provide reasonable estimates.\n\nLet me set:\n- 生抽: room, fridge null, freezer null, room 365\n- 老抽: room 365\n- 料酒: room 365\n- 香醋: room 365\n- 盐: room 730\n- 白糖: room 730\n- 冰糖: room 730\n- 八角: room 730\n- 干辣椒: room 365\n- 花椒: room 365\n- 白胡椒: room 365\n- 芝麻酱: room 180\n- 甜面酱: room 180 (fridge 180)\n- 蒜蓉酱: room 180\n- 咖喱: room 365\n- 干香菇: room 365\n- 干木耳: room 365\n- 腐竹: room 365\n- 紫菜: room 365\n- 调料瓶: irrelevant, storage room, nulls\n- 手套: room\n\nimage_index: all 1.\n\nsource_type: order.",
+            "role": "assistant"
+          }
+        }
+      ],
+      "created": 1792539416,
+      "id": "01525e1a-16b2-4729-8f49-ea79cd4c80ba",
+      "model": "deepseek-flash",
+      "object": "chat.completion",
+      "system_fingerprint": "e72d3c7f663d3e1383b00b3884cb4501",
+      "usage": {
+        "completion_tokens": 2903,
+        "completion_tokens_details": {
+          "reasoning_tokens": 678
+        },
+        "prompt_cache_hit_tokens": 2432,
+        "prompt_cache_miss_tokens": 5985,
+        "prompt_tokens": 8417,
+        "prompt_tokens_details": {
+          "cached_tokens": 2432
+        },
+        "total_tokens": 11320
+      }
+    }
+  ],
+  "elapsed_ms": 11152
+}

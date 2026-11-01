@@ -1,0 +1,20 @@
+.DS_Store
+
+# Secrets
+.env
+.env.*
+*.key
+*.pem
+*secret*
+*credential*
+
+# Dependencies and tool caches
+node_modules/
+.pnpm-store/
+/.cache/
+
+# Build, runtime data, test output
+/dist/
+/data/
+/test-results/
+/playwright-report/

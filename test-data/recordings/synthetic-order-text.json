@@ -1,0 +1,31 @@
+{
+ "format": 1,
+ "request": {
+  "inputKind": "order-text",
+  "imageCount": 0,
+  "textLength": 120,
+  "promptVersion": "v2"
+ },
+ "responses": [
+  {
+   "id": "synthetic-0001",
+   "object": "chat.completion",
+   "model": "deepseek-flash",
+   "choices": [
+    {
+     "index": 0,
+     "message": {
+      "role": "assistant",
+      "content": "{\n  \"source_type\": \"text\",\n  \"items\": [\n    {\n      \"raw_name\": \"猪五花肉 500g\",\n      \"canonical_name\": \"五花肉\",\n      \"quantity_text\": \"500g\",\n      \"count\": 1,\n      \"category\": \"food\",\n      \"selected\": true,\n      \"is_gift\": false,\n      \"production_date_text\": null,\n      \"expiry_date_text\": null,\n      \"purchase_date_text\": \"2026-10-18 19:42\",\n      \"storage\": \"fridge\",\n      \"shelf_life_days\": {\n        \"fridge\": 3,\n        \"freezer\": 90,\n        \"room\": null\n      },\n      \"image_index\": null\n    },\n    {\n      \"raw_name\": \"鲜活基围虾 250g\",\n      \"canonical_name\": \"基围虾\",\n      \"quantity_text\": \"250g\",\n      \"count\": 2,\n      \"category\": \"food\",\n      \"selected\": true,\n      \"is_gift\": false,\n      \"production_date_text\": null,\n      \"expiry_date_text\": null,\n      \"purchase_date_text\": \"2026-10-18 19:42\",\n      \"storage\": \"fridge\",\n      \"shelf_life_days\": {\n        \"fridge\": 2,\n        \"freezer\": 90,\n        \"room\": null\n      },\n      \"image_index\": null\n    }\n  ],\n  \"ignored_summary\": \"配送费\"\n}"
+     },
+     "finish_reason": "stop"
+    }
+   ],
+   "usage": {
+    "prompt_tokens": 900,
+    "completion_tokens": 300,
+    "total_tokens": 1200
+   }
+  }
+ ]
+}

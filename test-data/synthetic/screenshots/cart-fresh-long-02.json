@@ -1,0 +1,326 @@
+{
+  "schema_version": 1,
+  "id": "cart-fresh-long-02",
+  "sample_kind": "screenshot",
+  "style": "cart-fresh",
+  "source_type": "cart",
+  "capture_date": "2026-10-19",
+  "file": "cart-fresh-long-02.png",
+  "items": [
+    {
+      "canonical_name": "五花肉",
+      "raw_name": "【黑猪】精选五花肉 切块",
+      "quantity_text": "500g±20g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": "今天生产",
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "排骨",
+      "raw_name": "肋排 小段 新鲜",
+      "quantity_text": "约600g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": "今天生产",
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "土豆",
+      "raw_name": "黄心土豆 现挖",
+      "quantity_text": "1kg",
+      "count": 2,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "胡萝卜",
+      "raw_name": "水灵胡萝卜",
+      "quantity_text": "500g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "青椒",
+      "raw_name": "薄皮青椒",
+      "quantity_text": "250g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "大白菜",
+      "raw_name": "胶州大白菜",
+      "quantity_text": "约1.2kg",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "金针菇",
+      "raw_name": "金针菇 新鲜",
+      "quantity_text": "150g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "香菇",
+      "raw_name": "鲜香菇 肉厚",
+      "quantity_text": "200g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "鲜面条",
+      "raw_name": "鲜切面条 细",
+      "quantity_text": "500g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": "昨天生产",
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "鲈鱼",
+      "raw_name": "活杀鲈鱼 现杀",
+      "quantity_text": "约500g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "香蕉",
+      "raw_name": "高山香蕉",
+      "quantity_text": "约1kg",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "橙子",
+      "raw_name": "脐橙 甜橙",
+      "quantity_text": "2.5kg",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "料酒",
+      "raw_name": "锦厨 葱姜料酒",
+      "quantity_text": "500ml",
+      "count": 1,
+      "category": "seasoning",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "白糖",
+      "raw_name": "禾田 白砂糖",
+      "quantity_text": "400g",
+      "count": 1,
+      "category": "seasoning",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "盐",
+      "raw_name": "禾田 加碘精制盐",
+      "quantity_text": "500g",
+      "count": 1,
+      "category": "seasoning",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "酸奶",
+      "raw_name": "乐牧原味酸奶",
+      "quantity_text": "100g*8杯",
+      "count": 1,
+      "category": "food",
+      "selected": false,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": "保质期至2026-11-02",
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "小葱",
+      "raw_name": "【赠品】小葱",
+      "quantity_text": "100g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": true,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "未归类",
+      "raw_name": "5号碱性电池",
+      "quantity_text": "8粒",
+      "count": 1,
+      "category": "irrelevant",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "未归类",
+      "raw_name": "厨房纸巾",
+      "quantity_text": "2卷",
+      "count": 1,
+      "category": "irrelevant",
+      "selected": false,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "葡萄",
+      "raw_name": "阳光玫瑰葡萄 大串",
+      "quantity_text": "约700g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": "今天生产",
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    },
+    {
+      "canonical_name": "牛油果",
+      "raw_name": "墨西哥牛油果",
+      "quantity_text": "2个约400g",
+      "count": 1,
+      "category": "food",
+      "selected": false,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": null,
+      "optional": false
+    }
+  ],
+  "ignored_kinds": [
+    "优惠券",
+    "凑单提示",
+    "广告横幅",
+    "换购推荐",
+    "热卖推荐",
+    "配送费"
+  ],
+  "ignored_items": [
+    {
+      "raw_name": "满 69 减 8 优惠券",
+      "kind": "优惠券"
+    },
+    {
+      "raw_name": "小包装卫生纸",
+      "kind": "换购推荐"
+    },
+    {
+      "raw_name": "海泊虾皮",
+      "kind": "换购推荐"
+    },
+    {
+      "raw_name": "现烤蛋挞",
+      "kind": "热卖推荐"
+    },
+    {
+      "raw_name": "山楂条",
+      "kind": "热卖推荐"
+    },
+    {
+      "raw_name": "红糖馒头",
+      "kind": "热卖推荐"
+    },
+    {
+      "raw_name": "乐牧牛奶 早餐装",
+      "kind": "热卖推荐"
+    },
+    {
+      "raw_name": "配送费",
+      "kind": "配送费"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+ "format": 1,
+ "request": {
+  "inputKind": "screenshot",
+  "imageCount": 45,
+  "textLength": 0,
+  "promptVersion": "v2"
+ },
+ "batches": [
+  {
+   "firstImage": 0,
+   "lastImage": 22
+  },
+  {
+   "firstImage": 22,
+   "lastImage": 44
+  }
+ ],
+ "responses": [
+  {
+   "id": "synthetic-0001",
+   "object": "chat.completion",
+   "model": "deepseek-flash",
+   "choices": [
+    {
+     "index": 0,
+     "message": {
+      "role": "assistant",
+      "content": "{\n  \"source_type\": \"cart\",\n  \"items\": [\n    {\n      \"raw_name\": \"鲜鸡蛋 10枚\",\n      \"canonical_name\": \"鸡蛋\",\n      \"quantity_text\": \"10枚530g\",\n      \"count\": 1,\n      \"category\": \"food\",\n      \"selected\": true,\n      \"is_gift\": false,\n      \"production_date_text\": null,\n      \"expiry_date_text\": null,\n      \"purchase_date_text\": null,\n      \"storage\": \"fridge\",\n      \"shelf_life_days\": {\n        \"fridge\": null,\n        \"freezer\": null,\n        \"room\": null\n      },\n      \"image_index\": 23\n    },\n    {\n      \"raw_name\": \"洋葱 500g\",\n      \"canonical_name\": \"洋葱\",\n      \"quantity_text\": \"500g\",\n      \"count\": 1,\n      \"category\": \"food\",\n      \"selected\": true,\n      \"is_gift\": false,\n      \"production_date_text\": null,\n      \"expiry_date_text\": null,\n      \"purchase_date_text\": null,\n      \"storage\": \"fridge\",\n      \"shelf_life_days\": {\n        \"fridge\": null,\n        \"freezer\": null,\n        \"room\": null\n      },\n      \"image_index\": 23\n    }\n  ],\n  \"ignored_summary\": \"热卖推荐\"\n}"
+     },
+     "finish_reason": "stop"
+    }
+   ],
+   "usage": {
+    "prompt_tokens": 5000,
+    "completion_tokens": 400,
+    "total_tokens": 5400
+   }
+  },
+  {
+   "id": "synthetic-0001",
+   "object": "chat.completion",
+   "model": "deepseek-flash",
+   "choices": [
+    {
+     "index": 0,
+     "message": {
+      "role": "assistant",
+      "content": "{\n  \"source_type\": \"cart\",\n  \"items\": [\n    {\n      \"raw_name\": \"鲜鸡蛋 10枚\",\n      \"canonical_name\": \"鸡蛋\",\n      \"quantity_text\": \"10枚530g\",\n      \"count\": 1,\n      \"category\": \"food\",\n      \"selected\": true,\n      \"is_gift\": false,\n      \"production_date_text\": null,\n      \"expiry_date_text\": null,\n      \"purchase_date_text\": null,\n      \"storage\": \"fridge\",\n      \"shelf_life_days\": {\n        \"fridge\": null,\n        \"freezer\": null,\n        \"room\": null\n      },\n      \"image_index\": 23\n    },\n    {\n      \"raw_name\": \"鲜鸡蛋 10枚\",\n      \"canonical_name\": \"鸡蛋\",\n      \"quantity_text\": \"10枚530g\",\n      \"count\": 1,\n      \"category\": \"food\",\n      \"selected\": true,\n      \"is_gift\": false,\n      \"production_date_text\": null,\n      \"expiry_date_text\": null,\n      \"purchase_date_text\": null,\n      \"storage\": \"fridge\",\n      \"shelf_life_days\": {\n        \"fridge\": null,\n        \"freezer\": null,\n        \"room\": null\n      },\n      \"image_index\": 40\n    },\n    {\n      \"raw_name\": \"赠 香菜\",\n      \"canonical_name\": \"香菜\",\n      \"quantity_text\": \"20g\",\n      \"count\": 1,\n      \"category\": \"food\",\n      \"selected\": true,\n      \"is_gift\": true,\n      \"production_date_text\": null,\n      \"expiry_date_text\": null,\n      \"purchase_date_text\": null,\n      \"storage\": \"fridge\",\n      \"shelf_life_days\": {\n        \"fridge\": null,\n        \"freezer\": null,\n        \"room\": null\n      },\n      \"image_index\": 40\n    }\n  ],\n  \"ignored_summary\": \"热卖推荐\"\n}"
+     },
+     "finish_reason": "stop"
+    }
+   ],
+   "usage": {
+    "prompt_tokens": 4000,
+    "completion_tokens": 350,
+    "total_tokens": 4350
+   }
+  }
+ ]
+}

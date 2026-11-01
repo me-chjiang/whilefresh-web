@@ -1,0 +1,50 @@
+{
+  "batches": [
+    {
+      "firstImage": 0,
+      "lastImage": 0
+    }
+  ],
+  "format": 1,
+  "request": {
+    "imageCount": 1,
+    "inputKind": "screenshot",
+    "promptVersion": "v2",
+    "textLength": 0
+  },
+  "responses": [
+    {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "logprobs": null,
+          "message": {
+            "content": "{\"source_type\": \"order\", \"items\": [{\"raw_name\": \"进口香蕉\", \"canonical_name\": \"香蕉\", \"quantity_text\": \"约500g\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-18 20:51:04\", \"storage\": \"room\", \"shelf_life_days\": {\"fridge\": 7, \"freezer\": null, \"room\": 5}, \"image_index\": 1}, {\"raw_name\": \"家庭牛排 腌制\", \"canonical_name\": \"牛排\", \"quantity_text\": \"150g*3片\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": \"10月18日生产\", \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-18 20:51:04\", \"storage\": \"freezer\", \"shelf_life_days\": {\"fridge\": 3, \"freezer\": 90, \"room\": null}, \"image_index\": 1}, {\"raw_name\": \"意大利面 直管\", \"canonical_name\": \"意面\", \"quantity_text\": \"500g\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-18 20:51:04\", \"storage\": \"room\", \"shelf_life_days\": {\"fridge\": null, \"freezer\": null, \"room\": 365}, \"image_index\": 1}, {\"raw_name\": \"味之庄 番茄酱\", \"canonical_name\": \"番茄酱\", \"quantity_text\": \"340g\", \"count\": 1, \"category\": \"seasoning\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-18 20:51:04\", \"storage\": \"room\", \"shelf_life_days\": {\"fridge\": 180, \"freezer\": null, \"room\": 180}, \"image_index\": 1}, {\"raw_name\": \"味之庄 沙拉酱\", \"canonical_name\": \"沙拉酱\", \"quantity_text\": \"200g\", \"count\": 1, \"category\": \"seasoning\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-18 20:51:04\", \"storage\": \"fridge\", \"shelf_life_days\": {\"fridge\": 60, \"freezer\": null, \"room\": null}, \"image_index\": 1}, {\"raw_name\": \"罗马生菜\", \"canonical_name\": \"罗马生菜\", \"quantity_text\": \"2颗\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-18 20:51:04\", \"storage\": \"fridge\", \"shelf_life_days\": {\"fridge\": 5, \"freezer\": null, \"room\": null}, \"image_index\": 1}, {\"raw_name\": \"千禧圣女果\", \"canonical_name\": \"圣女果\", \"quantity_text\": \"500g\", \"count\": 1, \"category\": \"food\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-18 20:51:04\", \"storage\": \"fridge\", \"shelf_life_days\": {\"fridge\": 7, \"freezer\": null, \"room\": 5}, \"image_index\": 1}, {\"raw_name\": \"保鲜袋 大号\", \"canonical_name\": \"未归类\", \"quantity_text\": \"100只\", \"count\": 1, \"category\": \"irrelevant\", \"selected\": true, \"is_gift\": false, \"production_date_text\": null, \"expiry_date_text\": null, \"purchase_date_text\": \"2026-10-18 20:51:04\", \"storage\": \"room\", \"shelf_life_days\": {\"fridge\": null, \"freezer\": null, \"room\": null}, \"image_index\": 1}], \"ignored_summary\": \"配送费、包装费、满50减5优惠、订单号与支付方式等非商品信息\"}",
+            "reasoning_content": "Order details, all selected true. Items: 进口香蕉 约500g x1, 家庭牛排 腌制 150g*3片, 意大利面 直管 500g, 味之庄 番茄酱 340g, 味之庄 沙拉酱 200g, 罗马生菜 2颗, 千禧圣女果 500g, 保鲜袋 大号 100只 (irrelevant).\n\nNote: 保鲜袋 is a product purchased, category irrelevant. Rules say items only actual purchased goods; category irrelevant for 日用品. So include it with category irrelevant. Should it be included? Rule 3 excludes recommendations etc. 保鲜袋 is a purchased item, so include with category irrelevant. storage for irrelevant — must pick one; probably \"room\". shelf_life null.\n\nCanonical names: 香蕉 (fruit list has 香蕉). 牛排 (meat list has 牛排). 意大利面 → 意面 (staple). 番茄酱 (seasoning). 沙拉酱 (seasoning). 罗马生菜 (vegetable). 圣女果 (vegetable).\n\nStorage & shelf life:\n- 香蕉: room, fridge ~7, freezer null, room 5\n- 牛排: freezer, fridge 3, freezer 90, room null\n- 意面: room, fridge null, freezer null, room 365\n- 番茄酱: room (opened fridge), room 180, fridge 180? For sauce: room 365, fridge null... Let's give fridge null, room 180.\n- 沙拉酱: fridge, fridge 60, room null\n- 罗马生菜: fridge, fridge 5\n- 圣女果: fridge, fridge 7, room 5\n\npurchase_date_text: 2026-10-18 20:51:04 for all.\n\nproduction_date_text: 家庭牛排 \"10月18日生产\". Expiry null.\n\nImage index 1 for all.",
+            "role": "assistant"
+          }
+        }
+      ],
+      "created": 1792539385,
+      "id": "cc12d1e8-8bca-4d78-aa5a-23d023e13227",
+      "model": "deepseek-flash",
+      "object": "chat.completion",
+      "system_fingerprint": "e72d3c7f663d3e1383b00b3884cb4501",
+      "usage": {
+        "completion_tokens": 1489,
+        "completion_tokens_details": {
+          "reasoning_tokens": 418
+        },
+        "prompt_cache_hit_tokens": 2432,
+        "prompt_cache_miss_tokens": 2493,
+        "prompt_tokens": 4925,
+        "prompt_tokens_details": {
+          "cached_tokens": 2432
+        },
+        "total_tokens": 6414
+      }
+    }
+  ],
+  "elapsed_ms": 6090
+}

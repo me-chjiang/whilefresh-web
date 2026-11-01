@@ -1,0 +1,50 @@
+{
+  "batches": [
+    {
+      "firstImage": 0,
+      "lastImage": 0
+    }
+  ],
+  "format": 1,
+  "request": {
+    "imageCount": 1,
+    "inputKind": "screenshot",
+    "promptVersion": "v2",
+    "textLength": 0
+  },
+  "responses": [
+    {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "logprobs": null,
+          "message": {
+            "content": "{\"source_type\":\"cart\",\"items\":[{\"raw_name\":\"鸡胸肉 冷鲜\",\"canonical_name\":\"鸡胸肉\",\"quantity_text\":\"400g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":\"今天生产\",\"expiry_date_text\":null,\"purchase_date_text\":null,\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":3,\"freezer\":90,\"room\":null},\"image_index\":1},{\"raw_name\":\"西兰花 新鲜\",\"canonical_name\":\"西兰花\",\"quantity_text\":\"约350g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":null,\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":7,\"freezer\":null,\"room\":null},\"image_index\":1},{\"raw_name\":\"鲜鸡蛋 土鸡蛋\",\"canonical_name\":\"鸡蛋\",\"quantity_text\":\"10枚530g\",\"count\":2,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":null,\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":30,\"freezer\":null,\"room\":15},\"image_index\":1},{\"raw_name\":\"乐牧高钙牛奶\",\"canonical_name\":\"牛奶\",\"quantity_text\":\"250ml*10盒\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":null,\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":7,\"freezer\":null,\"room\":180},\"image_index\":1},{\"raw_name\":\"绿秋葵 嫩\",\"canonical_name\":\"秋葵\",\"quantity_text\":\"250g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":\"今天生产\",\"expiry_date_text\":null,\"purchase_date_text\":null,\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":5,\"freezer\":90,\"room\":null},\"image_index\":2},{\"raw_name\":\"鼎味轩 酿造酱油\",\"canonical_name\":\"酱油\",\"quantity_text\":\"500ml\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":null,\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":365},\"image_index\":2}],\"ignored_summary\":\"满59减5优惠券横幅、满39元换购（福瑞矿泉水、乐牧酸奶）、配送费说明、去结算按钮和联系电话等页面元素\"}",
+            "reasoning_content": "Let me extract items from the cart.\n\nItems:\n1. 鸡胸肉 冷鲜 400g, count 1, today production, food, selected true, fridge, image_index 1\n2. 西兰花 新鲜 约350g, count 1, food, image_index 1\n3. 鲜鸡蛋 土鸡蛋 10枚530g, count 2, food, image_index 1\n4. 乐牧高钙牛奶 250ml*10盒, count 1, food, canonical 牛奶, image_index 1\n5. 绿秋葵 嫩 250g, count 1, 秋葵, today production, image_index 2\n6. 鼎味轩 酿造酱油 500ml, count 1, seasoning, 酱油, image_index 2\n\nIgnored: 满39元换购(福瑞矿泉水、乐牧酸奶)、满59减5优惠券、配送费、去结算按钮。\n\nStorage & shelf life:\n- 鸡胸肉: fridge ~3 days, freezer 90? Let's give fridge 3, freezer 90, room null. storage fridge.\n- 西兰花: fridge 7, freezer null... maybe fridge 7, freezer null, room null. Actually frozen broccoli possible but let's keep simple.\n- 鸡蛋: room 30, fridge 40? Eggs common: fridge 30-40 days, room 15. storage fridge, shelf_life_days {fridge:30, freezer:null, room:15}.\n- 牛奶: fridge 7? UHT milk room 180. 高钙牛奶 usually UHT boxed -> room 180. storage room, shelf_life {fridge: 7, freezer: null, room: 180}. Hmm, 250ml*10盒 typical UHT. I'll say storage room, room 180.\n- 秋葵: fridge 5, freezer 90? keep fridge 5.\n- 酱油: room 365, storage room.\n\npurchase_date_text: cart screenshot, no order date. 拍摄日期 2026-10-18 is image metadata, not on image. I'd set null. Actually the label gives 拍摄日期 but that's not in image content. Set null.\n\nproduction_date_text: \"今天生产\" for 鸡胸肉 and 秋葵.",
+            "role": "assistant"
+          }
+        }
+      ],
+      "created": 1792539344,
+      "id": "8ffc7cae-c333-4dee-aca1-ce8433416213",
+      "model": "deepseek-flash",
+      "object": "chat.completion",
+      "system_fingerprint": "e72d3c7f663d3e1383b00b3884cb4501",
+      "usage": {
+        "completion_tokens": 1114,
+        "completion_tokens_details": {
+          "reasoning_tokens": 499
+        },
+        "prompt_cache_hit_tokens": 2432,
+        "prompt_cache_miss_tokens": 2409,
+        "prompt_tokens": 4841,
+        "prompt_tokens_details": {
+          "cached_tokens": 2432
+        },
+        "total_tokens": 5955
+      }
+    }
+  ],
+  "elapsed_ms": 5430
+}

@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "id": "receipt-02-rotated-shadow",
+  "sample_kind": "receipt",
+  "style": "receipt",
+  "source_type": "receipt",
+  "capture_date": "2026-10-19",
+  "file": "receipt-02-rotated-shadow.jpg",
+  "items": [
+    {
+      "canonical_name": "鸡蛋",
+      "raw_name": "鲜鸡蛋10枚",
+      "quantity_text": "10枚",
+      "count": 2,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 17:42:08",
+      "optional": false
+    },
+    {
+      "canonical_name": "西红柿",
+      "raw_name": "西红柿",
+      "quantity_text": "0.536kg",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 17:42:08",
+      "optional": false
+    },
+    {
+      "canonical_name": "黄瓜",
+      "raw_name": "水果黄瓜",
+      "quantity_text": "0.402kg",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 17:42:08",
+      "optional": false
+    },
+    {
+      "canonical_name": "牛奶",
+      "raw_name": "乐牧纯牛奶250ml*12",
+      "quantity_text": "250ml*12",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 17:42:08",
+      "optional": false
+    },
+    {
+      "canonical_name": "五花肉",
+      "raw_name": "五花肉(散称)",
+      "quantity_text": "0.618kg",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 17:42:08",
+      "optional": false
+    },
+    {
+      "canonical_name": "豆腐",
+      "raw_name": "老豆腐400g",
+      "quantity_text": "400g",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 17:42:08",
+      "optional": false
+    },
+    {
+      "canonical_name": "大白菜",
+      "raw_name": "白菜",
+      "quantity_text": "1.25kg",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 17:42:08",
+      "optional": false
+    },
+    {
+      "canonical_name": "生抽",
+      "raw_name": "鼎味轩生抽500ml",
+      "quantity_text": "500ml",
+      "count": 1,
+      "category": "seasoning",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 17:42:08",
+      "optional": false
+    },
+    {
+      "canonical_name": "未归类",
+      "raw_name": "柔韧抽纸3层10包",
+      "quantity_text": "10包",
+      "count": 1,
+      "category": "irrelevant",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 17:42:08",
+      "optional": false
+    },
+    {
+      "canonical_name": "香蕉",
+      "raw_name": "香蕉(散称)",
+      "quantity_text": "0.84kg",
+      "count": 1,
+      "category": "food",
+      "selected": true,
+      "is_gift": false,
+      "production_date_text": null,
+      "expiry_date_text": null,
+      "purchase_date_text": "2026-10-19 17:42:08",
+      "optional": false
+    }
+  ],
+  "ignored_kinds": [
+    "优惠券"
+  ],
+  "ignored_items": [
+    {
+      "raw_name": "会员优惠",
+      "kind": "优惠券"
+    }
+  ]
+}

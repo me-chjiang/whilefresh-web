@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>order-mall-detail-01</title><style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#fff}
+body{font-family:-apple-system,"PingFang SC","Helvetica Neue",Arial,sans-serif;color:#222;
+  -webkit-font-smoothing:antialiased;line-height:1.3}
+.thumb{display:flex;align-items:center;justify-content:center;border-radius:6px;flex:none}
+.ellipsis2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.row{display:flex}
+.grow{flex:1;min-width:0}
+
+.status{height:26px;padding:6px 14px 0;display:flex;justify-content:space-between;font-size:12px;font-weight:600}
+
+.screen{background:#f2f2f2}
+.nav{height:44px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;position:relative}
+.nav i{position:absolute;left:14px;font-style:normal;font-size:20px;font-weight:400}
+.tabs{display:flex;background:#fff;padding:0 6px;font-size:13px;color:#555;border-bottom:1px solid #eee}
+.tabs span{flex:1;text-align:center;padding:10px 0}
+.tabs span.on{color:#ff3b30;font-weight:700;border-bottom:2px solid #ff3b30}
+.search{background:#fff;padding:8px 12px}
+.search div{background:#f2f2f2;border-radius:16px;padding:7px 14px;font-size:12px;color:#999}
+.ad{margin:10px 10px 0;border-radius:10px;padding:14px;background:linear-gradient(100deg,#ff3b30,#ff8a5c);color:#fff;font-weight:700;font-size:15px}
+.coupon{margin:8px 10px 0;padding:8px 12px;border-radius:8px;background:#fff1ef;color:#d92f24;font-size:12px}
+.order{margin:10px 10px 0;background:#fff;border-radius:10px;padding:0 12px}
+.oh{display:flex;justify-content:space-between;padding:12px 0 6px;font-size:13px;font-weight:600}
+.oh span:last-child{color:#ff3b30;font-weight:400}
+.ot{font-size:11px;color:#999;padding-bottom:6px}
+.pi{display:flex;gap:10px;padding:7px 0}
+.pi .info{flex:1;min-width:0}
+.pi .t{font-size:13px;line-height:1.35;height:35px;overflow:hidden;color:#222}
+.pi .s{display:inline-block;margin-top:4px;font-size:11px;color:#888;background:#f5f5f5;border-radius:3px;padding:1px 5px}
+.pi .rt{text-align:right;font-size:13px;white-space:nowrap}
+.pi .rt b{display:block;font-weight:600}
+.pi .rt span{color:#999;font-size:12px}
+.pi .rt s{color:#bbb;font-size:11px;display:block}
+.tag{display:inline-block;font-size:10px;border-radius:2px;padding:0 4px;margin-left:4px;vertical-align:1px}
+.tag.prod{color:#d92f24;border:1px solid #d92f24}
+.tag.exp{color:#888;border:1px solid #ccc}
+.tag.gift{color:#fff;background:#ff3b30}
+.of{text-align:right;font-size:12px;color:#666;padding:6px 0}
+.of b{font-size:14px;color:#222}
+.btns{display:flex;justify-content:flex-end;gap:8px;padding:2px 0 12px}
+.btns span{border:1px solid #ccc;border-radius:14px;padding:5px 12px;font-size:12px;color:#444}
+.btns span.p{border-color:#ff3b30;color:#ff3b30}
+.rec{margin:10px 10px 0;background:#fff;border-radius:10px;padding:12px}
+.rec .h{font-size:14px;font-weight:700;margin-bottom:8px}
+.rec .grid{display:flex;flex-wrap:wrap;gap:8px}
+.rec .g{width:calc(50% - 4px);font-size:12px}
+.rec .g b{color:#ff3b30;display:block;margin-top:3px}
+.hero{background:linear-gradient(160deg,#ff3b30,#ff6a4d);color:#fff;padding:14px 16px;font-size:17px;font-weight:700}
+.hero small{display:block;font-weight:400;font-size:12px;margin-top:4px;opacity:.9}
+.box{margin:10px 10px 0;background:#fff;border-radius:10px;padding:2px 12px}
+.sumr{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;color:#555}
+.sumr .neg{color:#ff3b30}
+.paid{text-align:right;padding:8px 0 10px;border-top:1px solid #f3f3f3;font-size:12px;color:#666}
+.paid b{font-size:17px;color:#ff3b30}
+.kv{display:flex;justify-content:space-between;padding:5px 0;font-size:12.5px;color:#777}
+.kv span:last-child{color:#222}
+</style></head>
+<body><div class="screen" style="width:390px;min-height:780px">
+<div class="status"><span>15:52</span><span class="sb-right">5G  ▂▄▆█  🔋</span></div>
+<div class="nav"><i>‹</i>订单详情</div>
+<div class="hero">待收货<small>卖家已发货，请注意查收</small></div>
+<div class="box"><div class="kv"><span>收货地址</span><span>某某小区 4 号楼</span></div></div>
+<div class="order"><div class="oh"><span>🏬 鲜农生鲜旗舰店 ›</span><span></span></div>
+<div class="pi"><div class="thumb" style="width:64px;height:64px;font-size:35px;background:#e6f5f3;border-radius:6px">🥚</div><div class="info"><div class="t">【产地直发】鲜鸡蛋 整箱</div><span class="s">规格:40枚2kg</span></div><div class="rt"><b>¥39.90</b><span>x1</span></div></div>
+<div class="pi"><div class="thumb" style="width:64px;height:64px;font-size:35px;background:#e8f1fb;border-radius:6px">🥩</div><div class="info"><div class="t">草饲牛腩 切块 冷冻</div><span class="s">规格:1kg</span></div><div class="rt"><b>¥69.00</b><span>x1</span></div></div>
+<div class="pi"><div class="thumb" style="width:64px;height:64px;font-size:35px;background:#f3ecfa;border-radius:6px">🥓</div><div class="info"><div class="t">黑猪后腿肉<span class="tag prod">今天生产</span></div><span class="s">规格:500g±20g</span></div><div class="rt"><b>¥23.90</b><span>x1</span></div></div>
+<div class="pi"><div class="thumb" style="width:64px;height:64px;font-size:35px;background:#f3ecfa;border-radius:6px">🍎</div><div class="info"><div class="t">烟台红富士 一级</div><span class="s">规格:5斤</span></div><div class="rt"><b>¥29.90</b><span>x1</span></div></div>
+<div class="pi"><div class="thumb" style="width:64px;height:64px;font-size:35px;background:#f6f0e4;border-radius:6px">🍊</div><div class="info"><div class="t">赠品 脐橙 2个<span class="tag gift">赠品</span></div><span class="s">规格:2个</span></div><div class="rt"><b>¥0.00</b><span>x1</span></div></div>
+</div>
+<div class="box"><div class="sumr"><span>商品总价</span><span>¥162.70</span></div><div class="sumr"><span>运费</span><span>¥0.00</span></div><div class="sumr"><span>店铺优惠券</span><span class="neg">-¥10.00</span></div><div class="sumr"><span>平台立减</span><span class="neg">-¥6.00</span></div><div class="paid">实付款 <b>¥146.70</b></div></div>
+<div class="box"><div class="kv"><span>订单编号</span><span>326010202010113</span></div><div class="kv"><span>下单时间</span><span>2026-10-20 15:48:21</span></div><div class="kv"><span>支付方式</span><span>在线支付</span></div></div>
+<div class="rec"><div class="h">为你推荐</div><div class="grid"><div class="g"><div class="thumb" style="width:120px;height:120px;font-size:67px;background:#fdecec;border-radius:8px">🦐</div><div>海泊虾仁</div><b>¥22.90</b></div><div class="g"><div class="thumb" style="width:120px;height:120px;font-size:67px;background:#eaf6e8;border-radius:8px">🥜</div><div>山野核桃</div><b>¥39.90</b></div></div></div>
+<div style="height:24px"></div>
+</div><div id="end" style="height:3px;background:rgb(254, 0, 254)"></div></body></html>

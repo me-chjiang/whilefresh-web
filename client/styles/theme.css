@@ -1,0 +1,98 @@
+:root {
+  color-scheme: light;
+
+  --paper: #f6ebd5;
+  --card: #fffbf0;
+  --note: #fff3b8;
+  --selected-paper: #fffdf2;
+  --nav-paper: #fff8e6;
+  --ink: #3b2d26;
+  --muted: #8a7767;
+  --muted-tab: #9c8a76;
+  --note-muted: #8a7a44;
+  --rule: #dfcfae;
+  --outline: #bfa97f;
+  --nav-rule: #d6c196;
+  --chip-outline: #c9b77a;
+  --chip-muted: #9a8b5c;
+  --tomato: #d5432b;
+  --green: #3e7f69;
+  --mustard: #edbe4c;
+  --none: #a58c6b;
+  --tape-sage: #a8d0bf;
+  --tape-blue: #a9c9e2;
+  --tape-sand: #f2ce74;
+  --text-on-tomato: #fff6e4;
+  --text-on-green: #fff8e6;
+  --mask: rgb(59 45 38 / 0.5);
+  --shadow-color: #3c2d23;
+  --fresh: #2f7a55;
+  --nearing: #c8581a;
+  --overdue: #b02a1d;
+  --empty-star: #d9c8a6;
+  --vegetable: #5e9f4b;
+  --fruit: #e39b53;
+  --meat: #d8452f;
+  --seafood: #3f94cf;
+  --egg-dairy: #efb423;
+  --soy: #84a65e;
+  --staple: #bf935a;
+  --seasoning: #b28a62;
+  --processed: #c17a6a;
+  --other: #9e9988;
+
+  --font-sans:
+    "Noto Sans SC", "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei",
+    sans-serif;
+  --font-serif:
+    "WhileFresh Serif", "Noto Serif SC", "Noto Serif CJK SC", "Songti SC",
+    "STSong", "Source Han Serif SC", serif;
+
+  --text-title: 26px;
+  --text-sheet-title: 23px;
+  --text-recipe: 18px;
+  --text-panel: 17px;
+  --text-group: 16px;
+  --text-tape: 15px;
+  --text-body: 17px;
+  --text-quantity: 15px;
+  --text-control: 14px;
+  --text-subtitle: 13px;
+  --text-meta: 12px;
+  --text-small: 11px;
+  --weight-normal: 400;
+  --weight-bold: 700;
+  --weight-strong: 800;
+  --weight-black: 900;
+
+  --radius-card: 8px;
+  --radius-row: 6px;
+  --radius-tag: 4px;
+  --shadow-one-opacity: 0.14;
+  --shadow-one-blur: 0.18;
+  --shadow-two-opacity: 0.2;
+  --shadow-two-blur: 0.3;
+  --shadow-one-offset: 1px;
+  --shadow-two-offset: 4px;
+  --shadow-one: 0 1px 3px rgb(60 45 35 / 0.14);
+  --shadow-two: 0 4px 10px rgb(60 45 35 / 0.2);
+  --shadow: var(--shadow-one);
+
+  --gap-tiny: 4px;
+  --gap-small: 8px;
+  --gap: 12px;
+  --gap-large: 20px;
+  --touch: 48px;
+  --top-height: 58px;
+  --nav-height: 80px;
+  --section-gap: 20px;
+  --section-padding: 12px;
+  --row-height: 54px;
+  --item-dot: 17px;
+  --stamp-height: 22px;
+  --badge-height: 19px;
+  --tape-height: 26px;
+  --recipe-height: 68px;
+  --stamp-diameter: 84px;
+  --app-max-width: 480px;
+}

@@ -1,0 +1,31 @@
+{
+ "format": 1,
+ "request": {
+  "inputKind": "screenshot",
+  "imageCount": 1,
+  "textLength": 0,
+  "promptVersion": "v2"
+ },
+ "responses": [
+  {
+   "id": "synthetic-0001",
+   "object": "chat.completion",
+   "model": "deepseek-flash",
+   "choices": [
+    {
+     "index": 0,
+     "message": {
+      "role": "assistant",
+      "content": "```json\n{\n  \"source_type\": \"cart\",\n  \"items\": [\n    {\n      \"raw_name\": \"【爆款】川香麻辣香肠 200g\",\n      \"canonical_name\": \"麻辣香肠\",\n      \"quantity_text\": \"200g\",\n      \"count\": 1,\n      \"category\": \"food\",\n      \"selected\": true,\n      \"is_gift\": false,\n      \"production_date_text\": \"今天生产\",\n      \"expiry_date_text\": null,\n      \"purchase_date_text\": null,\n      \"storage\": \"fridge\",\n      \"shelf_life_days\": {\n        \"fridge\": 30,\n        \"freezer\": 180,\n        \"room\": 60\n      },\n      \"image_index\": 1\n    },\n    {\n      \"raw_name\": \"鲜鸡蛋 10枚\",\n      \"canonical_name\": \"鸡蛋\",\n      \"quantity_text\": \"10枚530g\",\n      \"count\": 2,\n      \"category\": \"food\",\n      \"selected\": true,\n      \"is_gift\": false,\n      \"production_date_text\": null,\n      \"expiry_date_text\": null,\n      \"purchase_date_text\": null,\n      \"storage\": \"fridge\",\n      \"shelf_life_days\": {\n        \"fridge\": 30,\n        \"freezer\": null,\n        \"room\": 14\n      },\n      \"image_index\": 1\n    },\n    {\n      \"raw_name\": \"有机小白菜\",\n      \"canonical_name\": \"小白菜\",\n      \"quantity_text\": \"300g\",\n      \"count\": 1,\n      \"category\": \"food\",\n      \"selected\": true,\n      \"is_gift\": false,\n      \"production_date_text\": \"昨天生产\",\n      \"expiry_date_text\": null,\n      \"purchase_date_text\": null,\n      \"storage\": \"fridge\",\n      \"shelf_life_days\": {\n        \"fridge\": 5,\n        \"freezer\": null,\n        \"room\": null\n      },\n      \"image_index\": 1\n    },\n    {\n      \"raw_name\": \"赠 小葱\",\n      \"canonical_name\": \"大葱\",\n      \"quantity_text\": \"50g\",\n      \"count\": 1,\n      \"category\": \"food\",\n      \"selected\": true,\n      \"is_gift\": true,\n      \"production_date_text\": null,\n      \"expiry_date_text\": null,\n      \"purchase_date_text\": null,\n      \"storage\": \"fridge\",\n      \"shelf_life_days\": {\n        \"fridge\": 7,\n        \"freezer\": null,\n        \"room\": null\n      },\n      \"image_index\": 1\n    },\n    {\n      \"raw_name\": \"全脂鲜牛奶\",\n      \"canonical_name\": \"牛奶\",\n      \"quantity_text\": \"950ml\",\n      \"count\": 1,\n      \"category\": \"food\",\n      \"selected\": true,\n      \"is_gift\": false,\n      \"production_date_text\": null,\n      \"expiry_date_text\": \"2026-11-03到期\",\n      \"purchase_date_text\": null,\n      \"storage\": \"fridge\",\n      \"shelf_life_days\": {\n        \"fridge\": 7,\n        \"freezer\": null,\n        \"room\": 180\n      },\n      \"image_index\": 1\n    },\n    {\n      \"raw_name\": \"嫩滑豆腐脑\",\n      \"canonical_name\": \"豆腐脑\",\n      \"quantity_text\": \"300g\",\n      \"count\": 1,\n      \"category\": \"food\",\n      \"selected\": true,\n      \"is_gift\": false,\n      \"production_date_text\": null,\n      \"expiry_date_text\": null,\n      \"purchase_date_text\": null,\n      \"storage\": \"fridge\",\n      \"shelf_life_days\": {\n        \"fridge\": 3,\n        \"freezer\": null,\n        \"room\": null\n      },\n      \"image_index\": 1\n    },\n    {\n      \"raw_name\": \"某品牌洗洁精\",\n      \"canonical_name\": \"洗洁精\",\n      \"quantity_text\": \"500g\",\n      \"count\": 1,\n      \"category\": \"irrelevant\",\n      \"selected\": true,\n      \"is_gift\": false,\n      \"production_date_text\": null,\n      \"expiry_date_text\": null,\n      \"purchase_date_text\": null,\n      \"storage\": \"room\",\n      \"shelf_life_days\": {\n        \"fridge\": null,\n        \"freezer\": null,\n        \"room\": null\n      },\n      \"image_index\": 1\n    },\n    {\n      \"raw_name\": \"进口冰镇啤酒\",\n      \"canonical_name\": \"啤酒\",\n      \"quantity_text\": \"330ml\",\n      \"count\": 6,\n      \"category\": \"food\",\n      \"selected\": false,\n      \"is_gift\": false,\n      \"production_date_text\": null,\n      \"expiry_date_text\": null,\n      \"purchase_date_text\": null,\n      \"storage\": \"room\",\n      \"shelf_life_days\": {\n        \"fridge\": null,\n        \"freezer\": null,\n        \"room\": null\n      },\n      \"image_index\": 1\n    }\n  ],\n  \"ignored_summary\": \"换购推荐、热卖推荐、满99减10优惠横幅\"\n}\n```"
+     },
+     "finish_reason": "stop"
+    }
+   ],
+   "usage": {
+    "prompt_tokens": 3200,
+    "completion_tokens": 900,
+    "total_tokens": 4100
+   }
+  }
+ ]
+}

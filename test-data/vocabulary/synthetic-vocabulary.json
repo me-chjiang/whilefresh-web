@@ -1,0 +1,890 @@
+{
+ "categories": {
+  "vegetable": "蔬菜",
+  "fruit": "水果",
+  "meat": "肉类",
+  "seafood": "水产",
+  "egg_dairy": "蛋奶",
+  "soy": "豆制品",
+  "staple": "主食",
+  "seasoning": "调味品",
+  "processed": "加工食品",
+  "other": "其他"
+ },
+ "items": [
+  {
+   "name": "西红柿",
+   "category": "vegetable",
+   "aliases": [
+    "番茄"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "黄瓜",
+   "category": "vegetable",
+   "aliases": [
+    "青瓜"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "土豆",
+   "category": "vegetable",
+   "aliases": [
+    "马铃薯"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "胡萝卜",
+   "category": "vegetable",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "洋葱",
+   "category": "vegetable",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "青椒",
+   "category": "vegetable",
+   "aliases": [
+    "尖椒"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "西兰花",
+   "category": "vegetable",
+   "aliases": [
+    "绿花菜"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "生菜",
+   "category": "vegetable",
+   "aliases": [
+    "球生菜"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "沙拉菜",
+   "category": "vegetable",
+   "aliases": [
+    "大拌菜",
+    "混合沙拉"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "小白菜",
+   "category": "vegetable",
+   "aliases": [
+    "上海青",
+    "青菜"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "菠菜",
+   "category": "vegetable",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "白菜",
+   "category": "vegetable",
+   "aliases": [
+    "大白菜"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "茄子",
+   "category": "vegetable",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "豆角",
+   "category": "vegetable",
+   "aliases": [
+    "四季豆"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "玉米",
+   "category": "vegetable",
+   "aliases": [
+    "甜玉米"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "蘑菇",
+   "category": "vegetable",
+   "aliases": [
+    "口蘑",
+    "双孢菇"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "金针菇",
+   "category": "vegetable",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "香菇",
+   "category": "vegetable",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "莴笋",
+   "category": "vegetable",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "西葫芦",
+   "category": "vegetable",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "南瓜",
+   "category": "vegetable",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "山药",
+   "category": "vegetable",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "藕",
+   "category": "vegetable",
+   "aliases": [
+    "莲藕"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "芹菜",
+   "category": "vegetable",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "韭菜",
+   "category": "vegetable",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "大葱",
+   "category": "vegetable",
+   "aliases": [
+    "葱"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "姜",
+   "category": "vegetable",
+   "aliases": [
+    "生姜"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "大蒜",
+   "category": "vegetable",
+   "aliases": [
+    "蒜头"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "香菜",
+   "category": "vegetable",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "苹果",
+   "category": "fruit",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "香蕉",
+   "category": "fruit",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "橙子",
+   "category": "fruit",
+   "aliases": [
+    "脐橙"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "草莓",
+   "category": "fruit",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "蓝莓",
+   "category": "fruit",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "葡萄",
+   "category": "fruit",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "西瓜",
+   "category": "fruit",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "芒果",
+   "category": "fruit",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "柠檬",
+   "category": "fruit",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "牛油果",
+   "category": "fruit",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "五花肉",
+   "category": "meat",
+   "aliases": [
+    "猪五花",
+    "带皮五花"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "猪里脊",
+   "category": "meat",
+   "aliases": [
+    "里脊肉"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "猪肉馅",
+   "category": "meat",
+   "aliases": [
+    "猪肉末",
+    "猪绞肉"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "排骨",
+   "category": "meat",
+   "aliases": [
+    "猪排骨",
+    "肋排"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "鸡胸肉",
+   "category": "meat",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "鸡翅",
+   "category": "meat",
+   "aliases": [
+    "鸡中翅"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "鸡腿",
+   "category": "meat",
+   "aliases": [
+    "琵琶腿"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "牛肉片",
+   "category": "meat",
+   "aliases": [
+    "肥牛片",
+    "肥牛卷"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "牛腩",
+   "category": "meat",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "牛排",
+   "category": "meat",
+   "aliases": [
+    "西冷牛排",
+    "菲力牛排"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "羊肉片",
+   "category": "meat",
+   "aliases": [
+    "羊肉卷"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "香肠",
+   "category": "meat",
+   "aliases": [
+    "腊肠",
+    "川味香肠",
+    "麻辣香肠"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "培根",
+   "category": "meat",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "火腿",
+   "category": "meat",
+   "aliases": [
+    "火腿片"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "鲈鱼",
+   "category": "seafood",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "带鱼",
+   "category": "seafood",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "虾仁",
+   "category": "seafood",
+   "aliases": [
+    "青虾仁"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "基围虾",
+   "category": "seafood",
+   "aliases": [
+    "鲜虾"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "三文鱼",
+   "category": "seafood",
+   "aliases": [
+    "鲑鱼"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "鱿鱼",
+   "category": "seafood",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "鸡蛋",
+   "category": "egg_dairy",
+   "aliases": [
+    "土鸡蛋",
+    "柴鸡蛋"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "鸭蛋",
+   "category": "egg_dairy",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "牛奶",
+   "category": "egg_dairy",
+   "aliases": [
+    "纯牛奶",
+    "鲜牛奶"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "酸奶",
+   "category": "egg_dairy",
+   "aliases": [
+    "风味发酵乳"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "黄油",
+   "category": "egg_dairy",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "奶酪",
+   "category": "egg_dairy",
+   "aliases": [
+    "芝士",
+    "马苏里拉"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "豆腐",
+   "category": "soy",
+   "aliases": [
+    "嫩豆腐",
+    "北豆腐",
+    "老豆腐"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "豆腐干",
+   "category": "soy",
+   "aliases": [
+    "香干"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "豆浆",
+   "category": "soy",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "面条",
+   "category": "staple",
+   "aliases": [
+    "挂面",
+    "手擀面"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "米饭",
+   "category": "staple",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "大米",
+   "category": "staple",
+   "aliases": [
+    "香米",
+    "东北大米"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "面粉",
+   "category": "staple",
+   "aliases": [
+    "中筋面粉"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "馒头",
+   "category": "staple",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "面包",
+   "category": "staple",
+   "aliases": [
+    "吐司"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "速冻水饺",
+   "category": "staple",
+   "aliases": [
+    "饺子",
+    "水饺"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "年糕",
+   "category": "staple",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "盐",
+   "category": "seasoning",
+   "aliases": [
+    "食盐"
+   ],
+   "parent": null,
+   "pantry_default": true,
+   "bulk_default": false
+  },
+  {
+   "name": "白糖",
+   "category": "seasoning",
+   "aliases": [
+    "砂糖"
+   ],
+   "parent": null,
+   "pantry_default": true,
+   "bulk_default": false
+  },
+  {
+   "name": "生抽",
+   "category": "seasoning",
+   "aliases": [
+    "酱油"
+   ],
+   "parent": null,
+   "pantry_default": true,
+   "bulk_default": false
+  },
+  {
+   "name": "老抽",
+   "category": "seasoning",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": true,
+   "bulk_default": false
+  },
+  {
+   "name": "料酒",
+   "category": "seasoning",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": true,
+   "bulk_default": false
+  },
+  {
+   "name": "陈醋",
+   "category": "seasoning",
+   "aliases": [
+    "醋"
+   ],
+   "parent": null,
+   "pantry_default": true,
+   "bulk_default": false
+  },
+  {
+   "name": "食用油",
+   "category": "seasoning",
+   "aliases": [
+    "菜籽油",
+    "花生油",
+    "大豆油"
+   ],
+   "parent": null,
+   "pantry_default": true,
+   "bulk_default": false
+  },
+  {
+   "name": "香油",
+   "category": "seasoning",
+   "aliases": [
+    "芝麻油"
+   ],
+   "parent": null,
+   "pantry_default": true,
+   "bulk_default": false
+  },
+  {
+   "name": "豆瓣酱",
+   "category": "seasoning",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": true,
+   "bulk_default": false
+  },
+  {
+   "name": "番茄酱",
+   "category": "seasoning",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": true,
+   "bulk_default": false
+  },
+  {
+   "name": "蚝油",
+   "category": "seasoning",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": true,
+   "bulk_default": false
+  },
+  {
+   "name": "花椒",
+   "category": "seasoning",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": true,
+   "bulk_default": false
+  },
+  {
+   "name": "八角",
+   "category": "seasoning",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": true,
+   "bulk_default": false
+  },
+  {
+   "name": "淀粉",
+   "category": "seasoning",
+   "aliases": [
+    "玉米淀粉"
+   ],
+   "parent": null,
+   "pantry_default": true,
+   "bulk_default": false
+  },
+  {
+   "name": "可乐",
+   "category": "processed",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "矿泉水",
+   "category": "processed",
+   "aliases": [
+    "饮用水"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "薯片",
+   "category": "processed",
+   "aliases": [],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  },
+  {
+   "name": "坚果",
+   "category": "processed",
+   "aliases": [
+    "混合坚果"
+   ],
+   "parent": null,
+   "pantry_default": false,
+   "bulk_default": false
+  }
+ ]
+}

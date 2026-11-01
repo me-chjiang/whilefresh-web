@@ -1,0 +1,50 @@
+{
+  "batches": [
+    {
+      "firstImage": -1,
+      "lastImage": -1
+    }
+  ],
+  "format": 1,
+  "request": {
+    "imageCount": 0,
+    "inputKind": "order-text",
+    "promptVersion": "v2",
+    "textLength": 352
+  },
+  "responses": [
+    {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "logprobs": null,
+          "message": {
+            "content": "{\"source_type\":\"order\",\"items\":[{\"raw_name\":\"新鲜沙瓤西红柿\",\"canonical_name\":\"西红柿\",\"quantity_text\":\"500g±20g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 18:43:25\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":14,\"freezer\":null,\"room\":7},\"image_index\":null},{\"raw_name\":\"火锅肥牛片 精选\",\"canonical_name\":\"肥牛\",\"quantity_text\":\"250g\",\"count\":2,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 18:43:25\",\"storage\":\"freezer\",\"shelf_life_days\":{\"fridge\":3,\"freezer\":90,\"room\":null},\"image_index\":null},{\"raw_name\":\"【产地直发】鲜鸡蛋\",\"canonical_name\":\"鸡蛋\",\"quantity_text\":\"10枚530g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 18:43:25\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":30,\"freezer\":null,\"room\":15},\"image_index\":null},{\"raw_name\":\"上海青 嫩叶\",\"canonical_name\":\"上海青\",\"quantity_text\":\"300g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 18:43:25\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":5,\"freezer\":null,\"room\":2},\"image_index\":null},{\"raw_name\":\"老豆腐 现做\",\"canonical_name\":\"豆腐\",\"quantity_text\":\"400g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 18:43:25\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":3,\"freezer\":null,\"room\":1},\"image_index\":null},{\"raw_name\":\"锦厨 蚝油\",\"canonical_name\":\"蚝油\",\"quantity_text\":\"510g\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 18:43:25\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":365},\"image_index\":null},{\"raw_name\":\"赠品 香菜\",\"canonical_name\":\"香菜\",\"quantity_text\":\"约50g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":true,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 18:43:25\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":7,\"freezer\":null,\"room\":2},\"image_index\":null},{\"raw_name\":\"抽取式纸巾\",\"canonical_name\":\"未归类\",\"quantity_text\":\"6包\",\"count\":1,\"category\":\"irrelevant\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 18:43:25\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":null},\"image_index\":null}],\"ignored_summary\":\"配送费、新客立减券等费用与优惠信息，以及订单编号、商家、状态等非商品文字\"}",
+            "reasoning_content": "Let me parse items.\n\n1. 新鲜沙瓤西红柿 500g±20g ×1 ¥6.80 → canonical 西红柿, food, quantity_text \"500g±20g\", count 1, selected true, is_gift false, storage fridge, shelf life.\n2. 火锅肥牛片 精选 250g ×2 ¥24.90 → canonical 肥牛 (in meat list). count 2, quantity_text \"250g\".\n3. 【产地直发】鲜鸡蛋 10枚530g ×1 → 鸡蛋, quantity_text \"10枚530g\".\n4. 上海青 嫩叶 300g ×1 → 上海青.\n5. 老豆腐 现做 400g ×1 → 豆腐.\n6. 锦厨 蚝油 510g ×1 → 蚝油, seasoning, room.\n7. 赠品 香菜 约50g ×1 ¥0.00 → 香菜, gift true.\n8. 抽取式纸巾 6包 ×1 ¥12.90 → irrelevant, category irrelevant, canonical 未归类.\n\nignored_summary: 配送费、新客立减券等优惠信息。\n\npurchase_date_text: \"2026-10-19 18:43:25\" — 下单时间. Use that.\n\nshelf_life_days: estimates.\n- 西红柿: fridge 14, freezer null, room 7\n- 肥牛: fridge 3, freezer 90, room null\n- 鸡蛋: fridge 30, freezer null, room 15\n- 上海青: fridge 5, freezer null, room 2\n- 豆腐: fridge 3, freezer null, room 1\n- 蚝油: room 365, fridge null, freezer null\n- 香菜: fridge 7, room 2, freezer null\n- 纸巾: irrelevant, all null.\n\ncategory for 纸巾 irrelevant; storage room probably. storage field required — use room.\n\nimage_index null.",
+            "role": "assistant"
+          }
+        }
+      ],
+      "created": 1792539279,
+      "id": "af39b80a-ca65-4404-b1d6-e29d597649c8",
+      "model": "deepseek-flash",
+      "object": "chat.completion",
+      "system_fingerprint": "e72d3c7f663d3e1383b00b3884cb4501",
+      "usage": {
+        "completion_tokens": 1299,
+        "completion_tokens_details": {
+          "reasoning_tokens": 423
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 2785,
+        "prompt_tokens": 2785,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 4084
+      }
+    }
+  ],
+  "elapsed_ms": 5286
+}

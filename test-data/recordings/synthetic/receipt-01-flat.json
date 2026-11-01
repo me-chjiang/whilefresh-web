@@ -1,0 +1,50 @@
+{
+  "batches": [
+    {
+      "firstImage": 0,
+      "lastImage": 0
+    }
+  ],
+  "format": 1,
+  "request": {
+    "imageCount": 1,
+    "inputKind": "receipt",
+    "promptVersion": "v2",
+    "textLength": 0
+  },
+  "responses": [
+    {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "logprobs": null,
+          "message": {
+            "content": "{\"source_type\":\"receipt\",\"items\":[{\"raw_name\":\"鲜鸡蛋10枚\",\"canonical_name\":\"鸡蛋\",\"quantity_text\":\"10枚\",\"count\":2,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 17:42:08\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":30,\"freezer\":null,\"room\":7},\"image_index\":1},{\"raw_name\":\"西红柿\",\"canonical_name\":\"西红柿\",\"quantity_text\":\"0.536kg\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 17:42:08\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":7,\"freezer\":null,\"room\":5},\"image_index\":1},{\"raw_name\":\"水果黄瓜\",\"canonical_name\":\"黄瓜\",\"quantity_text\":\"0.402kg\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 17:42:08\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":5,\"freezer\":null,\"room\":3},\"image_index\":1},{\"raw_name\":\"乐牧纯牛奶250ml*12\",\"canonical_name\":\"牛奶\",\"quantity_text\":\"250ml*12\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 17:42:08\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":7,\"freezer\":null,\"room\":null},\"image_index\":1},{\"raw_name\":\"五花肉(散称)\",\"canonical_name\":\"五花肉\",\"quantity_text\":\"0.618kg\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 17:42:08\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":3,\"freezer\":90,\"room\":null},\"image_index\":1},{\"raw_name\":\"老豆腐400g\",\"canonical_name\":\"豆腐\",\"quantity_text\":\"400g\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 17:42:08\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":3,\"freezer\":30,\"room\":null},\"image_index\":1},{\"raw_name\":\"白菜\",\"canonical_name\":\"大白菜\",\"quantity_text\":\"1.25kg\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 17:42:08\",\"storage\":\"fridge\",\"shelf_life_days\":{\"fridge\":14,\"freezer\":null,\"room\":5},\"image_index\":1},{\"raw_name\":\"鼎味轩生抽500ml\",\"canonical_name\":\"生抽\",\"quantity_text\":\"500ml\",\"count\":1,\"category\":\"seasoning\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 17:42:08\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":365},\"image_index\":2},{\"raw_name\":\"柔韧抽纸3层10包\",\"canonical_name\":\"未归类\",\"quantity_text\":\"10包\",\"count\":1,\"category\":\"irrelevant\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 17:42:08\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":null,\"freezer\":null,\"room\":null},\"image_index\":2},{\"raw_name\":\"香蕉(散称)\",\"canonical_name\":\"香蕉\",\"quantity_text\":\"0.84kg\",\"count\":1,\"category\":\"food\",\"selected\":true,\"is_gift\":false,\"production_date_text\":null,\"expiry_date_text\":null,\"purchase_date_text\":\"2026-10-19 17:42:08\",\"storage\":\"room\",\"shelf_life_days\":{\"fridge\":7,\"freezer\":null,\"room\":5},\"image_index\":2}],\"ignored_summary\":\"会员优惠、实收合计、商品数量、流水号等小票结算信息\"}",
+            "reasoning_content": "Let me extract items from receipt.\n\n1. 鲜鸡蛋10枚 — 10枚 ×2, count 2, canonical 鸡蛋, food, quantity_text \"10枚\", purchase date 2026-10-19 17:42:08, image 1.\n2. 西红柿 0.536kg ×1 — 西红柿, count 1, quantity \"0.536kg\"\n3. 水果黄瓜 0.402kg — canonical 黄瓜, quantity 0.402kg\n4. 乐牧纯牛奶250ml*12 — canonical 牛奶, quantity \"250ml*12\"\n5. 五花肉(散称) 0.618kg — 五花肉\n6. 老豆腐400g — 豆腐\n7. 白菜 1.25kg — 大白菜\n8. 鼎味轩生抽500ml — 生抽, seasoning\n9. 柔韧抽纸3层10包 — irrelevant\n10. 香蕉(散称) 0.84kg — 香蕉\n\n会员优惠 — ignored.\n\nShelf life days: 鸡蛋 fridge 30, freezer null, room 7? Estimate: 鸡蛋 fridge 30, room 7. 西红柿 fridge 7, room 5. 黄瓜 fridge 5. 牛奶 fridge 7. 五花肉 fridge 3, freezer 90. 豆腐 fridge 3, freezer 30? 豆腐 fridge 2. 大白菜 fridge 14, room 7. 生抽 room 365. 香蕉 room 5, fridge 7. 抽纸 room 365.\n\nStorage: 鸡蛋 fridge; 西红柿 fridge(or room) — fridge; 黄瓜 fridge; 牛奶 fridge; 五花肉 fridge; 豆腐 fridge; 大白菜 fridge; 生抽 room; 抽纸 room; 香蕉 room.\n\nCounts: 鸡蛋 count 2 (10枚×2).\n\nPurchase date: \"2026-10-19 17:42:08\".",
+            "role": "assistant"
+          }
+        }
+      ],
+      "created": 1792539427,
+      "id": "11ea18d9-3d88-425b-8ca3-090b674cee58",
+      "model": "deepseek-flash",
+      "object": "chat.completion",
+      "system_fingerprint": "e72d3c7f663d3e1383b00b3884cb4501",
+      "usage": {
+        "completion_tokens": 1491,
+        "completion_tokens_details": {
+          "reasoning_tokens": 417
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 4390,
+        "prompt_tokens": 4390,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 5881
+      }
+    }
+  ],
+  "elapsed_ms": 5525
+}
