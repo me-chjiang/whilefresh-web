@@ -4,6 +4,8 @@ import fastifyStatic from "@fastify/static";
 import Fastify from "fastify";
 import type { FastifyError } from "fastify";
 import { config } from "./config.js";
+import { EnvCredentialProvider } from "./ai/credentials.js";
+import { DeepSeekChatClient } from "./ai/deepseek-chat-client.js";
 import { loadBuiltin } from "./data/builtin.js";
 import { systemClock } from "./domain/clock.js";
 import { registerClearRoutes } from "./routes/clear.js";
@@ -29,11 +31,14 @@ await app.register(fastifyMultipart, {
 });
 
 const builtin = loadBuiltin();
+const chatClient = new DeepSeekChatClient({
+  credentials: new EnvCredentialProvider(),
+});
 const state = new AppState({
   dataDir: config.dataDir,
   builtin,
   clock: systemClock,
-  apiKey: config.apiKey,
+  chatClient,
 });
 const context: RouteContext = {
   state,

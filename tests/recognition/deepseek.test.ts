@@ -26,6 +26,8 @@ import {
   kindForNetworkError,
   type DeepSeekRecognizerOptions,
 } from "../../server/recognition/deepseek.js";
+import { DeepSeekChatClient } from "../../server/ai/deepseek-chat-client.js";
+import { StaticCredentialProvider } from "../../server/ai/credentials.js";
 import {
   ErrorKind,
   InputKind,
@@ -260,18 +262,35 @@ function imageRequest(): RecognitionRequest {
   };
 }
 
+interface RecognizerTestOptions extends Partial<DeepSeekRecognizerOptions> {
+  apiKey?: string;
+  baseUrl?: string;
+  idleTimeoutMs?: number;
+  deadlineMs?: number;
+  retryDelayMs?: number;
+}
+
 function recognizerFor(
   service: FakeHttpService,
-  options: Partial<DeepSeekRecognizerOptions> = {},
+  options: RecognizerTestOptions = {},
 ): DeepSeekRecognizer {
-  return new DeepSeekRecognizer({
-    apiKey: TEST_KEY,
-    baseUrl: service.url,
-    idleTimeoutMs: 2_000,
-    deadlineMs: 4_000,
-    retryDelayMs: 0,
-    ...options,
+  const {
+    apiKey = TEST_KEY,
+    baseUrl = service.url,
+    idleTimeoutMs = 2_000,
+    deadlineMs = 4_000,
+    retryDelayMs = 0,
+    batchLimits,
+    requestOptions,
+  } = options;
+  const client = new DeepSeekChatClient({
+    credentials: new StaticCredentialProvider(apiKey),
+    baseUrl,
+    idleTimeoutMs,
+    deadlineMs,
+    retryDelayMs,
   });
+  return new DeepSeekRecognizer(client, { batchLimits, requestOptions });
 }
 
 function imageCount(body: string): number {

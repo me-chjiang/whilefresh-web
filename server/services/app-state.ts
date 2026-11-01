@@ -25,6 +25,11 @@ import {
   type FreshnessState,
 } from "../domain/freshness.js";
 import type { RuleProposal } from "../domain/shelf-life.js";
+import {
+  DeepSeekChatClient,
+} from "../ai/deepseek-chat-client.js";
+import { EnvCredentialProvider } from "../ai/credentials.js";
+import type { ChatClient } from "../ai/chat-client.js";
 import { DeepSeekRecognizer } from "../recognition/deepseek.js";
 import { DemoRecognizer } from "../recognition/replay.js";
 import type { Recognizer } from "../recognition/types.js";
@@ -36,6 +41,7 @@ export interface AppStateOptions {
   builtin: BuiltinData;
   clock: Clock;
   apiKey?: string;
+  chatClient?: ChatClient;
   realRecognizer?: Recognizer;
   demoRecognizer?: Recognizer;
 }
@@ -136,7 +142,7 @@ export class AppState {
   private readonly importsDir: string;
   private readonly builtin: BuiltinData;
   private readonly clock: Clock;
-  private readonly apiKey: string;
+  private readonly chatClient: ChatClient;
   private readonly realRecognizer: Recognizer | undefined;
   private readonly demoRecognizer: Recognizer | undefined;
   private readonly recognitionConfiguredValue: boolean;
@@ -152,12 +158,13 @@ export class AppState {
     this.importsDir = join(options.dataDir, "imports");
     this.builtin = options.builtin;
     this.clock = options.clock;
-    this.apiKey =
-      options.apiKey ?? process.env.WHILEFRESH_DEEPSEEK_API_KEY ?? "";
+    this.chatClient =
+      options.chatClient ??
+      new DeepSeekChatClient({ credentials: new EnvCredentialProvider() });
     this.realRecognizer = options.realRecognizer;
     this.demoRecognizer = options.demoRecognizer;
     this.recognitionConfiguredValue =
-      this.realRecognizer != null || this.apiKey.length > 0;
+      this.realRecognizer != null || this.chatClient.isConfigured();
 
     try {
       mkdirSync(this.dataDir, { recursive: true });
@@ -360,9 +367,7 @@ export class AppState {
       });
       const recognizer =
         (demo ? this.demoRecognizer : this.realRecognizer) ??
-        (demo ? new DemoRecognizer() : new DeepSeekRecognizer({
-          apiKey: this.apiKey,
-        }));
+        (demo ? new DemoRecognizer() : new DeepSeekRecognizer(this.chatClient));
       const importService = new ImportService({
         store,
         builtin: this.builtin,

@@ -25,13 +25,10 @@ import {
   type Recognizer,
 } from "./types.js";
 import {
-  DEEPSEEK_BASE_URL,
-  DEFAULT_DEADLINE_MS,
-  DEFAULT_IDLE_TIMEOUT_MS,
-  DEFAULT_RETRY_DELAY_MS,
-  kindForHttpStatus,
-  kindForNetworkError,
-} from "../ai/deepseek-chat-client.js";
+  ChatClientError,
+  type ChatClient,
+} from "../ai/chat-client.js";
+import type { ChatRequest } from "../ai/chat-types.js";
 
 export {
   DEEPSEEK_BASE_URL,
@@ -42,34 +39,14 @@ export {
   kindForNetworkError,
 } from "../ai/deepseek-chat-client.js";
 
-const MAX_RETRIES = 1;
-const DETAIL_SNIPPET_LENGTH = 200;
-
 export interface DeepSeekRecognizerOptions {
-  apiKey?: string;
-  baseUrl?: string;
-  idleTimeoutMs?: number;
-  deadlineMs?: number;
-  retryDelayMs?: number;
   batchLimits?: Partial<BatchLimits>;
   requestOptions?: RequestOptions;
 }
 
 interface PreparedBatch {
-  body: string;
+  request: ChatRequest;
   span: BatchSpan;
-}
-
-interface HttpAnswer {
-  status: number;
-  body: string;
-}
-
-class RetryableFailure extends Error {
-  constructor(readonly recognitionError: RecognitionError) {
-    super(recognitionError.detail);
-    this.name = "RetryableFailure";
-  }
 }
 
 function failure(
@@ -82,92 +59,49 @@ function failure(
   return userMessage ? { ...error, userMessage } : error;
 }
 
-function errorDetails(error: unknown): string {
-  const details: string[] = [];
-  const seen = new Set<object>();
-
-  const visit = (value: unknown, depth: number): void => {
-    if (depth > 4 || value === null || typeof value !== "object") {
-      if (typeof value === "string") {
-        details.push(value);
-      }
-      return;
-    }
-    if (seen.has(value)) {
-      return;
-    }
-    seen.add(value);
-
-    const record = value as Record<string, unknown>;
-    for (const key of ["code", "name", "message"]) {
-      if (typeof record[key] === "string") {
-        details.push(record[key]);
-      }
-    }
-    visit(record.cause, depth + 1);
-  };
-
-  visit(error, 0);
-  return details.join(" ");
-}
-
-function isConnectionDrop(error: unknown): boolean {
-  const details = errorDetails(error);
-  return /ECONNRESET|EPIPE|ERR_STREAM_PREMATURE_CLOSE|UND_ERR_SOCKET|other side closed|socket hang up/i.test(
-    details,
-  );
-}
-
-function httpFailure(status: number, body: string): RecognitionError {
-  const snippet = body.replace(/\s+/gu, " ").trim().slice(0, DETAIL_SNIPPET_LENGTH);
-  return failure(
-    kindForHttpStatus(status),
-    `HTTP ${status}: ${snippet}`,
-    status,
-  );
-}
-
-function abortReason(signal: AbortSignal): unknown {
-  return signal.reason ?? new DOMException("Aborted", "AbortError");
-}
-
 function throwIfAborted(signal: AbortSignal): void {
   if (signal.aborted) {
-    throw abortReason(signal);
+    throw signal.reason ?? new DOMException("Aborted", "AbortError");
   }
 }
 
-function waitForRetry(milliseconds: number, signal: AbortSignal): Promise<void> {
-  throwIfAborted(signal);
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      signal.removeEventListener("abort", onAbort);
-      resolve();
-    }, milliseconds);
-    const onAbort = (): void => {
-      clearTimeout(timer);
-      reject(abortReason(signal));
-    };
-    signal.addEventListener("abort", onAbort, { once: true });
-  });
+function toChatRequest(request: ReturnType<typeof buildChatRequest>): ChatRequest {
+  return {
+    model: request.model,
+    messages: [
+      {
+        role: "user",
+        parts: request.messages[0].content.map((part) =>
+          part.type === "text"
+            ? { type: "text", text: part.text }
+            : { type: "image_url", image_url: { url: part.image_url.url } },
+        ),
+      },
+    ],
+    jsonMode: request.response_format.type === "json_object",
+    maxTokens: request.max_tokens,
+    temperature: request.temperature,
+    ...(request.thinking === undefined
+      ? {}
+      : { thinking: request.thinking.type !== "disabled" }),
+  };
+}
+
+function recognitionError(error: ChatClientError): RecognitionError {
+  return failure(
+    error.chatError.kind,
+    error.chatError.detail,
+    error.chatError.httpStatus,
+  );
 }
 
 export class DeepSeekRecognizer implements Recognizer {
-  private readonly apiKey: string;
-  private readonly endpoint: string;
-  private readonly idleTimeoutMs: number;
-  private readonly deadlineMs: number;
-  private readonly retryDelayMs: number;
+  private readonly client: ChatClient;
   private readonly batchLimits: BatchLimits;
   private readonly requestOptions: RequestOptions;
 
-  constructor(options: DeepSeekRecognizerOptions = {}) {
-    this.apiKey =
-      options.apiKey ?? process.env.WHILEFRESH_DEEPSEEK_API_KEY ?? "";
-    this.endpoint = `${(options.baseUrl ?? DEEPSEEK_BASE_URL).replace(/\/+$/u, "")}/chat/completions`;
-    this.idleTimeoutMs = options.idleTimeoutMs ?? DEFAULT_IDLE_TIMEOUT_MS;
-    this.deadlineMs = options.deadlineMs ?? DEFAULT_DEADLINE_MS;
-    this.retryDelayMs = options.retryDelayMs ?? DEFAULT_RETRY_DELAY_MS;
+  constructor(client: ChatClient, options: DeepSeekRecognizerOptions = {}) {
+    this.client = client;
     this.batchLimits = {
       ...DEFAULT_BATCH_LIMITS,
       ...options.batchLimits,
@@ -180,7 +114,7 @@ export class DeepSeekRecognizer implements Recognizer {
     signal: AbortSignal,
   ): Promise<RecognitionResult> {
     throwIfAborted(signal);
-    if (this.apiKey.length === 0) {
+    if (!this.client.isConfigured()) {
       throw failure(ErrorKind.NotConfigured, "no API key configured");
     }
     if (!request.vocabulary || request.vocabulary.entries.length === 0) {
@@ -212,12 +146,16 @@ export class DeepSeekRecognizer implements Recognizer {
     const parts: RecognitionResult[] = [];
     for (const batch of batches) {
       throwIfAborted(signal);
-      const answer = await this.requestWithRetry(batch.body, signal);
-      const outcome = parseChatCompletion(
-        answer.body,
-        request.vocabulary,
-        request.kind,
-      );
+      let answer;
+      try {
+        answer = await this.client.send(batch.request, signal);
+      } catch (error) {
+        if (error instanceof ChatClientError) {
+          throw recognitionError(error);
+        }
+        throw error;
+      }
+      const outcome = parseChatCompletion(answer.rawBody, request.vocabulary, request.kind);
       if (!outcome.result) {
         throw outcome.error;
       }
@@ -237,7 +175,7 @@ export class DeepSeekRecognizer implements Recognizer {
     if (request.kind === InputKind.OrderText) {
       return [
         {
-          body: JSON.stringify(
+          request: toChatRequest(
             buildChatRequest(
               request.kind,
               request.vocabulary,
@@ -258,7 +196,7 @@ export class DeepSeekRecognizer implements Recognizer {
       }
     } catch (error) {
       if (signal.aborted) {
-        throw abortReason(signal);
+        throw signal.reason ?? new DOMException("Aborted", "AbortError");
       }
       const detail = error instanceof Error ? error.message : String(error);
       throw failure(
@@ -273,7 +211,7 @@ export class DeepSeekRecognizer implements Recognizer {
       const firstImage = batch[0]?.imageIndex ?? -1;
       const lastImage = batch[batch.length - 1]?.imageIndex ?? -1;
       return {
-        body: JSON.stringify(
+        request: toChatRequest(
           buildChatRequest(
             request.kind,
             request.vocabulary,
@@ -285,153 +223,5 @@ export class DeepSeekRecognizer implements Recognizer {
         span: { firstImage, lastImage },
       };
     });
-  }
-
-  private async requestWithRetry(
-    body: string,
-    signal: AbortSignal,
-  ): Promise<HttpAnswer> {
-    for (let attempt = 0; ; attempt += 1) {
-      try {
-        return await this.requestOnce(body, signal);
-      } catch (error) {
-        if (
-          error instanceof RetryableFailure &&
-          attempt < MAX_RETRIES
-        ) {
-          await waitForRetry(this.retryDelayMs, signal);
-          continue;
-        }
-        if (error instanceof RetryableFailure) {
-          throw error.recognitionError;
-        }
-        throw error;
-      }
-    }
-  }
-
-  private async requestOnce(
-    body: string,
-    callerSignal: AbortSignal,
-  ): Promise<HttpAnswer> {
-    throwIfAborted(callerSignal);
-
-    const controller = new AbortController();
-    let timeoutKind: "idle" | "deadline" | null = null;
-    let idleTimer: ReturnType<typeof setTimeout> | undefined;
-
-    const abortForTimeout = (kind: "idle" | "deadline"): void => {
-      if (!timeoutKind) {
-        timeoutKind = kind;
-        controller.abort(new DOMException("Timeout", "TimeoutError"));
-      }
-    };
-    const resetIdleTimer = (): void => {
-      clearTimeout(idleTimer);
-      idleTimer = setTimeout(
-        () => abortForTimeout("idle"),
-        this.idleTimeoutMs,
-      );
-    };
-    const onCallerAbort = (): void => {
-      controller.abort(abortReason(callerSignal));
-    };
-
-    callerSignal.addEventListener("abort", onCallerAbort, { once: true });
-    const deadlineTimer = setTimeout(
-      () => abortForTimeout("deadline"),
-      this.deadlineMs,
-    );
-    resetIdleTimer();
-
-    try {
-      const response = await fetch(this.endpoint, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${this.apiKey}`,
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body,
-        signal: controller.signal,
-      });
-      resetIdleTimer();
-      const responseBody = await this.readResponseBody(
-        response,
-        resetIdleTimer,
-      );
-
-      if (response.status >= 500) {
-        throw new RetryableFailure(
-          httpFailure(response.status, responseBody),
-        );
-      }
-      if (response.status < 200 || response.status >= 300) {
-        throw httpFailure(response.status, responseBody);
-      }
-      return { status: response.status, body: responseBody };
-    } catch (error) {
-      if (callerSignal.aborted) {
-        throw abortReason(callerSignal);
-      }
-      if (timeoutKind === "idle") {
-        throw failure(
-          ErrorKind.Timeout,
-          `no complete answer within the ${this.idleTimeoutMs} ms idle timeout`,
-        );
-      }
-      if (timeoutKind === "deadline") {
-        throw failure(
-          ErrorKind.Timeout,
-          `no complete answer within the ${this.deadlineMs} ms deadline`,
-        );
-      }
-      if (error instanceof RetryableFailure) {
-        throw error;
-      }
-      if (
-        typeof error === "object" &&
-        error !== null &&
-        "kind" in error
-      ) {
-        throw error;
-      }
-
-      const kind = kindForNetworkError(error);
-      const recognitionError = failure(
-        kind,
-        `network error: ${errorDetails(error)}`,
-      );
-      if (isConnectionDrop(error)) {
-        throw new RetryableFailure(recognitionError);
-      }
-      throw recognitionError;
-    } finally {
-      clearTimeout(idleTimer);
-      clearTimeout(deadlineTimer);
-      callerSignal.removeEventListener("abort", onCallerAbort);
-    }
-  }
-
-  private async readResponseBody(
-    response: Response,
-    bytesReceived: () => void,
-  ): Promise<string> {
-    if (!response.body) {
-      return "";
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let text = "";
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) {
-        break;
-      }
-      bytesReceived();
-      text += decoder.decode(value, { stream: true });
-    }
-    return text + decoder.decode();
   }
 }
