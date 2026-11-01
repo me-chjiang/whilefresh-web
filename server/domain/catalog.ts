@@ -129,6 +129,10 @@ export class Catalog {
     return this.aliases.get(name) ?? "";
   }
 
+  hierarchyText(): string {
+    throw new Error("未实现");
+  }
+
   categoryOf(name: string): string {
     const category = this.index.get(name)?.category;
     return category || "other";
