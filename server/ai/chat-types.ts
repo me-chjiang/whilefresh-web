@@ -124,6 +124,8 @@ export interface ChatRequestSummary {
 export interface EncodedChatRequest {
   body: string;
   summary: ChatRequestSummary;
+  idleTimeoutMs?: number;
+  deadlineMs?: number;
 }
 
 export interface ChatParseOutcome<T> {
@@ -219,6 +221,12 @@ export function encodeChatRequest(request: ChatRequest): EncodedChatRequest {
   return {
     body: JSON.stringify(sortJson(body)),
     summary,
+    ...(request.idleTimeoutMs === undefined
+      ? {}
+      : { idleTimeoutMs: request.idleTimeoutMs }),
+    ...(request.deadlineMs === undefined
+      ? {}
+      : { deadlineMs: request.deadlineMs }),
   };
 }
 

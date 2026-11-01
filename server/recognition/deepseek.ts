@@ -24,11 +24,23 @@ import {
   type RecognitionResult,
   type Recognizer,
 } from "./types.js";
+import {
+  DEEPSEEK_BASE_URL,
+  DEFAULT_DEADLINE_MS,
+  DEFAULT_IDLE_TIMEOUT_MS,
+  DEFAULT_RETRY_DELAY_MS,
+  kindForHttpStatus,
+  kindForNetworkError,
+} from "../ai/deepseek-chat-client.js";
 
-export const DEEPSEEK_BASE_URL = "https://api.deepseek.com";
-export const DEFAULT_IDLE_TIMEOUT_MS = 150_000;
-export const DEFAULT_DEADLINE_MS = 240_000;
-export const DEFAULT_RETRY_DELAY_MS = 1_000;
+export {
+  DEEPSEEK_BASE_URL,
+  DEFAULT_DEADLINE_MS,
+  DEFAULT_IDLE_TIMEOUT_MS,
+  DEFAULT_RETRY_DELAY_MS,
+  kindForHttpStatus,
+  kindForNetworkError,
+} from "../ai/deepseek-chat-client.js";
 
 const MAX_RETRIES = 1;
 const DETAIL_SNIPPET_LENGTH = 200;
@@ -70,22 +82,6 @@ function failure(
   return userMessage ? { ...error, userMessage } : error;
 }
 
-export function kindForHttpStatus(status: number): ErrorKind {
-  if (status === 401 || status === 403) {
-    return ErrorKind.AuthFailed;
-  }
-  if (status === 402 || status === 429) {
-    return ErrorKind.QuotaOrRateLimit;
-  }
-  if (status >= 500) {
-    return ErrorKind.ServerError;
-  }
-  if (status >= 400) {
-    return ErrorKind.RequestRejected;
-  }
-  return ErrorKind.ServerError;
-}
-
 function errorDetails(error: unknown): string {
   const details: string[] = [];
   const seen = new Set<object>();
@@ -120,28 +116,6 @@ function isConnectionDrop(error: unknown): boolean {
   return /ECONNRESET|EPIPE|ERR_STREAM_PREMATURE_CLOSE|UND_ERR_SOCKET|other side closed|socket hang up/i.test(
     details,
   );
-}
-
-export function kindForNetworkError(error: unknown): ErrorKind {
-  const details = errorDetails(error);
-  if (
-    /CERT_|SELF_SIGNED|UNABLE_TO_(?:GET|VERIFY)|HOSTNAME_MISMATCHED|ERR_TLS_|ERR_SSL_|EPROTO|TLS handshake|SSL routines/i.test(
-      details,
-    )
-  ) {
-    return ErrorKind.SecureConnectionFailed;
-  }
-  if (
-    /ETIMEDOUT|ESOCKETTIMEDOUT|UND_ERR_(?:CONNECT|HEADERS|BODY)_TIMEOUT|timed out|timeout/i.test(
-      details,
-    )
-  ) {
-    return ErrorKind.Timeout;
-  }
-  if (isConnectionDrop(error)) {
-    return ErrorKind.ServerError;
-  }
-  return ErrorKind.NoNetwork;
 }
 
 function httpFailure(status: number, body: string): RecognitionError {
