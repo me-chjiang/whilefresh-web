@@ -212,23 +212,38 @@ function DraftItemCard({
         }}
       >
         <CategoryDot category={item.category} />
-        <input
-          aria-label={`${item.name}的名称`}
-          value={name}
-          disabled={disabled}
-          autoComplete="off"
-          style={{ ...fieldStyle, minWidth: 0, fontWeight: "var(--weight-bold)" }}
-          onChange={(event) => setName(event.target.value)}
-          onBlur={() => {
-            const next = name.trim();
-            if (!next) {
-              setName(item.name);
-              return;
-            }
-            onEdit(item.index, { name: next });
+        <div
+          style={{
+            display: "flex",
+            minWidth: 0,
+            alignItems: "center",
+            gap: "var(--gap-small)",
           }}
-          onKeyDown={blurOnEnter}
-        />
+        >
+          <input
+            aria-label={`${item.name}的名称`}
+            value={name}
+            disabled={disabled}
+            autoComplete="off"
+            style={{
+              ...fieldStyle,
+              minWidth: 0,
+              flex: 1,
+              fontWeight: "var(--weight-bold)",
+            }}
+            onChange={(event) => setName(event.target.value)}
+            onBlur={() => {
+              const next = name.trim();
+              if (!next) {
+                setName(item.name);
+                return;
+              }
+              onEdit(item.index, { name: next });
+            }}
+            onKeyDown={blurOnEnter}
+          />
+          {item.aiClassified && <span className="badge">AI 归类</span>}
+        </div>
         <input
           aria-label={`${item.name}的数量`}
           value={quantity}
@@ -367,6 +382,7 @@ function DraftItemRow({ item, disabled, onMove }: DraftItemRowProps) {
       <div style={{ display: "flex", alignItems: "center", gap: "var(--gap-small)" }}>
         <CategoryDot category={item.category} />
         <strong style={{ flex: 1, minWidth: 0 }}>{item.name}</strong>
+        {item.aiClassified && <span className="badge">AI 归类</span>}
         {item.quantity && (
           <span style={{ color: "var(--muted)", fontSize: "var(--text-meta)" }}>
             {item.quantity}
