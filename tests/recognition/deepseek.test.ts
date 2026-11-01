@@ -1,11 +1,4 @@
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
-import { createServer } from "node:http";
-import type {
-  IncomingHttpHeaders,
-  IncomingMessage,
-  ServerResponse,
-} from "node:http";
-import type { AddressInfo, Socket } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -29,6 +22,11 @@ import {
 import { DeepSeekChatClient } from "../../server/ai/deepseek-chat-client.js";
 import { StaticCredentialProvider } from "../../server/ai/credentials.js";
 import {
+  FakeHttpServer,
+  type MockReply,
+  type Responder,
+} from "../helpers/fake-http-server.js";
+import {
   ErrorKind,
   InputKind,
   type RecognitionError,
@@ -48,124 +46,21 @@ const vocabulary = Catalog.fromJson(
   ),
 );
 
-interface CapturedRequest {
-  method: string | undefined;
-  path: string | undefined;
-  headers: IncomingHttpHeaders;
-  body: string;
-}
-
-interface MockReply {
-  status?: number;
-  body?: string;
-  delayMs?: number;
-  stall?: boolean;
-}
-
-type Responder = (
-  request: CapturedRequest,
-  index: number,
-) => MockReply | Promise<MockReply>;
-
-class FakeHttpService {
-  readonly requests: CapturedRequest[] = [];
-  private readonly sockets = new Set<Socket>();
-  private readonly server = createServer((request, response) => {
-    void this.handle(request, response);
-  });
-  private baseUrl = "";
-  private closed = false;
-
-  constructor(private readonly responder: Responder) {
-    this.server.on("connection", (socket) => {
-      this.sockets.add(socket);
-      socket.on("close", () => this.sockets.delete(socket));
-    });
-  }
-
-  async start(): Promise<this> {
-    await new Promise<void>((resolve, reject) => {
-      const onError = (error: Error): void => reject(error);
-      this.server.once("error", onError);
-      this.server.listen(0, "127.0.0.1", () => {
-        this.server.off("error", onError);
-        resolve();
-      });
-    });
-
-    const address = this.server.address() as AddressInfo | null;
-    if (!address) {
-      throw new Error("fake service has no address");
-    }
-    this.baseUrl = `http://127.0.0.1:${address.port}`;
-    return this;
-  }
-
-  get url(): string {
-    return this.baseUrl;
-  }
-
-  async close(): Promise<void> {
-    if (this.closed) {
-      return;
-    }
-    this.closed = true;
-    for (const socket of this.sockets) {
-      socket.destroy();
-    }
-    await new Promise<void>((resolve) => this.server.close(() => resolve()));
-  }
-
-  private async handle(
-    request: IncomingMessage,
-    response: ServerResponse,
-  ): Promise<void> {
-    const chunks: Buffer[] = [];
-    for await (const chunk of request) {
-      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-    }
-
-    const captured: CapturedRequest = {
-      method: request.method,
-      path: request.url,
-      headers: request.headers,
-      body: Buffer.concat(chunks).toString("utf8"),
-    };
-    this.requests.push(captured);
-
-    try {
-      const reply = await this.responder(captured, this.requests.length - 1);
-      if (reply.delayMs && reply.delayMs > 0) {
-        await delay(reply.delayMs);
-      }
-      if (reply.stall) {
-        return;
-      }
-      response.writeHead(reply.status ?? 200, {
-        "content-type": "application/json",
-      });
-      response.end(reply.body ?? "");
-    } catch (error) {
-      response.destroy(error instanceof Error ? error : new Error(String(error)));
-    }
-  }
-}
-
-const services: FakeHttpService[] = [];
+const services: FakeHttpServer[] = [];
 let directory = "";
 let tallImage = "";
 
 async function startService(
   responder: Responder,
-): Promise<FakeHttpService> {
-  const service = await new FakeHttpService(responder).start();
+): Promise<FakeHttpServer> {
+  const service = await new FakeHttpServer(responder).start();
   services.push(service);
   return service;
 }
 
 async function startReplies(
   ...replies: MockReply[]
-): Promise<FakeHttpService> {
+): Promise<FakeHttpServer> {
   return startService((_request, index) => {
     const reply = replies[Math.min(index, replies.length - 1)];
     if (!reply) {
@@ -271,7 +166,7 @@ interface RecognizerTestOptions extends Partial<DeepSeekRecognizerOptions> {
 }
 
 function recognizerFor(
-  service: FakeHttpService,
+  service: FakeHttpServer,
   options: RecognizerTestOptions = {},
 ): DeepSeekRecognizer {
   const {
