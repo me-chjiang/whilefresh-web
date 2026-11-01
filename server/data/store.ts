@@ -17,6 +17,10 @@ import {
   SuggestionKind,
 } from "../../shared/enums.js";
 import type { Clock } from "../domain/clock.js";
+import {
+  nameKey,
+  type NameMappingStore,
+} from "../domain/vocabulary-resolver.js";
 import type {
   ImportFingerprint,
   ImportItem,
@@ -447,6 +451,78 @@ function isMissing(error: unknown): boolean {
     "code" in error &&
     error.code === "ENOENT"
   );
+}
+
+export class SqliteNameMappingStore implements NameMappingStore {
+  constructor(
+    private readonly database: DatabaseSync,
+    private readonly clock: Clock,
+  ) {}
+
+  mapped(raw: string): string {
+    try {
+      const row = this.database
+        .prepare("SELECT canonical_name FROM name_mappings WHERE raw_name = ?")
+        .get(nameKey(raw));
+      return row ? text(row.canonical_name) : "";
+    } catch {
+      return "";
+    }
+  }
+
+  remember(raw: string, canonical: string): boolean {
+    const key = nameKey(raw);
+    if (key.length === 0 || canonical.length === 0) {
+      return false;
+    }
+    try {
+      this.database
+        .prepare(
+          `INSERT INTO name_mappings (raw_name, canonical_name, confirmed_at)
+           VALUES (?, ?, ?)
+           ON CONFLICT (raw_name) DO UPDATE SET
+             canonical_name = excluded.canonical_name,
+             confirmed_at = excluded.confirmed_at`,
+        )
+        .run(key, canonical, this.clock.now().toISOString());
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  entries(): [key: string, canonical: string][] {
+    try {
+      return this.database
+        .prepare(
+          "SELECT raw_name, canonical_name FROM name_mappings ORDER BY raw_name",
+        )
+        .all()
+        .map((row) => [text(row.raw_name), text(row.canonical_name)]);
+    } catch {
+      return [];
+    }
+  }
+
+  forget(raw: string): boolean {
+    try {
+      const result = this.database
+        .prepare("DELETE FROM name_mappings WHERE raw_name = ?")
+        .run(nameKey(raw));
+      return number(result.changes) > 0;
+    } catch {
+      return false;
+    }
+  }
+
+  clear(): boolean {
+    try {
+      this.database.exec("DELETE FROM name_mappings");
+      return true;
+    } catch {
+      return false;
+    }
+  }
 }
 
 export class Store {
@@ -881,6 +957,11 @@ export class Store {
         "pantry_overrides",
         "shopping_items",
         "settings",
+        "name_mappings",
+        "preferences",
+        "import_job_batches",
+        "import_jobs",
+        "cleanup_sessions",
       ];
       for (const table of tables) {
         this.database.exec(`DELETE FROM ${table}`);

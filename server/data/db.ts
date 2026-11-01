@@ -121,6 +121,50 @@ const migrations: readonly (readonly string[])[] = [
     )`,
     "CREATE TABLE file_cleanup (path TEXT PRIMARY KEY)",
   ],
+  [
+    "ALTER TABLE items ADD COLUMN kind TEXT NOT NULL DEFAULT 'food'",
+    "ALTER TABLE items ADD COLUMN amount REAL NOT NULL DEFAULT 0",
+    "ALTER TABLE items ADD COLUMN unit TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE items ADD COLUMN snoozed_until TEXT",
+    "ALTER TABLE imports ADD COLUMN status TEXT NOT NULL DEFAULT 'confirmed'",
+    "ALTER TABLE imports ADD COLUMN duplicate_of INTEGER REFERENCES imports(id) ON DELETE SET NULL",
+    "ALTER TABLE imports ADD COLUMN deleted_at TEXT",
+    `CREATE TABLE name_mappings (
+      raw_name TEXT PRIMARY KEY,
+      canonical_name TEXT NOT NULL,
+      confirmed_at TEXT NOT NULL
+    )`,
+    `CREATE TABLE preferences (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      text TEXT NOT NULL,
+      source TEXT NOT NULL DEFAULT 'user',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )`,
+    `CREATE TABLE import_jobs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      state TEXT NOT NULL,
+      payload TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )`,
+    `CREATE TABLE import_job_batches (
+      job_id INTEGER NOT NULL REFERENCES import_jobs(id) ON DELETE CASCADE,
+      batch_index INTEGER NOT NULL,
+      state TEXT NOT NULL,
+      result BLOB,
+      updated_at TEXT NOT NULL,
+      PRIMARY KEY (job_id, batch_index)
+    )`,
+    `CREATE TABLE cleanup_sessions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      state TEXT NOT NULL,
+      payload TEXT NOT NULL DEFAULT '{}',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      committed_at TEXT
+    )`,
+  ],
 ];
 
 export function openDatabase(path: string): DatabaseSync {
