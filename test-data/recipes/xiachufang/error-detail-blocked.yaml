@@ -1,0 +1,40 @@
+schema_version: '1.0'
+query:
+  source: xiachufang
+  operation: detail
+  keyword: null
+  id: '107722218'
+  page: 1
+  page_size: 20
+  budget: 2.5
+  provider: direct
+  search_type: null
+  lexmount_base_url: null
+operation: detail
+source:
+  name: xiachufang
+  capabilities:
+    search: true
+    detail: true
+    recommend: false
+    filters:
+    - keyword
+    - page
+    sort: []
+status:
+  code: error
+  message: unrecognized detail page (blocked or upstream markup changed)
+  incomplete:
+  - source_request
+  warnings: []
+results: []
+filter:
+  applied: []
+  candidate_scope: one upstream page
+sort:
+  requested: null
+  applied: null
+pagination: {}
+timing:
+  budget_ms: 2500.0
+  elapsed_ms: 480.59

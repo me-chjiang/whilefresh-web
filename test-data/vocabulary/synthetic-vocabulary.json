@@ -1,16 +1,46 @@
 {
- "categories": {
-  "vegetable": "蔬菜",
-  "fruit": "水果",
-  "meat": "肉类",
-  "seafood": "水产",
-  "egg_dairy": "蛋奶",
-  "soy": "豆制品",
-  "staple": "主食",
-  "seasoning": "调味品",
-  "processed": "加工食品",
-  "other": "其他"
- },
+ "categories": [
+  {
+   "code": "vegetable",
+   "name": "蔬菜"
+  },
+  {
+   "code": "fruit",
+   "name": "水果"
+  },
+  {
+   "code": "meat",
+   "name": "肉类"
+  },
+  {
+   "code": "seafood",
+   "name": "水产"
+  },
+  {
+   "code": "egg_dairy",
+   "name": "蛋奶"
+  },
+  {
+   "code": "soy",
+   "name": "豆制品"
+  },
+  {
+   "code": "staple",
+   "name": "主食"
+  },
+  {
+   "code": "seasoning",
+   "name": "调味品"
+  },
+  {
+   "code": "processed",
+   "name": "加工食品"
+  },
+  {
+   "code": "other",
+   "name": "其他"
+  }
+ ],
  "items": [
   {
    "name": "西红柿",

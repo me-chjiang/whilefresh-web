@@ -1,0 +1,332 @@
+[
+ {
+  "raw": "黑猪梅花肉切片 300g",
+  "expected": "梅花肉",
+  "kind": "finest",
+  "note": "梅花肉无 parent，不回落到猪肉"
+ },
+ {
+  "raw": "盒马 精选五花三层肉 500g",
+  "expected": "五花肉",
+  "kind": "alias",
+  "note": "五花三层为别名，父项猪肉不胜出"
+ },
+ {
+  "raw": "叮咚买菜 去皮圆白菜 1颗",
+  "expected": "圆白菜",
+  "kind": "finest",
+  "note": "标准名直接命中"
+ },
+ {
+  "raw": "美团小象 包菜 1.2kg",
+  "expected": "圆白菜",
+  "kind": "alias",
+  "note": "包菜为圆白菜别名"
+ },
+ {
+  "raw": "多肉小番茄 500g",
+  "expected": "圣女果",
+  "kind": "alias",
+  "note": "小番茄(圣女果别名)长于番茄(西红柿别名)，应胜出"
+ },
+ {
+  "raw": "进口小米辣 100g",
+  "expected": "小米辣",
+  "kind": "finest",
+  "note": "小米辣压过父项辣椒"
+ },
+ {
+  "raw": "青椒 3个",
+  "expected": "青椒",
+  "kind": "finest",
+  "note": "青椒不挂辣椒"
+ },
+ {
+  "raw": "排骨 2斤 猪肋排段",
+  "expected": "排骨",
+  "kind": "alias",
+  "note": "排骨不在猪肉之下，猪肋排段为别名"
+ },
+ {
+  "raw": "猪肘子 1只",
+  "expected": "猪肘",
+  "kind": "alias",
+  "note": "猪肘子为猪肘别名，猪肘不挂猪肉"
+ },
+ {
+  "raw": "猪肉末 300g",
+  "expected": "猪肉末",
+  "kind": "finest",
+  "note": "猪肉末不挂猪肉"
+ },
+ {
+  "raw": "猪颈肉 500g",
+  "expected": "猪颈肉",
+  "kind": "finest",
+  "note": "猪颈肉无 parent"
+ },
+ {
+  "raw": "土猪肉 500g",
+  "expected": "猪肉",
+  "kind": "parent_only",
+  "note": "无更细条目，只能回落到猪肉"
+ },
+ {
+  "raw": "鲜猪肉 1斤",
+  "expected": "猪肉",
+  "kind": "parent_only",
+  "note": "鲜猪肉为猪肉别名，无更细项"
+ },
+ {
+  "raw": "精品牛肉 2斤",
+  "expected": "牛肉",
+  "kind": "parent_only",
+  "note": "只有通用词牛肉"
+ },
+ {
+  "raw": "冷冻鱼 1kg",
+  "expected": "鱼",
+  "kind": "parent_only",
+  "note": "只有通用词鱼，不匹配子项"
+ },
+ {
+  "raw": "鲈鱼 清蒸 1条",
+  "expected": "鲈鱼",
+  "kind": "finest",
+  "note": "鲈鱼为鱼子项，不回落"
+ },
+ {
+  "raw": "黄鱼 大黄鱼 冰鲜",
+  "expected": "黄花鱼",
+  "kind": "alias",
+  "note": "黄鱼、大黄鱼均为黄花鱼别名"
+ },
+ {
+  "raw": "冰鲜带鱼段 2段",
+  "expected": "带鱼",
+  "kind": "alias",
+  "note": "带鱼段为带鱼别名，不回落到鱼"
+ },
+ {
+  "raw": "南美白对虾 1kg",
+  "expected": "白虾",
+  "kind": "alias",
+  "note": "南美白对虾为白虾别名"
+ },
+ {
+  "raw": "活虾 500g",
+  "expected": "虾",
+  "kind": "alias",
+  "note": "活虾为虾别名"
+ },
+ {
+  "raw": "鲜虾仁 200g",
+  "expected": "虾仁",
+  "kind": "alias",
+  "note": "鲜虾仁为虾仁别名，不回落到虾"
+ },
+ {
+  "raw": "海米 100g",
+  "expected": "虾米",
+  "kind": "alias",
+  "note": "海米为虾米别名"
+ },
+ {
+  "raw": "虾皮 小 100g",
+  "expected": "虾皮",
+  "kind": "finest",
+  "note": "虾皮不是虾米或虾"
+ },
+ {
+  "raw": "美食家牌 老抽王 500ml",
+  "expected": "老抽",
+  "kind": "finest",
+  "note": "老抽挂酱油，子项须胜过父项"
+ },
+ {
+  "raw": "美食家牌 特级生抽 1L",
+  "expected": "生抽",
+  "kind": "finest",
+  "note": "生抽与老抽独立，不合并"
+ },
+ {
+  "raw": "高端 头抽 500ml",
+  "expected": "酱油",
+  "kind": "alias",
+  "note": "头抽为酱油别名"
+ },
+ {
+  "raw": "恒顺 镇江香醋 500ml",
+  "expected": "香醋",
+  "kind": "alias",
+  "note": "镇江香醋为香醋别名，比醋更细"
+ },
+ {
+  "raw": "白米醋 500ml",
+  "expected": "米醋",
+  "kind": "alias",
+  "note": "白米醋为米醋别名"
+ },
+ {
+  "raw": "黑胡椒粉 30g",
+  "expected": "黑胡椒",
+  "kind": "alias",
+  "note": "黑胡椒粉为黑胡椒别名，压过胡椒粉"
+ },
+ {
+  "raw": "芝麻香油 小磨 250ml",
+  "expected": "芝麻香油",
+  "kind": "finest",
+  "note": "芝麻香油不挂芝麻，子串芝麻不胜出"
+ },
+ {
+  "raw": "蒜蓉辣酱 200g",
+  "expected": "蒜蓉酱",
+  "kind": "alias",
+  "note": "蒜蓉辣酱为蒜蓉酱别名，长于辣酱"
+ },
+ {
+  "raw": "速冻青豆 500g",
+  "expected": "速冻蔬菜",
+  "kind": "alias",
+  "note": "速冻青豆为速冻蔬菜别名，子串青豆不胜出"
+ },
+ {
+  "raw": "五香牛肉干 100g",
+  "expected": "牛肉干",
+  "kind": "finest",
+  "note": "牛肉干长于牛肉"
+ },
+ {
+  "raw": "猪肉松 150g",
+  "expected": "肉松",
+  "kind": "alias",
+  "note": "猪肉松别名长于猪肉"
+ },
+ {
+  "raw": "茶叶蛋 6枚",
+  "expected": "卤蛋",
+  "kind": "alias",
+  "note": "茶叶蛋为卤蛋别名，子串茶不胜出"
+ },
+ {
+  "raw": "咸鸭蛋 4枚",
+  "expected": "咸蛋",
+  "kind": "alias",
+  "note": "咸鸭蛋为咸蛋别名，子串鸭蛋不胜出"
+ },
+ {
+  "raw": "小白菜 500g",
+  "expected": "小白菜",
+  "kind": "finest",
+  "note": "小白菜长于白菜（大白菜别名）"
+ },
+ {
+  "raw": "西芹 2根",
+  "expected": "西芹",
+  "kind": "finest",
+  "note": "西芹为芹菜子项"
+ },
+ {
+  "raw": "豌豆尖 200g",
+  "expected": "豌豆尖",
+  "kind": "finest",
+  "note": "豌豆尖不挂豌豆"
+ },
+ {
+  "raw": "马苏里拉奶酪丝 200g",
+  "expected": "马苏里拉芝士",
+  "kind": "alias",
+  "note": "马苏里拉为别名，长于父项奶酪"
+ },
+ {
+  "raw": "沃柑 2斤",
+  "expected": "沃柑",
+  "kind": "finest",
+  "note": "沃柑挂柑橘，子项须胜出"
+ },
+ {
+  "raw": "鸭翅根 1kg",
+  "expected": "鸭翅",
+  "kind": "alias",
+  "note": "鸭翅根为鸭翅别名，不回落到鸭肉"
+ },
+ {
+  "raw": "鸡翅中 10个",
+  "expected": "鸡翅",
+  "kind": "alias",
+  "note": "鸡翅中不在别名表，子串翅中命中"
+ },
+ {
+  "raw": "去骨鸡腿肉 500g",
+  "expected": "鸡腿",
+  "kind": "alias",
+  "note": "去骨鸡腿肉为鸡腿别名"
+ },
+ {
+  "raw": "速冻水饺 猪肉大葱 1kg",
+  "expected": "速冻水饺",
+  "kind": "finest",
+  "note": "品类词速冻水饺胜过馅料猪肉/大葱"
+ },
+ {
+  "raw": "鸡蛋饼 4片",
+  "expected": "饼",
+  "kind": "parent_only",
+  "note": "鸡蛋是馅料，品类词饼胜出（待确认）"
+ },
+ {
+  "raw": "藕粉 500g",
+  "expected": "",
+  "kind": "unknown",
+  "note": "藕为莲藕别名，但藕粉不是莲藕；子串误命中陷阱"
+ },
+ {
+  "raw": "电热水壶 1.5L",
+  "expected": "",
+  "kind": "unknown",
+  "note": "非食品；子串水误命中陷阱"
+ },
+ {
+  "raw": "洗衣液 2kg",
+  "expected": "",
+  "kind": "unknown",
+  "note": "非食品"
+ },
+ {
+  "raw": "黑松露酱 80g",
+  "expected": "",
+  "kind": "unknown",
+  "note": "未收录食材"
+ },
+ {
+  "raw": "罗汉果 1个",
+  "expected": "",
+  "kind": "unknown",
+  "note": "未收录食材"
+ },
+ {
+  "raw": "花胶 100g",
+  "expected": "",
+  "kind": "unknown",
+  "note": "未收录食材"
+ },
+ {
+  "raw": "气泡水 无糖 500ml",
+  "expected": "气泡水",
+  "kind": "finest",
+  "note": "标准名，水不胜出"
+ },
+ {
+  "raw": "椰子水 1L",
+  "expected": "椰子",
+  "kind": "alias",
+  "note": "椰子水为椰子别名，不回落到水"
+ },
+ {
+  "raw": "苏打水 330ml",
+  "expected": "气泡水",
+  "kind": "alias",
+  "note": "苏打水为气泡水别名"
+ }
+]

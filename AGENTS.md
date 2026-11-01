@@ -14,6 +14,7 @@
 - 分层依赖：`server/domain` 无 I/O；`data`、`recognition`、`import` 依赖 `domain`；`services` 组合以上各层；`routes` 只调用 `services`；前端只经 `client/api.ts` 访问服务端。
 - 改动后至少运行 `pnpm typecheck` 与 `pnpm test`；涉及界面或流程时加跑 `pnpm e2e`。输出重定向到 `/tmp/` 下的日志文件，失败时只看末尾。
 - 依赖只装在项目本地。
+- 过夜流水线（`scripts/nightly.sh`）执行 `docs/codex-plan.md` 时，以该计划的全局约定与当前步骤为准；其中“功能步骤后测试可暂时失败”优先于上面的“改动后运行测试”。
 
 ## 安全与隐私
 

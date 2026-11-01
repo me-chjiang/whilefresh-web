@@ -1,0 +1,45 @@
+{
+    "exchanges": [
+        {
+            "elapsedMs": 1218,
+            "request": {
+                "digest": "b1a4da0313ca70697a77d315ec28cc2c1dae85fa75b74aee17f5ef188a3c7759",
+                "images": 0,
+                "jsonMode": true,
+                "maxTokens": 600,
+                "messages": 2,
+                "model": "deepseek-flash",
+                "textChars": 273
+            },
+            "response": {
+                "choices": [
+                    {
+                        "finish_reason": "stop",
+                        "index": 0,
+                        "logprobs": null,
+                        "message": {
+                            "content": "{\"summary\": \"不吃香菜；少油；复杂菜只在周末做。\"}",
+                            "role": "assistant"
+                        }
+                    }
+                ],
+                "created": 1793340865,
+                "id": "88e7f6b8-9842-4924-a898-0b42431f096b",
+                "model": "deepseek-flash",
+                "object": "chat.completion",
+                "system_fingerprint": "bc19ba97cbe016479903222bb1578db6",
+                "usage": {
+                    "completion_tokens": 17,
+                    "prompt_cache_hit_tokens": 0,
+                    "prompt_cache_miss_tokens": 191,
+                    "prompt_tokens": 191,
+                    "prompt_tokens_details": {
+                        "cached_tokens": 0
+                    },
+                    "total_tokens": 208
+                }
+            }
+        }
+    ],
+    "format": 2
+}

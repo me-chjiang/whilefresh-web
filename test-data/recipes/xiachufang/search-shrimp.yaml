@@ -1,0 +1,76 @@
+schema_version: '1.0'
+query:
+  source: xiachufang
+  operation: search
+  keyword: 虾仁
+  id: null
+  page: 1
+  page_size: 20
+  budget: 2.5
+  provider: direct
+  search_type: null
+  lexmount_base_url: null
+operation: search
+source:
+  name: xiachufang
+  capabilities:
+    search: true
+    detail: true
+    recommend: false
+    filters:
+    - keyword
+    - page
+    sort: []
+  provider: direct
+status:
+  code: partial
+  message: source data returned
+  incomplete:
+  - full_details
+  warnings: []
+results:
+- id: '103468406'
+  name: 【虾仁滑蛋】超嫩滑，复刻茶餐厅经典
+  description: null
+  author: null
+  source_url: https://www.xiachufang.com/recipe/103468406/
+  image_url: https://i2.chuimg.com/110dd659121147529b57c873bc09b225_1080w_720h.jpg?imageView2/1/w/215/h/136/interlace/1/q/75
+  category: null
+  region: null
+  rating: null
+  rating_count: null
+  made_count: null
+  steps: []
+  ingredients: []
+  tips: []
+  notes: null
+- id: '107044017'
+  name: 椒盐虾仁
+  description: null
+  author: null
+  source_url: https://www.xiachufang.com/recipe/107044017/
+  image_url: https://i2.chuimg.com/efff58feafdb4078aaf158fbd04a655c_690w_920h.jpg?imageView2/1/w/215/h/136/interlace/1/q/75
+  category: null
+  region: null
+  rating: null
+  rating_count: null
+  made_count: null
+  steps: []
+  ingredients: []
+  tips: []
+  notes: null
+filter:
+  applied:
+  - keyword: 虾仁
+  candidate_scope: one upstream page
+sort:
+  requested: null
+  applied: null
+pagination:
+  page: 1
+  page_size: 20
+  returned: 2
+  total_candidates_after_filter: 2
+timing:
+  budget_ms: 2500.0
+  elapsed_ms: 595.49

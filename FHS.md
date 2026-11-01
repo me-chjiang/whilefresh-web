@@ -36,7 +36,8 @@
 ├── tests/                     # Vitest，按被测层分子目录（domain/ data/ recognition/ services/ routes/）
 ├── e2e/                       # Playwright 端到端测试（演示模式全流程）
 ├── test-data/                 # 合成样本、标准答案、合成样本的识别录制与测试词表
-├── scripts/                   # dev.sh / start.sh：读钥匙串密钥后启动
+├── scripts/                   # dev.sh / start.sh：读钥匙串密钥后启动；nightly.sh：按 docs/codex-plan.md 逐步调用 Codex
+├── .nightly/                  # 不进 Git：nightly.sh 的日志（logs/）与断点（checkpoint）
 ├── data/                      # 不进 Git：运行数据（whilefresh.db、demo.db、imports/）
 └── dist/                      # 不进 Git：前端构建产物
 ```

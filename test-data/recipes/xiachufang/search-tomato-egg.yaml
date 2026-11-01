@@ -1,0 +1,76 @@
+schema_version: '1.0'
+query:
+  source: xiachufang
+  operation: search
+  keyword: 番茄炒蛋
+  id: null
+  page: 1
+  page_size: 20
+  budget: 2.5
+  provider: direct
+  search_type: null
+  lexmount_base_url: null
+operation: search
+source:
+  name: xiachufang
+  capabilities:
+    search: true
+    detail: true
+    recommend: false
+    filters:
+    - keyword
+    - page
+    sort: []
+  provider: direct
+status:
+  code: partial
+  message: source data returned
+  incomplete:
+  - full_details
+  warnings: []
+results:
+- id: '104493058'
+  name: 超嫩滑的番茄炒蛋
+  description: null
+  author: null
+  source_url: https://www.xiachufang.com/recipe/104493058/
+  image_url: https://i2.chuimg.com/adcb20d4547d4f598f8d3f7f14928ba3_1280w_1024h.jpg?imageView2/1/w/215/h/136/interlace/1/q/75
+  category: null
+  region: null
+  rating: null
+  rating_count: null
+  made_count: null
+  steps: []
+  ingredients: []
+  tips: []
+  notes: null
+- id: '106525160'
+  name: 简单美味❗️好吃到舔盘的番茄炒蛋拌饭
+  description: null
+  author: null
+  source_url: https://www.xiachufang.com/recipe/106525160/
+  image_url: https://i2.chuimg.com/5206a1846ab44a5c814c11ae8d1ac62d_960w_1280h.jpg?imageView2/1/w/215/h/136/interlace/1/q/75
+  category: null
+  region: null
+  rating: null
+  rating_count: null
+  made_count: null
+  steps: []
+  ingredients: []
+  tips: []
+  notes: null
+filter:
+  applied:
+  - keyword: 番茄炒蛋
+  candidate_scope: one upstream page
+sort:
+  requested: null
+  applied: null
+pagination:
+  page: 1
+  page_size: 20
+  returned: 2
+  total_candidates_after_filter: 2
+timing:
+  budget_ms: 2500.0
+  elapsed_ms: 622.14

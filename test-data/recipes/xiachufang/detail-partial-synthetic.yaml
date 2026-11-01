@@ -1,0 +1,84 @@
+schema_version: '1.0'
+query:
+  operation: detail
+  id: '900000002'
+operation: detail
+source:
+  name: xiachufang
+  capabilities:
+    search: true
+    detail: true
+    recommend: false
+    filters:
+    - keyword
+    - page
+    sort: []
+  provider: direct
+status:
+  code: partial
+  message: source data returned
+  incomplete:
+  - steps
+  warnings: []
+results:
+- id: '900000002'
+  name: 示例番茄炒蛋
+  description: null
+  author: null
+  source_url: https://www.xiachufang.com/recipe/900000002/
+  image_url: https://i2.chuimg.com/example-cover.jpg
+  category: null
+  region: null
+  rating: 8.6
+  rating_count: null
+  made_count: null
+  steps: []
+  ingredients:
+  - raw: 番茄 2个
+    name: 番茄
+    amount: 2个
+    category: ingredient
+    required: unknown
+    evidence: source does not specify necessity
+    notes: null
+    substitutes: []
+  - raw: 鸡蛋 3个
+    name: 鸡蛋
+    amount: 3个
+    category: ingredient
+    required: unknown
+    evidence: source does not specify necessity
+    notes: null
+    substitutes: []
+  - raw: 盐 适量
+    name: 盐
+    amount: 适量
+    category: ingredient
+    required: unknown
+    evidence: source does not specify necessity
+    notes: null
+    substitutes: []
+  - raw: 葱花
+    name: 葱花
+    amount: null
+    category: ingredient
+    required: unknown
+    evidence: source does not specify necessity
+    notes: null
+    substitutes: []
+  tips: []
+  notes: null
+filter:
+  applied: []
+  candidate_scope: one upstream page
+sort:
+  requested: null
+  applied: null
+pagination:
+  page: 1
+  page_size: 20
+  returned: 1
+  total_candidates_after_filter: 1
+timing:
+  budget_ms: 2500.0
+  elapsed_ms: 0.23

@@ -1,0 +1,45 @@
+{
+    "exchanges": [
+        {
+            "elapsedMs": 1746,
+            "request": {
+                "digest": "9ea2f7b6a7a69b5a10b031b310ff6d48d9d8dd1167eb74bf79fb78c8f5f07ca1",
+                "images": 0,
+                "jsonMode": true,
+                "maxTokens": 560,
+                "messages": 2,
+                "model": "deepseek-flash",
+                "textChars": 2628
+            },
+            "response": {
+                "choices": [
+                    {
+                        "finish_reason": "stop",
+                        "index": 0,
+                        "logprobs": null,
+                        "message": {
+                            "content": "{\"items\": [{\"index\": 1, \"raw_name\": \"冰鲜鸡全腿\", \"canonical_name\": \"鸡腿\"}, {\"index\": 2, \"raw_name\": \"牛霖 500g\", \"canonical_name\": \"none\"}, {\"index\": 3, \"raw_name\": \"鲜毛肚 200g\", \"canonical_name\": \"牛肚\"}, {\"index\": 4, \"raw_name\": \"花胶 100g\", \"canonical_name\": \"none\"}, {\"index\": 5, \"raw_name\": \"罗汉果 1个\", \"canonical_name\": \"none\"}, {\"index\": 6, \"raw_name\": \"黑松露酱 80g\", \"canonical_name\": \"none\"}, {\"index\": 7, \"raw_name\": \"藕粉 500g\", \"canonical_name\": \"none\"}, {\"index\": 8, \"raw_name\": \"洗衣液 2kg\", \"canonical_name\": \"none\"}, {\"index\": 9, \"raw_name\": \"电热水壶 1.5L\", \"canonical_name\": \"none\"}]}",
+                            "role": "assistant"
+                        }
+                    }
+                ],
+                "created": 1793320113,
+                "id": "5dde9456-6e40-42fd-9b86-63eddc21a0e6",
+                "model": "deepseek-flash",
+                "object": "chat.completion",
+                "system_fingerprint": "bc19ba97cbe016479903222bb1578db6",
+                "usage": {
+                    "completion_tokens": 248,
+                    "prompt_cache_hit_tokens": 0,
+                    "prompt_cache_miss_tokens": 2225,
+                    "prompt_tokens": 2225,
+                    "prompt_tokens_details": {
+                        "cached_tokens": 0
+                    },
+                    "total_tokens": 2473
+                }
+            }
+        }
+    ],
+    "format": 2
+}

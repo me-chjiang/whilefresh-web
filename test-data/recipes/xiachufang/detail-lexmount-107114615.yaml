@@ -1,0 +1,82 @@
+schema_version: '1.0'
+query:
+  source: xiachufang
+  operation: detail
+  keyword: null
+  id: '107114615'
+  page: 1
+  page_size: 20
+  provider: lexmount
+  search_type: browser
+operation: detail
+source:
+  name: xiachufang
+  capabilities:
+    search: true
+    detail: true
+    recommend: false
+  provider: lexmount
+status:
+  code: complete
+  message: source data returned
+  incomplete: []
+  warnings: []
+results:
+- id: '107114615'
+  name: 清炒虾仁
+  description: null
+  author: null
+  source_url: https://www.xiachufang.com/recipe/107114615/
+  image_url: https://i2.chuimg.com/2effc1eca6394327b51c9ddce4a379ef_1920w_2560h.jpg?imageView2/2/w/660/interlace/1/q/75
+  category: null
+  region: null
+  rating: 7.2
+  rating_count: null
+  made_count: null
+  steps:
+  - order: 1
+    text: 今天买的虾超级有活力
+    image_url: https://i2.chuimg.com/a6574007bc94400e887a92c382575ec0_1920w_2560h.jpg?imageView2/2/w/300/interlace/1/q/75
+  - order: 2
+    text: 剥虾小技巧，放冰箱冷冻20分钟拿出来非常好剥
+    image_url: https://i2.chuimg.com/8b53e23382254883a0f0d3a12b3d674c_1920w_2560h.jpg?imageView2/2/w/300/interlace/1/q/75
+  ingredients:
+  - raw: 南美虾 12
+    name: 南美虾
+    amount: 12
+    category: ingredient
+    required: unknown
+    evidence: source does not specify necessity
+    notes: null
+    substitutes: []
+  - raw: 黄瓜 1根
+    name: 黄瓜
+    amount: 1根
+    category: ingredient
+    required: unknown
+    evidence: source does not specify necessity
+    notes: null
+    substitutes: []
+  - raw: 胡萝卜 1根
+    name: 胡萝卜
+    amount: 1根
+    category: ingredient
+    required: unknown
+    evidence: source does not specify necessity
+    notes: null
+    substitutes: []
+  tips: []
+  notes: null
+filter:
+  applied: []
+  candidate_scope: one upstream page
+sort:
+  requested: null
+  applied: null
+pagination:
+  page: 1
+  page_size: 20
+  returned: 1
+  total_candidates_after_filter: 1
+timing:
+  elapsed_ms: 2900

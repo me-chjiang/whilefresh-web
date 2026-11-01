@@ -1,0 +1,83 @@
+schema_version: '1.0'
+query:
+  source: xiachufang
+  operation: detail
+  keyword: null
+  id: '103468406'
+  page: 1
+  page_size: 20
+  provider: lexmount
+  search_type: browser
+operation: detail
+source:
+  name: xiachufang
+  capabilities:
+    search: true
+    detail: true
+    recommend: false
+  provider: lexmount
+status:
+  code: complete
+  message: source data returned
+  incomplete: []
+  warnings: []
+results:
+- id: '103468406'
+  name: 【虾仁滑蛋】超嫩滑，复刻茶餐厅经典
+  description: null
+  author: null
+  source_url: https://www.xiachufang.com/recipe/103468406/
+  image_url: https://i2.chuimg.com/110dd659121147529b57c873bc09b225_1080w_720h.jpg?imageView2/2/w/660/interlace/1/q/75
+  category: null
+  region: null
+  rating: 8.1
+  rating_count: null
+  made_count: null
+  steps:
+  - order: 1
+    text: 准备食材
+    image_url: https://i2.chuimg.com/a536d408030b449cbd8c12f88e83cbb8_1080w_720h.jpg?imageView2/2/w/300/interlace/1/q/75
+  - order: 2
+    text: 虾仁冲洗后用厨房纸吸下表面水分，加2茶匙料酒和1茶匙盐，拌匀静置腌制。
+    image_url: https://i2.chuimg.com/22f1caaa9d7045cca23166b1d5ed091b_1080w_720h.jpg?imageView2/2/w/300/interlace/1/q/75
+  ingredients:
+  - raw: 鸡蛋 4个
+    name: 鸡蛋
+    amount: 4个
+    category: ingredient
+    required: unknown
+    evidence: source does not specify necessity
+    notes: null
+    substitutes: []
+  - raw: 虾仁 200克
+    name: 虾仁
+    amount: 200克
+    category: ingredient
+    required: unknown
+    evidence: source does not specify necessity
+    notes: null
+    substitutes: []
+  - raw: 葱 1束
+    name: 葱
+    amount: 1束
+    category: ingredient
+    required: unknown
+    evidence: source does not specify necessity
+    notes: null
+    substitutes: []
+  tips:
+  - 我这里用了冷冻虾仁。如果用鲜虾生剥，口感无疑是更棒的。炒蛋的火候很重要，而先将锅烧热，用余温炒熟的办法，鸡蛋就不容易炒老、炒焦了。这道虾仁滑蛋，就连挑食的宝贝也无法抗拒。而且蛋白质丰富，为宝爸宝妈省了不少心。
+  notes: null
+filter:
+  applied: []
+  candidate_scope: one upstream page
+sort:
+  requested: null
+  applied: null
+pagination:
+  page: 1
+  page_size: 20
+  returned: 1
+  total_candidates_after_filter: 1
+timing:
+  elapsed_ms: 3782
