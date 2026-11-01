@@ -64,36 +64,6 @@ function inputParagraph(kind: InputKind): string {
   }
 }
 
-function vocabularyBlock(catalog: Catalog): string {
-  const groups: Array<{ code: string; names: string[] }> = [];
-  const groupFor = (code: string): string[] => {
-    let group = groups.find((item) => item.code === code);
-    if (!group) {
-      group = { code, names: [] };
-      groups.push(group);
-    }
-    return group.names;
-  };
-
-  for (const category of catalog.categories) {
-    groupFor(category.code);
-  }
-  for (const entry of catalog.entries) {
-    groupFor(entry.category).push(entry.name);
-  }
-
-  return groups
-    .filter((group) => group.names.length > 0)
-    .map((group) => {
-      const declared = catalog.categories.find(
-        (category) => category.code === group.code,
-      );
-      const label = group.code.length === 0 ? "其他" : (declared?.name ?? group.code);
-      return `【${label}】${group.names.join("、")}`;
-    })
-    .join("\n");
-}
-
 function imageLabel(image: PreparedImage): string {
   let label = `第 ${image.imageIndex + 1} 张图`;
   if (image.sliceCount > 1) {
@@ -117,7 +87,7 @@ function imageBlock(jpeg: Uint8Array): ImageContent {
 export function buildPrompt(kind: InputKind, catalog: Catalog): string {
   return PROMPT_TEMPLATE.replace("{{INPUT}}", inputParagraph(kind)).replace(
     "{{VOCABULARY}}",
-    vocabularyBlock(catalog),
+    catalog.hierarchyText(),
   );
 }
 

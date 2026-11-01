@@ -1,4 +1,4 @@
-export const PROMPT_VERSION = "v2";
+export const PROMPT_VERSION = "v3";
 
 export const INPUT_SCREENSHOT =
   "下面是用户从购物 App 截的图，可能是购物车、订单列表或订单详情。图片按从上到下的顺序给出：" +
@@ -27,8 +27,8 @@ export const PROMPT_TEMPLATE =
   '  "source_type": "cart|order|receipt|text|other",\n' +
   '  "items": [\n' +
   "    {\n" +
-  '      "raw_name": "原文中的商品名，逐字转写",\n' +
-  '      "canonical_name": "标准食材名，只能取自下方词表；没有合适的就写 未归类",\n' +
+  '      "raw_name": "原文中的商品名，逐字转写，不删减不改写",\n' +
+  '      "canonical_name": "标准食材名，只能取自下方词表，取能对上的最细词条；没有合适的就写 未归类",\n' +
   '      "quantity_text": "原文中可见的规格或数量，如 200g、10枚530g；看不到则 null",\n' +
   '      "count": 购买件数，整数；看不到则 1,\n' +
   '      "category": "food|seasoning|irrelevant",\n' +
@@ -57,9 +57,12 @@ export const PROMPT_TEMPLATE =
   "看不到就填 null，绝不要推测或换算日期。\n" +
   "6. canonical_name 必须逐字取自下方词表，不要自己造词，不要写词表之外的名称；" +
   "词表里没有合适的标准名时写“未归类”。同一种商品每次都应选同一个标准名。\n" +
+  "   词表分层：“猪肉 > 五花肉、前腿肉、里脊”表示后面几项是猪肉的细分。取能对上的最细一项，" +
+  "例如“黑猪五花肉块”写 五花肉 而不是 猪肉；只有没有更细的词条时才写上位词，" +
+  "例如“土猪肉”写 猪肉。不要因为选了标准名而改动 raw_name。\n" +
   "7. storage 是这件食材最适合的存放位置；shelf_life_days 是从购买当天起，" +
   "在冷藏、冷冻、常温三种存放方式下常见的保质天数估计，不确定或不适用的填 null。\n" +
   "8. 商品名里的营销用语（如“新鲜”“爆款”“【限时】”）不影响标准名的选择，raw_name 保持原文。\n" +
   "\n" +
-  "标准食材词表（canonical_name 只能从中选择）：\n" +
+  "标准食材词表（canonical_name 只能从中选择；按品类分组，“>”左边是上位词，右边是它的细分）：\n" +
   "{{VOCABULARY}}\n";
