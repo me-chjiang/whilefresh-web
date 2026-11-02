@@ -3,6 +3,7 @@ import Fastify, {
   type FastifyError,
   type FastifyInstance,
 } from "fastify";
+import { createHash } from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -19,9 +20,11 @@ import type {
   ShoppingTextDto,
   StateDto,
 } from "../../shared/api.js";
-import { SuggestionKind } from "../../shared/enums.js";
+import { ImportStatus, SuggestionKind } from "../../shared/enums.js";
 import { loadBuiltin } from "../../server/data/builtin.js";
 import { fixedClock } from "../../server/domain/clock.js";
+import { ResumableJob } from "../../server/domain/resumable-job.js";
+import { DemoRecognizer } from "../../server/recognition/replay.js";
 import { registerClearRoutes } from "../../server/routes/clear.js";
 import { registerImportRoutes } from "../../server/routes/import.js";
 import { registerItemRoutes } from "../../server/routes/items.js";
@@ -32,13 +35,21 @@ import {
   registerStateRoutes,
   type RouteContext,
 } from "../../server/routes/state.js";
-import { AppState } from "../../server/services/app-state.js";
+import {
+  AppState,
+  type AppStateOptions,
+} from "../../server/services/app-state.js";
 
 interface Harness {
   app: FastifyInstance;
   state: AppState;
   context: RouteContext;
   dataDir: string;
+}
+
+interface HarnessOptions {
+  dataDir?: string;
+  realRecognizer?: AppStateOptions["realRecognizer"];
 }
 
 const builtin = loadBuiltin();
@@ -48,13 +59,15 @@ const onePixelPng = Buffer.from(
   "base64",
 );
 
-async function createHarness(): Promise<Harness> {
-  const dataDir = mkdtempSync(join(tmpdir(), "whilefresh-routes-"));
+async function createHarness(options: HarnessOptions = {}): Promise<Harness> {
+  const dataDir =
+    options.dataDir ?? mkdtempSync(join(tmpdir(), "whilefresh-routes-"));
   const state = new AppState({
     dataDir,
     builtin,
     clock,
     apiKey: "",
+    realRecognizer: options.realRecognizer,
   });
   const context: RouteContext = {
     state,
@@ -197,6 +210,31 @@ describe("HTTP API routes", () => {
     return created[0]!.id;
   }
 
+  async function uploadOneImage(): Promise<ImportStatusDto> {
+    const multipart = multipartBody(
+      [
+        ["origin", "gallery"],
+        ["lastModified", "1792540800000"],
+      ],
+      [
+        {
+          name: "images",
+          filename: "first.png",
+          mimeType: "image/png",
+          data: onePixelPng,
+        },
+      ],
+    );
+    const response = await harness.app.inject({
+      method: "POST",
+      url: "/api/import/images",
+      headers: { "content-type": multipart.contentType },
+      payload: multipart.body,
+    });
+    expect(response.statusCode).toBe(200);
+    return response.json<ImportStatusDto>();
+  }
+
   it("serves health, state, recipes, shopping and import reads", async () => {
     const health = await harness.app.inject({
       method: "GET",
@@ -320,6 +358,62 @@ describe("HTTP API routes", () => {
     });
     expect(removed.statusCode).toBe(200);
     expect(removed.json()).toEqual({ ok: true });
+  });
+
+  it("discards an item and rejects an item that was already processed", async () => {
+    const id = await createItem("土豆");
+
+    const discarded = await harness.app.inject({
+      method: "POST",
+      url: `/api/items/${id}/discard`,
+      payload: { id },
+    });
+    expect(discarded.statusCode).toBe(200);
+    expect(discarded.json()).toEqual({ ok: true });
+    expect((await readState()).items.some((item) => item.id === id)).toBe(
+      false,
+    );
+
+    const again = await harness.app.inject({
+      method: "POST",
+      url: `/api/items/${id}/discard`,
+      payload: { id },
+    });
+    expect(again.statusCode).toBe(409);
+    expect(again.json()).toEqual({ error: "食材已处理" });
+  });
+
+  it("snoozes a near-expiry item and rejects an item that is not near expiry", async () => {
+    const nearId = await createItem("牛奶");
+    const edited = await harness.app.inject({
+      method: "PATCH",
+      url: `/api/items/${nearId}`,
+      payload: {
+        id: nearId,
+        edits: { shelfDays: "8", storedAt: "2026-10-15" },
+      },
+    });
+    expect(edited.statusCode).toBe(200);
+
+    const snoozed = await harness.app.inject({
+      method: "POST",
+      url: `/api/items/${nearId}/snooze`,
+      payload: { id: nearId },
+    });
+    expect(snoozed.statusCode).toBe(200);
+    expect(snoozed.json()).toEqual({ ok: true });
+    expect(
+      (await readState()).items.find((item) => item.id === nearId)?.snoozed,
+    ).toBe(true);
+
+    const freshId = await createItem("大米");
+    const rejected = await harness.app.inject({
+      method: "POST",
+      url: `/api/items/${freshId}/snooze`,
+      payload: { id: freshId },
+    });
+    expect(rejected.statusCode).toBe(409);
+    expect(rejected.json()).toEqual({ error: "只能忽略临期食材" });
   });
 
   it("previews and searches clear-fridge recipes", async () => {
@@ -551,6 +645,127 @@ describe("HTTP API routes", () => {
     expect(cancelled.json<ImportStatusDto>().importState).toBe("idle");
   });
 
+  it("skips a same-image duplicate import", async () => {
+    const originalId = harness.state.activeStore.insertImport({
+      inputKind: "screenshot",
+      images: [
+        {
+          path: join(harness.dataDir, "original.png"),
+          sha256: createHash("sha256")
+            .update(onePixelPng)
+            .digest("hex"),
+          mimeType: "image/png",
+        },
+      ],
+    });
+    expect(originalId).toBeGreaterThan(0);
+
+    const duplicate = await uploadOneImage();
+    expect(duplicate.importState).toBe("duplicate");
+
+    const skipped = await harness.app.inject({
+      method: "POST",
+      url: "/api/import/skip",
+      payload: {},
+    });
+    expect(skipped.statusCode).toBe(200);
+    expect(skipped.json<ImportStatusDto>().importState).toBe("idle");
+
+    const records = harness.state.activeKitchen.imports();
+    expect(records).toHaveLength(2);
+    const record = records.find((item) => item.status === ImportStatus.SkippedDuplicate);
+    expect(record?.duplicateOf).toBe(originalId);
+    expect(record?.images).toEqual([]);
+  });
+
+  it("resumes a persisted image import", async () => {
+    expect((await uploadOneImage()).importState).toBe("prepared");
+    const started = await harness.app.inject({
+      method: "POST",
+      url: "/api/import/start",
+      payload: { privacyConfirmed: true, allowDuplicate: true },
+    });
+    expect(started.statusCode).toBe(200);
+    expect(started.json<ImportStatusDto>().importState).toBe("failed");
+    expect(harness.state.activeStore.importJobRows()).toHaveLength(1);
+
+    const original = harness;
+    const restarted = await createHarness({
+      dataDir: original.dataDir,
+      realRecognizer: new DemoRecognizer(),
+    });
+    harness = restarted;
+    try {
+      const resumed = await restarted.app.inject({
+        method: "POST",
+        url: "/api/import/resume",
+        payload: {},
+      });
+      expect(resumed.statusCode).toBe(200);
+      const status = resumed.json<ImportStatusDto>();
+      expect(status.importState).toBe("draft");
+      expect(status.draftItems.length).toBeGreaterThan(0);
+    } finally {
+      await original.app.close();
+    }
+  });
+
+  it("discards unfinished import jobs and clears import history", async () => {
+    expect(
+      harness.state.activeStore.insertImportJob(
+        "{}",
+        new ResumableJob(),
+      ),
+    ).toBeGreaterThan(0);
+    const discarded = await harness.app.inject({
+      method: "POST",
+      url: "/api/import/discard-unfinished",
+      payload: {},
+    });
+    expect(discarded.statusCode).toBe(200);
+    expect(discarded.json<ImportStatusDto>().importState).toBe("idle");
+    expect(harness.state.activeStore.importJobRows()).toEqual([]);
+
+    expect(
+      harness.state.activeStore.insertImport({ inputKind: "screenshot" }),
+    ).toBeGreaterThan(0);
+    expect(
+      harness.state.activeStore.insertImport({ inputKind: "screenshot" }),
+    ).toBeGreaterThan(0);
+    const cleared = await harness.app.inject({
+      method: "DELETE",
+      url: "/api/imports",
+      payload: {},
+    });
+    expect(cleared.statusCode).toBe(200);
+    expect(cleared.json()).toEqual({ ok: true });
+    expect(harness.state.activeKitchen.imports()).toEqual([]);
+  });
+
+  it("rejects import continuation actions when their required state is missing", async () => {
+    const prepared = await harness.app.inject({
+      method: "POST",
+      url: "/api/import/text",
+      payload: { text: "当前草稿不能继续" },
+    });
+    expect(prepared.statusCode).toBe(200);
+    const cases = [
+      ["/api/import/skip", "没有可跳过的重复导入"],
+      ["/api/import/resume", "没有可继续的导入"],
+      ["/api/import/discard-unfinished", "当前不能放弃未完成的导入"],
+    ] as const;
+
+    for (const [url, error] of cases) {
+      const response = await harness.app.inject({
+        method: "POST",
+        url,
+        payload: {},
+      });
+      expect(response.statusCode).toBe(409);
+      expect(response.json()).toEqual({ error });
+    }
+  });
+
   it("accepts two multipart images and reaches the prepared state", async () => {
     const multipart = multipartBody(
       [
@@ -604,6 +819,8 @@ describe("HTTP API routes", () => {
     ["POST", "/api/items/0/use", { id: 1 }],
     ["POST", "/api/items/-1/absent", { id: 1 }],
     ["POST", "/api/items/nope/first", { id: 1, enabled: true }],
+    ["POST", "/api/items/nope/discard", { id: 1 }],
+    ["POST", "/api/items/nope/snooze", { id: 1 }],
     ["POST", "/api/suggestions/nope", { id: 1, accept: true }],
     ["DELETE", "/api/shopping/nope", { id: 1 }],
     ["DELETE", "/api/imports/nope", { id: 1 }],
@@ -659,10 +876,14 @@ describe("HTTP API routes", () => {
     ["POST", "/api/items/remove", { ids: [] }],
     ["POST", "/api/import/start", { privacyConfirmed: false, allowDuplicate: false }],
     ["POST", "/api/import/confirm", { allowDuplicate: "yes" }],
+    ["DELETE", "/api/imports", { force: true }],
+    ["POST", "/api/import/skip", { force: true }],
+    ["POST", "/api/import/resume", { force: true }],
+    ["POST", "/api/import/discard-unfinished", { force: true }],
     ["PUT", "/api/demo", { enabled: "yes" }],
   ])("rejects malformed input for %s %s", async (method, url, payload) => {
     const response = await harness.app.inject({
-      method: method as "POST" | "PUT",
+      method: method as "POST" | "PUT" | "DELETE",
       url,
       payload,
     });
