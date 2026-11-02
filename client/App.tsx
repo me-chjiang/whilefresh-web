@@ -45,7 +45,7 @@ export interface AppShellContextValue {
   currentTab: TabIndex;
   pageStack: readonly PageStackEntry[];
   importOpen: boolean;
-  switchTab: (index: TabIndex) => void;
+  switchTab: (index: TabIndex, initialKeyword?: string) => void;
   pushPage: (page: PageSpec) => void;
   goBack: () => void;
   openImport: () => void;
@@ -54,7 +54,6 @@ export interface AppShellContextValue {
   setDemoMode: (enabled: boolean) => Promise<void>;
   clearSelectedIds: readonly number[];
   toggleClearItem: (id: number) => void;
-  resetClearSelection: () => void;
 }
 
 const AppShellContext = createContext<AppShellContextValue | null>(null);
@@ -123,6 +122,7 @@ export default function App() {
   const [clearSelectionOverride, setClearSelectionOverride] = useState<
     number[] | null
   >(null);
+  const [recipeInitialKeyword, setRecipeInitialKeyword] = useState("");
   const [stateError, setStateError] = useState("");
   const [notice, setNotice] = useState<Notice | null>(null);
   const noticeSequence = useRef(0);
@@ -243,7 +243,7 @@ export default function App() {
   }, [checkDate]);
 
   const selectTab = useCallback(
-    (index: TabIndex) => {
+    (index: TabIndex, initialKeyword = "") => {
       const current = navigationRef.current;
       if (index === current.currentTab) {
         if (current.importOpen) {
@@ -253,6 +253,7 @@ export default function App() {
       }
       const next = switchTab(current, index);
       installNavigation(next, current.importOpen ? "replace" : "push");
+      setRecipeInitialKeyword(initialKeyword);
     },
     [installNavigation],
   );
@@ -306,6 +307,7 @@ export default function App() {
         stateRef.current = next;
         setState(next);
         setClearSelectionOverride(null);
+        setRecipeInitialKeyword("");
         setStateError("");
         pageContents.current.clear();
         installNavigation(createNavigation(), "replace");
@@ -338,10 +340,6 @@ export default function App() {
     });
   }, []);
 
-  const resetClearSelection = useCallback(() => {
-    setClearSelectionOverride(stateRef.current?.selectedIds ?? []);
-  }, []);
-
   const shellContext: AppShellContextValue | null = state
     ? {
         state,
@@ -358,7 +356,6 @@ export default function App() {
         setDemoMode,
         clearSelectedIds,
         toggleClearItem,
-        resetClearSelection,
       }
     : null;
 
@@ -409,7 +406,7 @@ export default function App() {
   } else if (navigation.currentTab === 0) {
     content = <FridgePage />;
   } else if (navigation.currentTab === 1) {
-    content = <RecipesPage />;
+    content = <RecipesPage initialKeyword={recipeInitialKeyword} />;
   } else if (navigation.currentTab === 2) {
     content = <ClearFridgePage />;
   } else if (navigation.currentTab === 3) {

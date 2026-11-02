@@ -1,23 +1,11 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import type { CSSProperties } from "react";
 
-import type { ClearPreviewDto } from "../../shared/api";
-import { api, ApiError } from "../api";
 import { CategoryDot } from "../components/CategoryDot";
+import { EmptyState } from "../components/EmptyState";
 import { InkButton } from "../components/InkButton";
 import { PageHeader } from "../components/PageHeader";
 import { SectionTape } from "../components/SectionTape";
 import { useAppShell } from "../App";
-import { ClearResultsPage } from "./ClearResultsPage";
-
-function messageFor(error: unknown): string {
-  if (error instanceof ApiError) {
-    return error.message;
-  }
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-  return "请稍后重试";
-}
 
 const chipStyle = (selected: boolean): CSSProperties => ({
   display: "inline-flex",
@@ -38,63 +26,15 @@ export function ClearFridgePage() {
     state,
     clearSelectedIds,
     toggleClearItem,
-    resetClearSelection,
-    pushPage,
-    notify,
+    switchTab,
   } = useAppShell();
-  const [preview, setPreview] = useState<ClearPreviewDto | null>(null);
-  const [previewError, setPreviewError] = useState("");
-  const [searching, setSearching] = useState(false);
-  const selectionKey = clearSelectedIds.join(",");
 
-  useEffect(() => {
-    let active = true;
-    setPreview(null);
-    setPreviewError("");
-    void api
-      .clearPreview({ selected: [...clearSelectedIds] })
-      .then((next) => {
-        if (active) {
-          setPreview(next);
-        }
-      })
-      .catch((error: unknown) => {
-        if (active) {
-          setPreviewError(messageFor(error));
-        }
-      });
-    return () => {
-      active = false;
-    };
-  }, [selectionKey]);
-
-  const findRecipes = async () => {
-    if (clearSelectedIds.length === 0 || searching) {
-      return;
-    }
-    setSearching(true);
-    try {
-      const result = await api.searchClearRecipes({
-        selected: [...clearSelectedIds],
-      });
-      const selectedIds = [...clearSelectedIds];
-      const resultKey = selectedIds.join(",");
-      pushPage({
-        key: `clear-results-${resultKey}`,
-        title: "清冰箱结果",
-        element: (
-          <ClearResultsPage
-            recipes={result.recipes}
-            summary={result.summary}
-            selectedIds={selectedIds}
-          />
-        ),
-      });
-    } catch (error) {
-      notify(`查找失败：${messageFor(error)}`);
-    } finally {
-      setSearching(false);
-    }
+  const searchKitchen = () => {
+    const keyword = state.items
+      .filter((item) => clearSelectedIds.includes(item.id))
+      .map((item) => item.name)
+      .join(" ");
+    switchTab(1, keyword);
   };
 
   return (
@@ -233,71 +173,22 @@ export function ClearFridgePage() {
         </div>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gap: "var(--gap-small)",
-          marginTop: "var(--gap)",
-        }}
-      >
-        <p
-          aria-live="polite"
-          style={{
-            margin: 0,
-            color: "var(--muted)",
-            fontSize: "var(--text-subtitle)",
-          }}
-        >
-          {clearSelectedIds.length === 0
-            ? "选几样食材试试"
-            : preview
-              ? `按非调料食材计算，预计 ${preview.candidateCount} 道候选菜，其中 ${preview.completeCount} 道用到全部已选食材`
-              : "正在估算候选菜…"}
-        </p>
-        {previewError && (
-          <p
-            role="alert"
-            style={{
-              margin: 0,
-              color: "var(--overdue)",
-              fontSize: "var(--text-meta)",
-            }}
-          >
-            暂时无法估算候选菜：{previewError}
-          </p>
-        )}
-        {preview &&
-          clearSelectedIds.length > 0 &&
-          preview.uncovered.length > 0 && (
-            <p
-              style={{
-                margin: 0,
-                color: "var(--nearing)",
-                fontSize: "var(--text-meta)",
-              }}
-            >
-              暂未覆盖：{preview.uncovered.join("、")}
-            </p>
-          )}
-      </div>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
-          gap: "var(--gap-small)",
-          marginTop: "var(--gap)",
-        }}
-      >
-        <InkButton fullWidth outline text="重置推荐选料" onClick={resetClearSelection} />
-        <InkButton
-          fullWidth
+      <InkButton
+        fullWidth
+        iconName="notes"
+        text="搜下厨房"
+        disabled={clearSelectedIds.length === 0}
+        onClick={searchKitchen}
+        style={{ marginTop: "var(--gap)" }}
+      />
+      {clearSelectedIds.length === 0 && (
+        <EmptyState
           iconName="chef-hat"
-          text={searching ? "正在查找…" : "查找菜谱"}
-          disabled={clearSelectedIds.length === 0 || searching}
-          onClick={() => void findRecipes()}
+          heading="选几样食材试试"
+          detail=""
+          style={{ paddingBlock: "var(--gap-large)" }}
         />
-      </div>
+      )}
     </section>
   );
 }

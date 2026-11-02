@@ -150,7 +150,7 @@ export function ShoppingPage() {
         <EmptyState
           iconName="list-check"
           heading="暂时没有待买的食材"
-          detail="选择菜谱后，可把缺料加入这里"
+          detail=""
           style={{ paddingBlock: "calc(var(--gap-large) * 3)" }}
         />
       ) : (

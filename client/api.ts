@@ -181,12 +181,6 @@ export const api = {
     }),
   clearNameMappings: () =>
     client.request(apiRoutes.clearNameMappings),
-  recipes: () => client.request(apiRoutes.recipes),
-  recipeDetail: (request: Api.RecipeRequest) =>
-    client.request(apiRoutes.recipeDetail, undefined, {
-      path: { id: request.id },
-      query: { selected: request.selected },
-    }),
   webRecipes: (keyword: string, page = 1, signal?: AbortSignal) =>
     client.request(apiRoutes.webRecipes, undefined, {
       query: { keyword, page },
@@ -197,10 +191,6 @@ export const api = {
       path: { id },
       signal,
     }),
-  clearPreview: (request: Api.ClearRequest) =>
-    client.request(apiRoutes.clearPreview, request),
-  searchClearRecipes: (request: Api.ClearRequest) =>
-    client.request(apiRoutes.searchClearRecipes, request),
   addItem: (request: Api.AddManualItemRequest) =>
     client.request(apiRoutes.addItem, request),
   updateItem: (request: Api.UpdateItemRequest) =>
@@ -245,10 +235,6 @@ export const api = {
     }),
   decideSuggestion: (request: Api.SuggestionDecisionRequest) =>
     client.request(apiRoutes.decideSuggestion, request, {
-      path: { id: request.id },
-    }),
-  addMissingIngredients: (request: Api.RecipeRequest) =>
-    client.request(apiRoutes.addMissingIngredients, request, {
       path: { id: request.id },
     }),
   shopping: () => client.request(apiRoutes.shopping),
