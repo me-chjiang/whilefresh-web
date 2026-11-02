@@ -153,6 +153,13 @@ export interface ImportJobRecord {
   createdAt: Date | null;
 }
 
+export interface Preference {
+  id: number;
+  text: string;
+  source: string;
+  createdAt: string;
+}
+
 export type StoredSuggestion = Suggestion & {
   id?: number;
   importId?: number;
@@ -528,6 +535,10 @@ function shoppingEntryFrom(row: SqlRow): ShoppingEntry {
     createdAt:
       timestampFrom(row.created_at)?.toISOString() ?? new Date(0).toISOString(),
   };
+}
+
+function preferenceText(value: string): string {
+  return value.trim().replace(/\s+/gu, " ").slice(0, 100);
 }
 
 function isMissing(error: unknown): boolean {
@@ -1677,6 +1688,89 @@ export class Store {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  addPreference(rawText: string, source = "user"): number {
+    const preference = preferenceText(rawText);
+    if (
+      preference.length === 0 ||
+      (source !== "user" && source !== "ai")
+    ) {
+      return 0;
+    }
+    try {
+      const count = this.database
+        .prepare("SELECT COUNT(*) AS count FROM preferences")
+        .get();
+      if (number(count?.count) >= 50) {
+        return 0;
+      }
+      const duplicate = this.database
+        .prepare("SELECT id FROM preferences WHERE text = ?")
+        .get(preference);
+      if (duplicate) {
+        return 0;
+      }
+      const now = this.clock.now().toISOString();
+      const result = this.database
+        .prepare(
+          `INSERT INTO preferences (text, source, created_at, updated_at)
+           VALUES (?, ?, ?, ?)`,
+        )
+        .run(preference, source, now, now);
+      const id = number(result.lastInsertRowid);
+      return Number.isSafeInteger(id) && id > 0 ? id : 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  updatePreference(id: number, rawText: string): boolean {
+    const preference = preferenceText(rawText);
+    if (preference.length === 0) {
+      return false;
+    }
+    try {
+      const result = this.database
+        .prepare(
+          "UPDATE preferences SET text = ?, updated_at = ? WHERE id = ?",
+        )
+        .run(preference, this.clock.now().toISOString(), id);
+      return number(result.changes) === 1;
+    } catch {
+      return false;
+    }
+  }
+
+  deletePreference(id: number): boolean {
+    try {
+      const result = this.database
+        .prepare("DELETE FROM preferences WHERE id = ?")
+        .run(id);
+      return number(result.changes) === 1;
+    } catch {
+      return false;
+    }
+  }
+
+  preferences(): Preference[] {
+    try {
+      return this.database
+        .prepare(
+          `SELECT id, text, source, created_at
+           FROM preferences
+           ORDER BY id`,
+        )
+        .all()
+        .map((row) => ({
+          id: number(row.id),
+          text: text(row.text),
+          source: text(row.source),
+          createdAt: text(row.created_at),
+        }));
+    } catch {
+      return [];
     }
   }
 
