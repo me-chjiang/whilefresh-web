@@ -44,6 +44,11 @@ import {
   dedupeKey,
   type ShoppingEntry,
 } from "../domain/shopping-list.js";
+import {
+  BatchState,
+  ResumableJob,
+  type ResumableBatch,
+} from "../domain/resumable-job.js";
 
 type Timestamp = Date | string | null;
 type SqlRow = Record<string, unknown>;
@@ -139,6 +144,13 @@ export interface ImportRecord {
   duplicateOf?: number;
   deletedAt?: Timestamp;
   images?: ImportImageRecord[];
+}
+
+export interface ImportJobRecord {
+  id: number;
+  job: ResumableJob;
+  payload: Buffer;
+  createdAt: Date | null;
 }
 
 export type StoredSuggestion = Suggestion & {
@@ -266,6 +278,22 @@ function timestampFrom(value: unknown): Date | null {
 
 function timestampValue(value: unknown): string | null {
   return timestampFrom(value)?.toISOString() ?? null;
+}
+
+function payloadBytes(value: unknown): Buffer {
+  if (typeof value === "string") {
+    return Buffer.from(value);
+  }
+  return value instanceof Uint8Array ? Buffer.from(value) : Buffer.alloc(0);
+}
+
+function batchResult(value: unknown): string {
+  if (typeof value === "string") {
+    return value;
+  }
+  return value instanceof Uint8Array
+    ? Buffer.from(value).toString("utf8")
+    : "";
 }
 
 function recordedDate(
@@ -837,6 +865,175 @@ export class Store {
       return [];
     }
     return fingerprints;
+  }
+
+  insertImportJob(
+    payload: string | Uint8Array,
+    job: ResumableJob,
+  ): number {
+    try {
+      return this.transaction(() => {
+        const now = this.clock.now().toISOString();
+        const result = this.database
+          .prepare(
+            `INSERT INTO import_jobs
+              (state, payload, created_at, updated_at)
+             VALUES (?, ?, ?, ?)`,
+          )
+          .run(ResumableJob.stateKey(job.state), payloadBytes(payload), now, now);
+        const id = Number(result.lastInsertRowid);
+        if (
+          !Number.isSafeInteger(id) ||
+          id <= 0 ||
+          !this.writeImportJob(id, job)
+        ) {
+          throw new Error("database import job insert failed");
+        }
+        return id;
+      });
+    } catch {
+      return 0;
+    }
+  }
+
+  saveImportJob(id: number, job: ResumableJob): boolean {
+    try {
+      return this.transaction(() => this.writeImportJob(id, job));
+    } catch {
+      return false;
+    }
+  }
+
+  private writeImportJob(id: number, job: ResumableJob): boolean {
+    const updated = this.database
+      .prepare(
+        "UPDATE import_jobs SET state = ?, updated_at = ? WHERE id = ?",
+      )
+      .run(
+        ResumableJob.stateKey(job.state),
+        this.clock.now().toISOString(),
+        id,
+      );
+    if (number(updated.changes) !== 1) {
+      return false;
+    }
+
+    this.database
+      .prepare(
+        `DELETE FROM import_job_batches
+         WHERE job_id = ? AND batch_index >= ?`,
+      )
+      .run(id, job.batchCount);
+    const upsert = this.database.prepare(
+      `INSERT INTO import_job_batches
+        (job_id, batch_index, state, result, updated_at)
+       VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT (job_id, batch_index) DO UPDATE SET
+         state = excluded.state,
+         result = excluded.result,
+         updated_at = excluded.updated_at`,
+    );
+    for (const [index, batch] of job.batches.entries()) {
+      upsert.run(
+        id,
+        index,
+        ResumableJob.batchStateKey(batch.state),
+        batch.state === BatchState.Done ? batch.result : null,
+        this.clock.now().toISOString(),
+      );
+    }
+    return true;
+  }
+
+  importJob(): ImportJobRecord | null {
+    try {
+      const row = this.database
+        .prepare(
+          `SELECT id, state, payload, created_at
+           FROM import_jobs
+           ORDER BY id DESC
+           LIMIT 1`,
+        )
+        .get();
+      if (!row) {
+        return null;
+      }
+      const id = number(row.id);
+      const state = ResumableJob.stateFromKey(text(row.state));
+      if (state === null) {
+        return null;
+      }
+
+      const batches = this.database
+        .prepare(
+          `SELECT state, result
+           FROM import_job_batches
+           WHERE job_id = ?
+           ORDER BY batch_index`,
+        )
+        .all(id)
+        .flatMap((batchRow): ResumableBatch[] => {
+          const batchState = ResumableJob.batchStateFromKey(
+            text(batchRow.state),
+          );
+          return batchState === null
+            ? []
+            : [{ state: batchState, result: batchResult(batchRow.result) }];
+        });
+      if (
+        batches.length !==
+        number(
+          this.database
+            .prepare(
+              "SELECT COUNT(*) AS count FROM import_job_batches WHERE job_id = ?",
+            )
+            .get(id)?.count,
+        )
+      ) {
+        return null;
+      }
+
+      const job = ResumableJob.restore(state, batches);
+      if (!job) {
+        console.warn(`import job ${id} has inconsistent batches`);
+        return null;
+      }
+      return {
+        id,
+        job,
+        payload: payloadBytes(row.payload),
+        createdAt: timestampFrom(row.created_at),
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  importJobRows(): ImportJobRecord[] {
+    try {
+      return this.database
+        .prepare(
+          "SELECT id, payload, created_at FROM import_jobs ORDER BY id",
+        )
+        .all()
+        .map((row) => ({
+          id: number(row.id),
+          job: new ResumableJob(),
+          payload: payloadBytes(row.payload),
+          createdAt: timestampFrom(row.created_at),
+        }));
+    } catch {
+      return [];
+    }
+  }
+
+  deleteImportJob(id: number): boolean {
+    try {
+      this.database.prepare("DELETE FROM import_jobs WHERE id = ?").run(id);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   saveImportProducts(
