@@ -278,7 +278,7 @@ export class AppState {
   }
 
   nearCount(): number {
-    return this.items().filter((item) => item.freshness === "nearing").length;
+    return this.activeKitchen.nearCount();
   }
 
   rememberRules(proposals: readonly RuleProposal[]): void {

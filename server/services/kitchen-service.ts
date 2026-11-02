@@ -1,6 +1,7 @@
 import {
   DateOrigin,
   Freshness,
+  ItemKind,
   ItemStatus,
   ShoppingOrigin,
   Storage,
@@ -9,11 +10,16 @@ import {
 import type { BuiltinData } from "../data/builtin.js";
 import {
   Store,
+  isSnoozed,
   type FridgeItem,
   type ImportRecord,
   type StoredSuggestion,
 } from "../data/store.js";
 import { addDays, type Clock } from "../domain/clock.js";
+import {
+  classifyItemKind,
+  sortForFridge,
+} from "../domain/fridge-groups.js";
 import {
   evaluateFreshness,
   type FreshnessState,
@@ -45,6 +51,7 @@ import {
   toText as shoppingListText,
   type ShoppingEntry,
 } from "../domain/shopping-list.js";
+import { totalAmount } from "../domain/quantity.js";
 
 export interface KitchenServiceOptions {
   store: Store;
@@ -96,7 +103,38 @@ export class KitchenService {
   }
 
   fridge(): FridgeItem[] {
-    return this.store.items();
+    return sortForFridge(
+      this.store.items().map((item) => ({
+        ...item,
+        id: item.id ?? 0,
+        canonicalName: item.canonicalName ?? "",
+        displayName: item.displayName ?? "",
+        kind: item.kind ?? ItemKind.Food,
+        storage: item.storage ?? Storage.Fridge,
+      })),
+      this.clock.today(),
+    );
+  }
+
+  attention(): FridgeItem[] {
+    const today = this.clock.today();
+    return this.fridge().filter((item) => {
+      const freshness = this.freshness(item).freshness;
+      return (
+        (freshness === Freshness.NearExpiry ||
+          freshness === Freshness.BeyondEstimate) &&
+        !isSnoozed(item, today)
+      );
+    });
+  }
+
+  nearCount(): number {
+    const today = this.clock.today();
+    return this.fridge().filter(
+      (item) =>
+        this.freshness(item).freshness === Freshness.NearExpiry &&
+        !isSnoozed(item, today),
+    ).length;
   }
 
   freshness(item: FridgeItem): FreshnessState {
@@ -189,6 +227,14 @@ export class KitchenService {
         };
         item.manualDays = null;
       }
+      if (
+        before.quantityText !== item.quantityText ||
+        before.count !== item.count
+      ) {
+        const amount = totalAmount(item.quantityText ?? "", item.count ?? 1);
+        item.amount = amount.value;
+        item.unit = amount.unit;
+      }
     } else {
       item.importId = 0;
       if (!dateIsSet(item.entryDate)) {
@@ -215,10 +261,14 @@ export class KitchenService {
           ? DateOrigin.User
           : DateOrigin.None,
       };
+      const amount = totalAmount(item.quantityText ?? "", item.count ?? 1);
+      item.amount = amount.value;
+      item.unit = amount.unit;
     }
 
     const name = item.canonicalName ?? "";
     item.category = this.builtin.catalog.categoryOf(name);
+    this.classify(item);
     this.resolve(item);
     const ok = before
       ? this.store.updateItem(item)
@@ -285,6 +335,42 @@ export class KitchenService {
       return false;
     }
     item.useFirst = enabled;
+    return this.store.updateItem(item);
+  }
+
+  changeStorage(id: number, storage: Storage): boolean {
+    const item = this.store.item(id);
+    if (!item) {
+      return false;
+    }
+    item.storage = storage;
+    item.manualDays = null;
+    item.referenceConditionsConfirmed = false;
+    this.classify(item);
+    this.resolve(item);
+    return this.store.updateItem(item);
+  }
+
+  discardItem(id: number): boolean {
+    const item = this.store.item(id);
+    if (!item || item.status !== ItemStatus.InStock) {
+      return false;
+    }
+    item.status = ItemStatus.Discarded;
+    item.statusChangedAt = this.clock.now();
+    return this.store.updateItem(item);
+  }
+
+  snoozeItem(id: number): boolean {
+    const item = this.store.item(id);
+    if (
+      !item ||
+      item.status !== ItemStatus.InStock ||
+      this.freshness(item).freshness !== Freshness.NearExpiry
+    ) {
+      return false;
+    }
+    item.snoozedUntil = addDays(this.clock.today(), 1);
     return this.store.updateItem(item);
   }
 
@@ -547,6 +633,10 @@ export class KitchenService {
     return this.store.deleteImport(id);
   }
 
+  clearImportHistory(): boolean {
+    return this.store.clearImportHistory();
+  }
+
   deleteAllData(): boolean {
     return this.store.deleteAllData();
   }
@@ -597,6 +687,16 @@ export class KitchenService {
         shelfLifeDays: after.shelfLifeDays,
       },
       this.builtin.catalog,
+    );
+  }
+
+  private classify(item: FridgeItem): void {
+    item.kind = classifyItemKind(
+      item.canonicalName ?? "",
+      item.kind === ItemKind.StapleSeasoning,
+      item.storage ?? Storage.Fridge,
+      this.builtin.catalog,
+      this.builtin.shelfLife,
     );
   }
 
