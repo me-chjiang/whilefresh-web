@@ -11,19 +11,11 @@ import { CategoryDot } from "./CategoryDot";
 import { FreshnessStamp } from "./FreshnessStamp";
 import { Icon } from "./Icon";
 
-const ACTION_WIDTH = 150;
+const ACTION_BUTTON_WIDTH = 75;
 const FIRST_SWIPE_THRESHOLD = 55;
 const RIGHT_DRAG_LIMIT = 90;
 const DRAG_SLOP = 6;
 const LONG_PRESS_MS = 550;
-
-const SOURCE_LABELS: Record<string, string> = {
-  package: "包装标注",
-  user: "你的设置",
-  reference: "参考表",
-  ai: "AI 估计",
-  none: "未知",
-};
 
 export interface PantryRowProps {
   ingredient: ItemDto;
@@ -33,6 +25,8 @@ export interface PantryRowProps {
   onSelectionRequested?: (ingredient: ItemDto) => void;
   onUsed?: (ingredient: ItemDto) => void;
   onUnavailable?: (ingredient: ItemDto) => void;
+  onDiscarded?: (ingredient: ItemDto) => void;
+  onSnoozed?: (ingredient: ItemDto) => void;
   onFirstRequested?: (ingredient: ItemDto) => void;
   className?: string;
   style?: CSSProperties;
@@ -47,8 +41,8 @@ interface Gesture {
   dragged: boolean;
 }
 
-function clampOffset(value: number): number {
-  return Math.min(RIGHT_DRAG_LIMIT, Math.max(-ACTION_WIDTH, value));
+function clampOffset(value: number, actionWidth: number): number {
+  return Math.min(RIGHT_DRAG_LIMIT, Math.max(-actionWidth, value));
 }
 
 export function PantryRow({
@@ -59,6 +53,8 @@ export function PantryRow({
   onSelectionRequested,
   onUsed,
   onUnavailable,
+  onDiscarded,
+  onSnoozed,
   onFirstRequested,
   className,
   style,
@@ -70,6 +66,9 @@ export function PantryRow({
   const longPressTimerRef = useRef<number | null>(null);
   const longPressedRef = useRef(false);
   const suppressClickRef = useRef(false);
+  const canSnooze = ingredient.freshness === "nearing" && !ingredient.snoozed;
+  const actionCount = canSnooze ? 4 : 3;
+  const actionWidth = actionCount * ACTION_BUTTON_WIDTH;
 
   const updateOffset = (nextOffset: number) => {
     offsetRef.current = nextOffset;
@@ -131,7 +130,9 @@ export function PantryRow({
       return;
     }
 
-    updateOffset(offsetRef.current < -FIRST_SWIPE_THRESHOLD ? -ACTION_WIDTH : 0);
+    updateOffset(
+      offsetRef.current < -FIRST_SWIPE_THRESHOLD ? -actionWidth : 0,
+    );
   };
 
   const handlePointerDown = (
@@ -204,7 +205,7 @@ export function PantryRow({
     event.preventDefault();
     gesture.dragged = true;
     setDragging(true);
-    updateOffset(clampOffset(gesture.startOffset + deltaX));
+    updateOffset(clampOffset(gesture.startOffset + deltaX, actionWidth));
   };
 
   const handlePointerUp = (
@@ -241,11 +242,6 @@ export function PantryRow({
   };
 
   const actionsVisible = offset < 0 && !multiSelect;
-  const sourceLabel = SOURCE_LABELS[ingredient.source] ?? "参考表";
-  const sourceDetail =
-    ingredient.source === "package"
-      ? sourceLabel
-      : `${sourceLabel} · 估计`;
 
   return (
     <div
@@ -264,7 +260,7 @@ export function PantryRow({
           top: 0,
           right: 0,
           display: "flex",
-          width: ACTION_WIDTH,
+          width: actionWidth,
           height: "var(--row-height)",
           visibility: actionsVisible ? "visible" : "hidden",
         }}
@@ -276,7 +272,7 @@ export function PantryRow({
           onClick={() => runAction((item) => onUsed?.(item))}
           style={{
             display: "flex",
-            width: ACTION_WIDTH / 2,
+            width: ACTION_BUTTON_WIDTH,
             height: "var(--row-height)",
             minWidth: 0,
             minHeight: 0,
@@ -296,11 +292,35 @@ export function PantryRow({
         <button
           type="button"
           disabled={!actionsVisible}
+          aria-label={`扔掉${ingredient.name}`}
+          onClick={() => runAction((item) => onDiscarded?.(item))}
+          style={{
+            display: "flex",
+            width: ACTION_BUTTON_WIDTH,
+            height: "var(--row-height)",
+            minWidth: 0,
+            minHeight: 0,
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 1,
+            color: "var(--text-on-tomato)",
+            background: "var(--tomato)",
+            fontSize: "var(--text-subtitle)",
+            fontWeight: "var(--weight-bold)",
+          }}
+        >
+          <Icon name="x" size={20} color="currentColor" />
+          <span>扔掉</span>
+        </button>
+        <button
+          type="button"
+          disabled={!actionsVisible}
           aria-label={`${ingredient.name}家里没有`}
           onClick={() => runAction((item) => onUnavailable?.(item))}
           style={{
             display: "flex",
-            width: ACTION_WIDTH / 2,
+            width: ACTION_BUTTON_WIDTH,
             height: "var(--row-height)",
             minWidth: 0,
             minHeight: 0,
@@ -317,12 +337,38 @@ export function PantryRow({
           <Icon name="ban" size={20} color="currentColor" />
           <span>家里没有</span>
         </button>
+        {canSnooze && (
+          <button
+            type="button"
+            disabled={!actionsVisible}
+            aria-label={`忽略${ingredient.name}`}
+            onClick={() => runAction((item) => onSnoozed?.(item))}
+            style={{
+              display: "flex",
+              width: ACTION_BUTTON_WIDTH,
+              height: "var(--row-height)",
+              minWidth: 0,
+              minHeight: 0,
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 1,
+              color: "var(--ink)",
+              background: "var(--mustard)",
+              fontSize: "var(--text-subtitle)",
+              fontWeight: "var(--weight-bold)",
+            }}
+          >
+            <Icon name="flag-2" size={20} color="currentColor" />
+            <span>忽略</span>
+          </button>
+        )}
       </div>
 
       <button
         type="button"
         aria-pressed={multiSelect ? checked : undefined}
-        aria-label={`${ingredient.name}，${ingredient.days}，${sourceDetail}`}
+        aria-label={`${ingredient.name}，${ingredient.days}`}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -416,7 +462,7 @@ export function PantryRow({
               whiteSpace: "nowrap",
             }}
           >
-            {ingredient.days} · {sourceDetail}
+            {ingredient.days}
           </span>
         </span>
 

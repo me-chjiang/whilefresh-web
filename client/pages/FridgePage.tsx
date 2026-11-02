@@ -26,6 +26,16 @@ const sections = [
     iconName: "sun",
     tapeColor: "sand",
   },
+  {
+    location: "常备调料",
+    iconName: "star",
+    tapeColor: "sand",
+  },
+  {
+    location: "常备食材",
+    iconName: "star",
+    tapeColor: "sand",
+  },
 ] as const;
 
 const cardStyle: CSSProperties = {
@@ -140,7 +150,7 @@ export function FridgePage() {
         <div style={{ paddingBottom: "var(--gap-small)" }}>
           {sections.map((section) => {
             const items = state.items.filter(
-              (item) => item.location === section.location,
+              (item) => item.group === section.location,
             );
             if (items.length === 0) {
               return null;
@@ -190,6 +200,16 @@ export function FridgePage() {
                       onUnavailable={(ingredient) =>
                         void runItemAction(() =>
                           api.markItemAbsent({ id: ingredient.id }),
+                        )
+                      }
+                      onDiscarded={(ingredient) =>
+                        void runItemAction(() =>
+                          api.discardItem({ id: ingredient.id }),
+                        )
+                      }
+                      onSnoozed={(ingredient) =>
+                        void runItemAction(() =>
+                          api.snoozeItem({ id: ingredient.id }),
                         )
                       }
                       onFirstRequested={(ingredient) =>
