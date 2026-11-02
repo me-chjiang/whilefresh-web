@@ -55,9 +55,12 @@ import {
 import { DeepSeekRecognizer } from "../recognition/deepseek.js";
 import { DemoRecognizer } from "../recognition/replay.js";
 import type { Recognizer } from "../recognition/types.js";
+import { LexmountRecipeSource } from "../recipes/lexmount-source.js";
+import type { RecipeSource } from "../recipes/types.js";
 import { ImportService } from "./import-service.js";
 import { KitchenService } from "./kitchen-service.js";
 import { SettingsService } from "./settings-service.js";
+import { WebRecipeService } from "./web-recipe-service.js";
 
 export interface AppStateOptions {
   dataDir: string;
@@ -67,6 +70,7 @@ export interface AppStateOptions {
   chatClient?: ChatClient;
   realRecognizer?: Recognizer;
   demoRecognizer?: Recognizer;
+  recipeSource?: RecipeSource;
 }
 
 type CredentialChatClient = ChatClient & {
@@ -188,6 +192,7 @@ export class AppState {
   private readonly envCredentials: CredentialProvider;
   private readonly realCredentials: CredentialProvider;
   private readonly settingsService: SettingsService;
+  private readonly webRecipeService: WebRecipeService;
   private readonly realRecognizer: Recognizer | undefined;
   private readonly demoRecognizer: Recognizer | undefined;
   private recognitionConfiguredValue = false;
@@ -212,10 +217,27 @@ export class AppState {
     this.chatClient =
       options.chatClient ??
       new DeepSeekChatClient({ credentials: this.envCredentials });
+    const recipeSource =
+      options.recipeSource ??
+      new LexmountRecipeSource({
+        credentials: () => {
+          const credentials = this.demoMode
+            ? this.envCredentials
+            : this.realCredentials;
+          return {
+            apiKey: credentials.key("lexmount"),
+            projectId: credentials.key("lexmountProjectId"),
+          };
+        },
+      });
+    this.webRecipeService = new WebRecipeService(recipeSource);
     this.settingsService = new SettingsService({
       credentials: this.userKeys,
       chatClient: this.chatClient,
-      credentialsChanged: () => this.applyCredentials(),
+      credentialsChanged: () => {
+        this.applyCredentials();
+        this.webRecipeService.reset();
+      },
     });
     this.realRecognizer = options.realRecognizer;
     this.demoRecognizer = options.demoRecognizer;
@@ -286,6 +308,10 @@ export class AppState {
 
   get settings(): SettingsService {
     return this.settingsService;
+  }
+
+  get web(): WebRecipeService {
+    return this.webRecipeService;
   }
 
   get activeKitchen(): KitchenService {
@@ -525,6 +551,7 @@ export class AppState {
     this.active = session;
     this.pendingRules = [];
     this.settingsService.attach(session.store, session.names);
+    this.webRecipeService.reset();
   }
 
   private applyCredentials(): void {
