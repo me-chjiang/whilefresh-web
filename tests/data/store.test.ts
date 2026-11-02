@@ -370,6 +370,33 @@ describe("store", () => {
     expect(harness.store.importJob()?.id).toBe(id);
   });
 
+  it("truncates preferences and rejects normalized duplicates", () => {
+    expect(harness.store.preferences()).toEqual([]);
+    expect(harness.store.addPreference(" 不吃  香菜 ")).toBeGreaterThan(0);
+    expect(harness.store.preferences()[0]?.text).toBe("不吃 香菜");
+    expect(harness.store.addPreference("不吃 香菜")).toBe(0);
+
+    const longId = harness.store.addPreference("a".repeat(150));
+    expect(longId).toBeGreaterThan(0);
+    const longPreference = harness.store.preferences().at(-1);
+    expect(longPreference?.text).toHaveLength(100);
+    expect(longPreference?.text).toBe("a".repeat(100));
+  });
+
+  it("caps preferences at 50 items", () => {
+    for (let index = 0; index < 50; index += 1) {
+      expect(harness.store.addPreference(`偏好${index}`)).toBeGreaterThan(0);
+    }
+    expect(harness.store.preferences()).toHaveLength(50);
+    expect(harness.store.addPreference("多出来的")).toBe(0);
+
+    const first = harness.store.preferences()[0]!;
+    expect(harness.store.deletePreference(first.id)).toBe(true);
+    const replacement = harness.store.addPreference("z".repeat(150));
+    expect(replacement).toBeGreaterThan(0);
+    expect(harness.store.preferences().at(-1)?.text).toBe("z".repeat(100));
+  });
+
   it("deletes all data", () => {
     const image = join(harness.importsDirectory, "a.jpg");
     const stray = join(harness.importsDirectory, "old.part");
