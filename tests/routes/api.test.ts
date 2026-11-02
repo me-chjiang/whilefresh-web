@@ -4,9 +4,14 @@ import Fastify, {
   type FastifyInstance,
 } from "fastify";
 import { createHash } from "node:crypto";
-import { mkdtempSync, rmSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  realpathSync,
+  rmSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
@@ -14,14 +19,20 @@ import type {
   ClearPreviewDto,
   ClearRecipesResult,
   ImportStatusDto,
+  NameMappingDto,
+  PreferencesDto,
   RecipeDetailDto,
   RecipeSummaryDto,
+  ServiceSourcesDto,
   ShoppingDto,
   ShoppingTextDto,
   StateDto,
 } from "../../shared/api.js";
 import { ImportStatus, SuggestionKind } from "../../shared/enums.js";
+import { RecordedChatClient } from "../../server/ai/recorded-chat-client.js";
 import { loadBuiltin } from "../../server/data/builtin.js";
+import { openDatabase } from "../../server/data/db.js";
+import { SqliteNameMappingStore } from "../../server/data/store.js";
 import { fixedClock } from "../../server/domain/clock.js";
 import { ResumableJob } from "../../server/domain/resumable-job.js";
 import { DemoRecognizer } from "../../server/recognition/replay.js";
@@ -30,6 +41,7 @@ import { registerImportRoutes } from "../../server/routes/import.js";
 import { registerItemRoutes } from "../../server/routes/items.js";
 import { registerProfileRoutes } from "../../server/routes/profile.js";
 import { registerRecipeRoutes } from "../../server/routes/recipes.js";
+import { registerSettingsRoutes } from "../../server/routes/settings.js";
 import { registerShoppingRoutes } from "../../server/routes/shopping.js";
 import {
   registerStateRoutes,
@@ -50,6 +62,7 @@ interface Harness {
 interface HarnessOptions {
   dataDir?: string;
   realRecognizer?: AppStateOptions["realRecognizer"];
+  chatClient?: AppStateOptions["chatClient"];
 }
 
 const builtin = loadBuiltin();
@@ -67,6 +80,7 @@ async function createHarness(options: HarnessOptions = {}): Promise<Harness> {
     builtin,
     clock,
     apiKey: "",
+    chatClient: options.chatClient,
     realRecognizer: options.realRecognizer,
   });
   const context: RouteContext = {
@@ -94,6 +108,7 @@ async function createHarness(options: HarnessOptions = {}): Promise<Harness> {
   registerItemRoutes(app, context);
   registerShoppingRoutes(app, context);
   registerProfileRoutes(app, context);
+  registerSettingsRoutes(app, context);
   registerImportRoutes(app, context);
 
   app.get("/api/health", async () => ({ status: "ok" }));
@@ -180,6 +195,12 @@ describe("HTTP API routes", () => {
     await harness.app.close();
     rmSync(harness.dataDir, { recursive: true, force: true });
   });
+
+  async function replaceHarness(options: HarnessOptions = {}): Promise<void> {
+    await harness.app.close();
+    rmSync(harness.dataDir, { recursive: true, force: true });
+    harness = await createHarness(options);
+  }
 
   async function readState(): Promise<StateDto> {
     const response = await harness.app.inject({
@@ -282,6 +303,263 @@ describe("HTTP API routes", () => {
     });
     expect(importStatus.statusCode).toBe(200);
     expect(importStatus.json<ImportStatusDto>().importState).toBe("idle");
+  });
+
+  it("manages service sources and their stored secret", async () => {
+    const initial = await harness.app.inject({
+      method: "GET",
+      url: "/api/services",
+    });
+    expect(initial.statusCode).toBe(200);
+    expect(initial.json<ServiceSourcesDto>()).toEqual({
+      deepseek: expect.any(String),
+      lexmount: expect.any(String),
+      lexmountProject: expect.any(String),
+    });
+
+    for (const field of ["deepseek", "lexmount", "lexmountProject"]) {
+      const saved = await harness.app.inject({
+        method: "PUT",
+        url: `/api/services/${field}`,
+        payload: { value: `test-${field}` },
+      });
+      expect(saved.statusCode).toBe(200);
+      expect(saved.json()).toEqual({ ok: true });
+    }
+
+    const configured = await harness.app.inject({
+      method: "GET",
+      url: "/api/services",
+    });
+    expect(configured.json<ServiceSourcesDto>()).toEqual({
+      deepseek: "user",
+      lexmount: "user",
+      lexmountProject: "user",
+    });
+
+    const cleared = await harness.app.inject({
+      method: "DELETE",
+      url: "/api/services/deepseek",
+    });
+    expect(cleared.statusCode).toBe(200);
+    expect(cleared.json()).toEqual({ ok: true });
+    const remaining = await harness.app.inject({
+      method: "GET",
+      url: "/api/services",
+    });
+    expect(remaining.json<ServiceSourcesDto>().lexmount).toBe("user");
+    expect(remaining.json<ServiceSourcesDto>().lexmountProject).toBe("user");
+    expect(remaining.json<ServiceSourcesDto>().deepseek).not.toBe("user");
+  });
+
+  it("lists, adds, summarizes and deletes preferences", async () => {
+    const client = new RecordedChatClient({
+      exchanges: [{
+        request: {
+          model: "deepseek-flash",
+          messageCount: 2,
+          imageCount: 0,
+          textChars: 0,
+          jsonMode: true,
+          maxTokens: 600,
+        },
+        requestDigest: "",
+        elapsedMs: 0,
+        response: JSON.stringify({
+          choices: [{
+            index: 0,
+            message: {
+              role: "assistant",
+              content: JSON.stringify({ summary: "不吃香菜；少油。" }),
+            },
+            finish_reason: "stop",
+          }],
+          usage: {
+            prompt_tokens: 100,
+            completion_tokens: 20,
+            total_tokens: 120,
+          },
+        }),
+      }],
+    });
+    await replaceHarness({ chatClient: client });
+
+    const empty = await harness.app.inject({
+      method: "GET",
+      url: "/api/preferences",
+    });
+    expect(empty.statusCode).toBe(200);
+    expect(empty.json<PreferencesDto>()).toEqual({
+      items: [],
+      summary: "",
+      stale: false,
+      summarizing: false,
+    });
+
+    const added = await harness.app.inject({
+      method: "POST",
+      url: "/api/preferences",
+      payload: { text: " 不吃香菜 " },
+    });
+    expect(added.statusCode).toBe(200);
+    expect(added.json()).toEqual({ ok: true });
+
+    const listed = await harness.app.inject({
+      method: "GET",
+      url: "/api/preferences",
+    });
+    const preferences = listed.json<PreferencesDto>();
+    expect(preferences.items).toHaveLength(1);
+    expect(preferences.items[0]).toMatchObject({
+      text: "不吃香菜",
+      source: "user",
+    });
+
+    const summarized = await harness.app.inject({
+      method: "POST",
+      url: "/api/preferences/summarize",
+    });
+    expect(summarized.statusCode).toBe(200);
+    expect(summarized.json<PreferencesDto>()).toMatchObject({
+      summary: "不吃香菜；少油。",
+      stale: false,
+      summarizing: false,
+    });
+    expect(client.requests()).toHaveLength(1);
+
+    const deleted = await harness.app.inject({
+      method: "DELETE",
+      url: `/api/preferences/${preferences.items[0]!.id}`,
+    });
+    expect(deleted.statusCode).toBe(200);
+    expect(deleted.json()).toEqual({ ok: true });
+    const cleared = await harness.app.inject({
+      method: "GET",
+      url: "/api/preferences",
+    });
+    expect(cleared.json<PreferencesDto>()).toEqual({
+      items: [],
+      summary: "",
+      stale: false,
+      summarizing: false,
+    });
+  });
+
+  it("rejects invalid settings values", async () => {
+    const unknownField = await harness.app.inject({
+      method: "PUT",
+      url: "/api/services/nonsense",
+      payload: { value: "test-key" },
+    });
+    expect(unknownField.statusCode).toBe(400);
+    expect(unknownField.json()).toEqual({ error: "请求参数不正确" });
+
+    const whitespaceSecret = await harness.app.inject({
+      method: "PUT",
+      url: "/api/services/deepseek",
+      payload: { value: " \t " },
+    });
+    expect(whitespaceSecret.statusCode).toBe(400);
+    expect(whitespaceSecret.json()).toEqual({ error: "保存失败" });
+
+    const whitespacePreference = await harness.app.inject({
+      method: "POST",
+      url: "/api/preferences",
+      payload: { text: " \t " },
+    });
+    expect(whitespacePreference.statusCode).toBe(400);
+    expect(whitespacePreference.json()).toEqual({ error: "添加失败" });
+
+    const tooLongPreference = await harness.app.inject({
+      method: "POST",
+      url: "/api/preferences",
+      payload: { text: "a".repeat(101) },
+    });
+    expect(tooLongPreference.statusCode).toBe(400);
+    expect(tooLongPreference.json()).toEqual({
+      error: "请求参数不正确",
+    });
+  });
+
+  it("lists, forgets and clears name mappings", async () => {
+    const database = openDatabase(join(harness.dataDir, "whilefresh.db"));
+    const names = new SqliteNameMappingStore(database, clock);
+    expect(names.remember("土猪肉", "猪肉")).toBe(true);
+    expect(names.remember("冰鲜 鸡全腿", "鸡腿")).toBe(true);
+    database.close();
+
+    const listed = await harness.app.inject({
+      method: "GET",
+      url: "/api/name-mappings",
+    });
+    expect(listed.statusCode).toBe(200);
+    expect(listed.json<NameMappingDto[]>()).toEqual([
+      { raw: "冰鲜 鸡全腿", canonical: "鸡腿" },
+      { raw: "土猪肉", canonical: "猪肉" },
+    ]);
+
+    const forgotten = await harness.app.inject({
+      method: "DELETE",
+      url: `/api/name-mappings/${encodeURIComponent("土猪肉")}`,
+    });
+    expect(forgotten.statusCode).toBe(200);
+    expect(forgotten.json()).toEqual({ ok: true });
+    const remaining = await harness.app.inject({
+      method: "GET",
+      url: "/api/name-mappings",
+    });
+    expect(remaining.json<NameMappingDto[]>()).toEqual([
+      { raw: "冰鲜 鸡全腿", canonical: "鸡腿" },
+    ]);
+
+    const cleared = await harness.app.inject({
+      method: "DELETE",
+      url: "/api/name-mappings",
+    });
+    expect(cleared.statusCode).toBe(200);
+    expect(cleared.json()).toEqual({ ok: true });
+    const empty = await harness.app.inject({
+      method: "GET",
+      url: "/api/name-mappings",
+    });
+    expect(empty.json<NameMappingDto[]>()).toEqual([]);
+  });
+
+  it("never returns a saved secret from any GET route", async () => {
+    const secret = "test-key-123";
+    const saved = await harness.app.inject({
+      method: "PUT",
+      url: "/api/services/deepseek",
+      payload: { value: secret },
+    });
+    expect(saved.statusCode).toBe(200);
+
+    const secretPath = join(harness.dataDir, "secrets.json");
+    expect(existsSync(secretPath)).toBe(true);
+    expect(dirname(realpathSync(secretPath))).toBe(
+      realpathSync(harness.dataDir),
+    );
+
+    const getUrls = [
+      "/api/health",
+      "/api/state",
+      "/api/services",
+      "/api/preferences",
+      "/api/name-mappings",
+      "/api/recipes",
+      `/api/recipes/${encodeURIComponent(builtin.recipes[0]!.id)}`,
+      "/api/shopping",
+      "/api/shopping/text",
+      "/api/import",
+    ];
+    for (const url of getUrls) {
+      const response = await harness.app.inject({
+        method: "GET",
+        url,
+      });
+      expect(response.statusCode, url).toBe(200);
+      expect(response.body, url).not.toContain(secret);
+    }
   });
 
   it("switches demo mode and exposes exactly eight demo items", async () => {
