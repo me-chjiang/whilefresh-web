@@ -153,6 +153,31 @@ export const api = {
   client,
   health: () => client.request(apiRoutes.health),
   state: () => client.request(apiRoutes.state),
+  services: () => client.request(apiRoutes.services),
+  setService: (field: keyof Api.ServiceSourcesDto, value: string) =>
+    client.request(apiRoutes.setService, { value }, {
+      path: { field },
+    }),
+  clearService: (field: keyof Api.ServiceSourcesDto) =>
+    client.request(apiRoutes.clearService, undefined, {
+      path: { field },
+    }),
+  preferences: () => client.request(apiRoutes.preferences),
+  addPreference: (text: string) =>
+    client.request(apiRoutes.addPreference, { text }),
+  deletePreference: (id: number) =>
+    client.request(apiRoutes.deletePreference, undefined, {
+      path: { id },
+    }),
+  summarizePreferences: () =>
+    client.request(apiRoutes.summarizePreferences),
+  nameMappings: () => client.request(apiRoutes.nameMappings),
+  forgetNameMapping: (raw: string) =>
+    client.request(apiRoutes.forgetNameMapping, undefined, {
+      path: { raw },
+    }),
+  clearNameMappings: () =>
+    client.request(apiRoutes.clearNameMappings),
   recipes: () => client.request(apiRoutes.recipes),
   recipeDetail: (request: Api.RecipeRequest) =>
     client.request(apiRoutes.recipeDetail, undefined, {

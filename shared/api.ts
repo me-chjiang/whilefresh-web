@@ -174,6 +174,32 @@ export interface ActionResult {
   ok: boolean;
 }
 
+export type ServiceSource = "user" | "builtin" | "none";
+
+export interface ServiceSourcesDto {
+  deepseek: ServiceSource;
+  lexmount: ServiceSource;
+  lexmountProject: ServiceSource;
+}
+
+export interface PreferenceDto {
+  id: number;
+  text: string;
+  source: string;
+}
+
+export interface PreferencesDto {
+  items: PreferenceDto[];
+  summary: string;
+  stale: boolean;
+  summarizing: boolean;
+}
+
+export interface NameMappingDto {
+  raw: string;
+  canonical: string;
+}
+
 export interface DeleteAllDataResult extends ActionResult {
   error?: string;
   warning?: string;
@@ -268,6 +294,14 @@ export interface DemoModeRequest {
   enabled: boolean;
 }
 
+export interface SetServiceRequest {
+  value: string;
+}
+
+export interface AddPreferenceRequest {
+  text: string;
+}
+
 export interface TextImportRequest {
   text: string;
 }
@@ -326,6 +360,40 @@ const route = <TRequest, TResponse>(
 export const apiRoutes = {
   health: route<void, { status: "ok" }>("GET", "/api/health"),
   state: route<void, StateDto>("GET", "/api/state"),
+  services: route<void, ServiceSourcesDto>("GET", "/api/services"),
+  setService: route<SetServiceRequest, ActionResult>(
+    "PUT",
+    "/api/services/:field",
+  ),
+  clearService: route<void, ActionResult>(
+    "DELETE",
+    "/api/services/:field",
+  ),
+  preferences: route<void, PreferencesDto>("GET", "/api/preferences"),
+  addPreference: route<AddPreferenceRequest, ActionResult>(
+    "POST",
+    "/api/preferences",
+  ),
+  deletePreference: route<void, ActionResult>(
+    "DELETE",
+    "/api/preferences/:id",
+  ),
+  summarizePreferences: route<void, PreferencesDto>(
+    "POST",
+    "/api/preferences/summarize",
+  ),
+  nameMappings: route<void, NameMappingDto[]>(
+    "GET",
+    "/api/name-mappings",
+  ),
+  forgetNameMapping: route<void, ActionResult>(
+    "DELETE",
+    "/api/name-mappings/:raw",
+  ),
+  clearNameMappings: route<void, ActionResult>(
+    "DELETE",
+    "/api/name-mappings",
+  ),
   recipes: route<void, RecipeSummaryDto[]>("GET", "/api/recipes"),
   recipeDetail: route<RecipeRequest, RecipeDetailDto>(
     "GET",

@@ -13,6 +13,7 @@ import { registerImportRoutes } from "./routes/import.js";
 import { registerItemRoutes } from "./routes/items.js";
 import { registerProfileRoutes } from "./routes/profile.js";
 import { registerRecipeRoutes } from "./routes/recipes.js";
+import { registerSettingsRoutes } from "./routes/settings.js";
 import { registerShoppingRoutes } from "./routes/shopping.js";
 import { registerStateRoutes, type RouteContext } from "./routes/state.js";
 import { AppState } from "./services/app-state.js";
@@ -53,6 +54,7 @@ registerClearRoutes(app, context);
 registerItemRoutes(app, context);
 registerShoppingRoutes(app, context);
 registerProfileRoutes(app, context);
+registerSettingsRoutes(app, context);
 registerImportRoutes(app, context);
 
 app.get("/api/health", async () => ({ status: "ok" }));
