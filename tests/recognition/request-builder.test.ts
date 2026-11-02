@@ -22,6 +22,13 @@ const vocabulary = Catalog.fromJson(
   ),
 );
 
+const realVocabulary = Catalog.fromJson(
+  readFileSync(
+    new URL("../../assets/data/vocabulary.json", import.meta.url),
+    "utf8",
+  ),
+);
+
 function slice(
   imageIndex: number,
   sliceIndex: number,
@@ -66,9 +73,37 @@ describe("request builder", () => {
       "ignored_summary",
       "不要推测",
       "逐字取自下方词表",
+      "最细",
+      "不要因为选了标准名而改动 raw_name",
     ]) {
       expect(prompt, phrase).toContain(phrase);
     }
+  });
+
+  it("lists the vocabulary hierarchy", () => {
+    const catalog = Catalog.fromJson(`
+      {
+        "categories": [{"code": "meat", "name": "肉类"}],
+        "items": [
+          {"name": "猪肉", "category": "meat"},
+          {"name": "五花肉", "category": "meat", "parent": "猪肉"},
+          {"name": "里脊", "category": "meat", "parent": "猪肉"},
+          {"name": "梅花肉", "category": "meat"}
+        ]
+      }
+    `);
+
+    const prompt = buildPrompt(InputKind.OrderText, catalog);
+    expect(prompt).toContain("【肉类】\n猪肉 > 五花肉、里脊\n梅花肉\n");
+  });
+
+  it("sends the real vocabulary hierarchy", () => {
+    const prompt = buildPrompt(InputKind.OrderText, realVocabulary);
+
+    expect(prompt).toContain("\n猪肉 > 五花肉、前腿肉、里脊\n");
+    expect(prompt).toContain("\n醋 > ");
+    expect(prompt).toContain("梅花肉");
+    expect(prompt.length).toBeLessThan(4500);
   });
 
   it("uses a different paragraph for each input kind", () => {
@@ -190,7 +225,7 @@ describe("request builder", () => {
   });
 
   it("exposes the prompt version", () => {
-    expect(PROMPT_VERSION).toBe("v2");
+    expect(PROMPT_VERSION).toBe("v3");
   });
 
   it("tells the model not to obey instructions in the input", () => {

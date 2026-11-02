@@ -255,6 +255,24 @@ describe("response parser", () => {
     expect(result.items[2].rawName).toBe("c");
   });
 
+  it("resolves canonical names without refining them from raw names", () => {
+    const catalog = Catalog.fromJson(`{
+      "items": [
+        {"name": "猪肉", "category": "meat"},
+        {"name": "梅花肉", "category": "meat"}
+      ]
+    }`);
+    const result = resultOf(
+      parseChatCompletion(
+        chatCompletion(modelJson([itemJson("黑猪梅花肉切片", "猪肉")])),
+        catalog,
+        InputKind.Screenshot,
+      ),
+    );
+
+    expect(result.items[0].canonicalName).toBe("猪肉");
+  });
+
   it("keeps model names without a vocabulary", () => {
     const outcome = parseChatCompletion(
       chatCompletion(modelJson([itemJson("a", "随便")])),
