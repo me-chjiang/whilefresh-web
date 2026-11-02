@@ -17,6 +17,7 @@ import { InkButton } from "../components/InkButton";
 import { NoticeBanner } from "../components/NoticeBanner";
 import { PageHeader } from "../components/PageHeader";
 import { useAppShell } from "../App";
+import { PreferencesPage } from "./PreferencesPage";
 import { ServicesPage } from "./ServicesPage";
 
 const locations = ["冷藏", "冷冻", "常温"] as const;
@@ -472,6 +473,38 @@ export function ProfilePage() {
           enabled={state.demoMode}
           onToggle={() => void setDemoMode(!state.demoMode)}
         />
+
+        <button
+          type="button"
+          onClick={() =>
+            pushPage({
+              key: "profile-preferences",
+              title: "偏好记忆",
+              element: <PreferencesPage />,
+            })
+          }
+          style={{
+            ...cardStyle,
+            display: "flex",
+            alignItems: "center",
+            minHeight: "calc(var(--touch) + var(--gap-large))",
+            padding: "var(--gap-small) var(--gap)",
+            gap: "var(--gap)",
+            color: "var(--ink)",
+            textAlign: "left",
+          }}
+        >
+          <span
+            style={{
+              flex: 1,
+              fontSize: "var(--text-body)",
+              fontWeight: "var(--weight-bold)",
+            }}
+          >
+            偏好记忆
+          </span>
+          <Icon name="chevron-right" size={20} color="var(--muted)" />
+        </button>
 
         <button
           type="button"
