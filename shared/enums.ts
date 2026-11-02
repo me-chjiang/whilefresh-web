@@ -6,10 +6,19 @@ export const Storage = {
 
 export type Storage = (typeof Storage)[keyof typeof Storage];
 
+export const ItemKind = {
+  Food: "food",
+  StapleSeasoning: "staple_seasoning",
+  StapleFood: "staple_food",
+} as const;
+
+export type ItemKind = (typeof ItemKind)[keyof typeof ItemKind];
+
 export const ItemStatus = {
   InStock: "in_stock",
   Used: "used",
   Absent: "absent",
+  Discarded: "discarded",
 } as const;
 
 export type ItemStatus = (typeof ItemStatus)[keyof typeof ItemStatus];
@@ -88,6 +97,13 @@ export const ImportState = {
 } as const;
 
 export type ImportState = (typeof ImportState)[keyof typeof ImportState];
+
+export const ImportStatus = {
+  Confirmed: "confirmed",
+  SkippedDuplicate: "skipped_duplicate",
+} as const;
+
+export type ImportStatus = (typeof ImportStatus)[keyof typeof ImportStatus];
 
 export const CategoryCode = {
   Vegetable: "vegetable",

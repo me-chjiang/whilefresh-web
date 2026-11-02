@@ -66,6 +66,14 @@ export function statusAbsent(): string {
   return "家里没有";
 }
 
+export function statusDiscarded(): string {
+  return "已扔掉";
+}
+
+export function needsShelfLife(): string {
+  return "待录保质期";
+}
+
 export function orSeparator(): string {
   return " 或 ";
 }
