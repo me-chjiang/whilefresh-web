@@ -12,6 +12,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
   DateOrigin,
+  ImportStatus,
   ItemStatus,
   ShelfLifeSource,
   ShoppingOrigin,
@@ -29,6 +30,11 @@ import {
 } from "../../server/data/store.js";
 import { fixedClock, type Clock } from "../../server/domain/clock.js";
 import { PantryRules } from "../../server/domain/pantry.js";
+import {
+  BatchState,
+  JobState,
+  ResumableJob,
+} from "../../server/domain/resumable-job.js";
 import { makeShoppingEntry } from "../../server/domain/shopping-list.js";
 
 interface StoreHarness {
@@ -178,15 +184,16 @@ describe("store", () => {
     };
     expect(harness.store.insertImport(second)).toBeGreaterThan(0);
 
-    expect(
-      harness.store.insertItem(sampleItem(first.id!, "土豆", "500g")),
-    ).toBeGreaterThan(0);
-    expect(
-      harness.store.insertItem(sampleItem(second.id!, "西红柿", "500g")),
-    ).toBeGreaterThan(0);
-    expect(
-      harness.store.insertItem(sampleItem(0, "鸡蛋", "10枚")),
-    ).toBeGreaterThan(0);
+    const inStock = sampleItem(first.id!, "土豆", "500g");
+    const used = sampleItem(first.id!, "西红柿", "500g");
+    used.status = ItemStatus.Used;
+    const discarded = sampleItem(first.id!, "菠菜", "300g");
+    discarded.status = ItemStatus.Discarded;
+    const fromSecond = sampleItem(second.id!, "西红柿", "500g");
+    const manual = sampleItem(0, "鸡蛋", "10枚");
+    for (const item of [inStock, used, discarded, fromSecond, manual]) {
+      expect(harness.store.insertItem(item)).toBeGreaterThan(0);
+    }
 
     const suggestion: StoredSuggestion = {
       kind: SuggestionKind.MarkPantryHave,
@@ -206,9 +213,161 @@ describe("store", () => {
     expect(existsSync(other)).toBe(true);
     expect(harness.store.importRecord(first.id!)).toBeUndefined();
     expect(harness.store.items()).toHaveLength(2);
-    expect(harness.store.itemsForImport(first.id!)).toEqual([]);
+    expect(harness.store.item(inStock.id!)).toBeUndefined();
+    expect(harness.store.item(fromSecond.id!)).toBeDefined();
+    expect(harness.store.item(manual.id!)).toBeDefined();
+    expect(harness.store.itemsForImport(first.id!)).toHaveLength(2);
+    expect(
+      harness.store.itemsForImport(first.id!).map((item) => item.status),
+    ).toEqual([ItemStatus.Used, ItemStatus.Discarded]);
+    expect(harness.store.imports()).toHaveLength(1);
+    expect(harness.store.imports(true)).toHaveLength(2);
+    expect(
+      harness.store
+        .imports(true)
+        .find((record) => record.id === first.id)?.deletedAt,
+    ).toEqual(harness.clock.now());
+    expect(
+      harness.store.importFingerprints().map((fingerprint) => fingerprint.importId),
+    ).toEqual([second.id]);
     expect(harness.store.pendingSuggestions()).toEqual([]);
     expect(harness.store.deleteImport(first.id!)).toBe(false);
+  });
+
+  it("clears import history without emptying the fridge", () => {
+    const paths = [
+      join(harness.importsDirectory, "a.jpg"),
+      join(harness.importsDirectory, "b.jpg"),
+    ];
+    paths.forEach(touch);
+    const importIds: number[] = [];
+
+    for (const path of paths) {
+      const record: ImportRecord = {
+        inputKind: "screenshot",
+        images: [{ path, sha256: path.slice(-5) }],
+      };
+      expect(harness.store.insertImport(record)).toBeGreaterThan(0);
+      importIds.push(record.id!);
+      expect(
+        harness.store.insertItem(sampleItem(record.id!, "土豆", "500g")),
+      ).toBeGreaterThan(0);
+    }
+    expect(
+      harness.store.insertItem(sampleItem(0, "鸡蛋", "10枚")),
+    ).toBeGreaterThan(0);
+
+    expect(harness.store.clearImportHistory()).toBe(true);
+    expect(harness.store.imports()).toEqual([]);
+    expect(harness.store.imports(true)).toHaveLength(2);
+    expect(harness.store.items()).toHaveLength(3);
+    for (const importId of importIds) {
+      expect(harness.store.itemsForImport(importId)).toHaveLength(1);
+    }
+    expect(paths.every((path) => !existsSync(path))).toBe(true);
+    expect(harness.store.importFingerprints()).toEqual([]);
+  });
+
+  it("records skipped duplicate imports", () => {
+    const original: ImportRecord = { inputKind: "screenshot" };
+    expect(harness.store.insertImport(original)).toBeGreaterThan(0);
+    const skipped: ImportRecord = {
+      inputKind: "screenshot",
+      status: ImportStatus.SkippedDuplicate,
+      duplicateOf: original.id,
+    };
+    expect(harness.store.insertImport(skipped)).toBeGreaterThan(0);
+
+    expect(harness.store.importRecord(skipped.id!)).toMatchObject({
+      status: ImportStatus.SkippedDuplicate,
+      duplicateOf: original.id,
+    });
+    expect(harness.store.importRecord(original.id!)).toMatchObject({
+      status: ImportStatus.Confirmed,
+    });
+    expect(
+      harness.store.importRecord(original.id!)?.duplicateOf,
+    ).toBe(0);
+  });
+
+  it("round-trips import jobs", () => {
+    expect(harness.store.importJob()).toBeNull();
+    const job = new ResumableJob();
+    expect(job.start()).toBe(true);
+    const id = harness.store.insertImportJob('{"images":[]}', job);
+    expect(id).toBeGreaterThan(0);
+
+    expect(job.plan(3)).toBe(true);
+    expect(job.completeBatch(0, "first")).toBe(true);
+    expect(harness.store.saveImportJob(id, job)).toBe(true);
+
+    let loaded = harness.store.importJob();
+    expect(loaded).toMatchObject({
+      id,
+      payload: Buffer.from('{"images":[]}'),
+      createdAt: harness.clock.now(),
+    });
+    expect(loaded?.job.state).toBe(JobState.Failed);
+    expect(loaded?.job.batchCount).toBe(3);
+    expect(loaded?.job.nextBatch()).toBe(1);
+    expect(loaded?.job.results()).toEqual(["first"]);
+
+    job.reset();
+    expect(job.start()).toBe(true);
+    expect(job.plan(1)).toBe(true);
+    expect(job.completeBatch(0, "whole")).toBe(true);
+    expect(harness.store.saveImportJob(id, job)).toBe(true);
+
+    loaded = harness.store.importJob();
+    expect(loaded?.job.state).toBe(JobState.Done);
+    expect(loaded?.job.results()).toEqual(["whole"]);
+    expect(harness.store.deleteImportJob(id)).toBe(true);
+    expect(harness.store.importJob()).toBeNull();
+    expect(
+      Number(
+        harness.database
+          .prepare("SELECT COUNT(*) AS count FROM import_job_batches")
+          .get()?.count,
+      ),
+    ).toBe(0);
+  });
+
+  it("rolls back partially written import jobs", () => {
+    const job = new ResumableJob();
+    expect(job.start()).toBe(true);
+    expect(job.plan(2)).toBe(true);
+    expect(job.completeBatch(0, "a")).toBe(true);
+    const id = harness.store.insertImportJob("{}", job);
+    expect(id).toBeGreaterThan(0);
+
+    harness.database.exec(`
+      CREATE TRIGGER fail_batch
+      BEFORE UPDATE ON import_job_batches
+      WHEN NEW.batch_index = 1
+      BEGIN
+        SELECT RAISE(ABORT, 'synthetic failure');
+      END;
+    `);
+    expect(job.completeBatch(1, "b")).toBe(true);
+    expect(job.state).toBe(JobState.Done);
+    expect(harness.store.saveImportJob(id, job)).toBe(false);
+    const loaded = harness.store.importJob();
+    expect(loaded?.job.state).toBe(JobState.Failed);
+    expect(loaded?.job.nextBatch()).toBe(1);
+    expect(loaded?.job.results()).toEqual(["a"]);
+    expect(loaded?.job.batches[1]?.state).toBe(BatchState.Failed);
+    harness.database.exec("DROP TRIGGER fail_batch");
+
+    harness.database.exec(`
+      CREATE TRIGGER fail_insert
+      BEFORE INSERT ON import_job_batches
+      BEGIN
+        SELECT RAISE(ABORT, 'synthetic failure');
+      END;
+    `);
+    expect(harness.store.insertImportJob("{}", job)).toBe(0);
+    expect(harness.store.importJobRows()).toHaveLength(1);
+    expect(harness.store.importJob()?.id).toBe(id);
   });
 
   it("deletes all data", () => {
