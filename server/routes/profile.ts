@@ -24,6 +24,12 @@ const locationSchema = {
   enum: ["冷藏", "冷冻", "常温", "fridge", "freezer", "room"],
 } as const;
 
+const emptyBodySchema = {
+  type: "object",
+  additionalProperties: false,
+  maxProperties: 0,
+} as const;
+
 function fail(
   reply: FastifyReply,
   status: number,
@@ -201,6 +207,27 @@ export function registerProfileRoutes(
         context.state.activeStore.importRecord(request.params.id)
       ) {
         return fail(reply, 500, "删除失败，原有数据已保留");
+      }
+      return {
+        ok: true,
+        ...(ok
+          ? {}
+          : { warning: "部分图片暂未清理，稍后会自动重试" }),
+      } satisfies ActionResult & { warning?: string };
+    },
+  );
+
+  app.delete(
+    "/api/imports",
+    {
+      schema: {
+        body: emptyBodySchema,
+      },
+    },
+    async (_request, reply) => {
+      const ok = context.state.activeKitchen.clearImportHistory();
+      if (!ok && context.state.activeKitchen.imports().length > 0) {
+        return fail(reply, 500, "删除失败，原有数据已保留，请重试");
       }
       return {
         ok: true,

@@ -289,6 +289,60 @@ export function registerItemRoutes(
     },
   );
 
+  app.post<{ Params: ItemParams; Body: { id: number } }>(
+    "/api/items/:id/discard",
+    {
+      schema: {
+        params: idParamsSchema,
+        body: {
+          type: "object",
+          additionalProperties: false,
+          required: ["id"],
+          properties: { id: { type: "integer", minimum: 1 } },
+        },
+      },
+    },
+    async (request, reply) => {
+      if (request.body.id !== request.params.id) {
+        return fail(reply, 400, "请求参数不一致");
+      }
+      if (!context.state.activeStore.item(request.params.id)) {
+        return fail(reply, 404, "食材不存在");
+      }
+      if (!context.state.activeKitchen.discardItem(request.params.id)) {
+        return fail(reply, 409, "食材已处理");
+      }
+      return { ok: true } satisfies ActionResult;
+    },
+  );
+
+  app.post<{ Params: ItemParams; Body: { id: number } }>(
+    "/api/items/:id/snooze",
+    {
+      schema: {
+        params: idParamsSchema,
+        body: {
+          type: "object",
+          additionalProperties: false,
+          required: ["id"],
+          properties: { id: { type: "integer", minimum: 1 } },
+        },
+      },
+    },
+    async (request, reply) => {
+      if (request.body.id !== request.params.id) {
+        return fail(reply, 400, "请求参数不一致");
+      }
+      if (!context.state.activeStore.item(request.params.id)) {
+        return fail(reply, 404, "食材不存在");
+      }
+      if (!context.state.activeKitchen.snoozeItem(request.params.id)) {
+        return fail(reply, 409, "只能忽略临期食材");
+      }
+      return { ok: true } satisfies ActionResult;
+    },
+  );
+
   app.post<{ Params: ItemParams; Body: UseFirstRequest }>(
     "/api/items/:id/first",
     {

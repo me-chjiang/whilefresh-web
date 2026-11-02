@@ -56,6 +56,12 @@ const draftIndexBody = {
   },
 } as const;
 
+const emptyBodySchema = {
+  type: "object",
+  additionalProperties: false,
+  maxProperties: 0,
+} as const;
+
 const draftEditsSchema = {
   type: "object",
   additionalProperties: false,
@@ -278,6 +284,67 @@ export function registerImportRoutes(
     "/api/import/cancel",
     async (): Promise<ImportStatusDto> => {
       context.state.activeImportService.discard();
+      return status(context);
+    },
+  );
+
+  app.post(
+    "/api/import/skip",
+    {
+      schema: {
+        body: emptyBodySchema,
+      },
+    },
+    async (_request, reply) => {
+      if (!context.state.activeImportService.skipDuplicate()) {
+        return fail(reply, 409, "没有可跳过的重复导入");
+      }
+      return status(context);
+    },
+  );
+
+  app.post(
+    "/api/import/resume",
+    {
+      schema: {
+        body: emptyBodySchema,
+      },
+    },
+    async (_request, reply) => {
+      if (!(await context.state.activeImportService.resume())) {
+        return fail(
+          reply,
+          409,
+          context.state.importStatus().importError || "没有可继续的导入",
+        );
+      }
+      return status(context);
+    },
+  );
+
+  app.post(
+    "/api/import/discard-unfinished",
+    {
+      schema: {
+        body: emptyBodySchema,
+      },
+    },
+    async (_request, reply) => {
+      const hadJobs = context.state.activeStore.importJobRows().length > 0;
+      const ok = context.state.activeImportService.discardUnfinishedJob();
+      if (
+        !ok &&
+        hadJobs &&
+        context.state.activeStore.importJobRows().length === 0
+      ) {
+        return {
+          ...status(context),
+          warning: "部分图片暂未清理，稍后会自动重试",
+        } satisfies ImportStatusDto & { warning: string };
+      }
+      if (!ok) {
+        return fail(reply, 409, "当前不能放弃未完成的导入");
+      }
       return status(context);
     },
   );

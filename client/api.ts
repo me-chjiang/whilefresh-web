@@ -177,6 +177,14 @@ export const api = {
     client.request(apiRoutes.markItemAbsent, request, {
       path: { id: request.id },
     }),
+  discardItem: (request: Api.ItemRequest) =>
+    client.request(apiRoutes.discardItem, request, {
+      path: { id: request.id },
+    }),
+  snoozeItem: (request: Api.ItemRequest) =>
+    client.request(apiRoutes.snoozeItem, request, {
+      path: { id: request.id },
+    }),
   setItemUseFirst: (request: Api.UseFirstRequest) =>
     client.request(apiRoutes.setItemUseFirst, request, {
       path: { id: request.id },
@@ -215,6 +223,7 @@ export const api = {
     client.request(apiRoutes.deleteImport, request, {
       path: { id: request.id },
     }),
+  clearImportHistory: () => client.request(apiRoutes.clearImportHistory),
   deleteAllData: () => client.request(apiRoutes.deleteAllData),
   setDemoMode: (enabled: boolean) =>
     client.request(apiRoutes.setDemoMode, { enabled }),
@@ -239,6 +248,11 @@ export const api = {
   startImport: (request: Api.StartImportRequest) =>
     client.request(apiRoutes.startImport, request),
   cancelImport: () => client.request(apiRoutes.cancelImport),
+  skipDuplicateImport: () =>
+    client.request(apiRoutes.skipDuplicateImport),
+  resumeImport: () => client.request(apiRoutes.resumeImport),
+  discardUnfinishedImport: () =>
+    client.request(apiRoutes.discardUnfinishedImport),
   editDraftItem: (request: Api.EditDraftItemRequest) =>
     client.request(apiRoutes.editDraftItem, request, {
       path: { i: request.index },

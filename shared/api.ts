@@ -352,6 +352,14 @@ export const apiRoutes = {
     "POST",
     "/api/items/:id/absent",
   ),
+  discardItem: route<ItemRequest, ActionResult>(
+    "POST",
+    "/api/items/:id/discard",
+  ),
+  snoozeItem: route<ItemRequest, ActionResult>(
+    "POST",
+    "/api/items/:id/snooze",
+  ),
   setItemUseFirst: route<UseFirstRequest, ActionResult>(
     "POST",
     "/api/items/:id/first",
@@ -399,6 +407,10 @@ export const apiRoutes = {
     "DELETE",
     "/api/imports/:id",
   ),
+  clearImportHistory: route<void, ActionResult>(
+    "DELETE",
+    "/api/imports",
+  ),
   deleteAllData: route<void, DeleteAllDataResult>("DELETE", "/api/data"),
   setDemoMode: route<DemoModeRequest, StateDto>("PUT", "/api/demo"),
   importStatus: route<void, ImportStatusDto>("GET", "/api/import"),
@@ -417,6 +429,18 @@ export const apiRoutes = {
   cancelImport: route<void, ImportStatusDto>(
     "POST",
     "/api/import/cancel",
+  ),
+  skipDuplicateImport: route<void, ImportStatusDto>(
+    "POST",
+    "/api/import/skip",
+  ),
+  resumeImport: route<void, ImportStatusDto>(
+    "POST",
+    "/api/import/resume",
+  ),
+  discardUnfinishedImport: route<void, ImportStatusDto>(
+    "POST",
+    "/api/import/discard-unfinished",
   ),
   editDraftItem: route<EditDraftItemRequest, ImportStatusDto>(
     "PATCH",
