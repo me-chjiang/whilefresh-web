@@ -109,6 +109,7 @@ describe("household rules", () => {
     expect(rules.isPantry("盐")).toBe(true);
     expect(rules.isAtHome("盐")).toBe(true);
     expect(rules.isPantry("豆瓣酱")).toBe(false);
+    expect(rules.isBulk("豆瓣酱")).toBe(true);
     expect(rules.isBulk("鸡蛋")).toBe(true);
     expect(rules.isBulk("猪肉")).toBe(false);
 
@@ -154,6 +155,9 @@ describe("household rules", () => {
       SuggestionKind.AddToShopping,
     );
     expect(suggestionsAfterAbsent("鸡蛋", rules)?.kind).toBe(
+      SuggestionKind.AddToShopping,
+    );
+    expect(suggestionsAfterAbsent("豆瓣酱", rules)?.kind).toBe(
       SuggestionKind.AddToShopping,
     );
     expect(suggestionsAfterAbsent("猪肉", rules)).toBeNull();
