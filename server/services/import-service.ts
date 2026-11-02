@@ -1,9 +1,11 @@
 import { createHash } from "node:crypto";
-import { lstat, readFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { existsSync } from "node:fs";
+import { lstat, readFile, realpath } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
 
 import { abortError, isAbortError } from "../ai/chat-client.js";
 import { IngredientClassifier } from "../ai/ingredient-classifier.js";
+import { CapturedAtSource } from "../import/captured-at.js";
 import {
   CategoryCode,
   DateOrigin,
@@ -39,6 +41,10 @@ import {
   PantryRules,
 } from "../domain/pantry.js";
 import { totalAmount } from "../domain/quantity.js";
+import {
+  JobState,
+  ResumableJob,
+} from "../domain/resumable-job.js";
 import {
   resolveShelfLife,
   suggestStorage,
@@ -80,6 +86,10 @@ import {
   type Recognizer,
   type StorageKind,
 } from "../recognition/types.js";
+import {
+  mergeResults,
+  parseChatCompletion,
+} from "../recognition/response-parser.js";
 
 const UNCATEGORIZED_NAME = "未归类";
 
@@ -181,6 +191,33 @@ function displayDate(date: Date | null): string {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function utcTimestamp(value: ImportRecord["createdAt"]): string {
+  const date =
+    value instanceof Date
+      ? value
+      : typeof value === "string"
+        ? new Date(value)
+        : null;
+  return date && Number.isFinite(date.getTime())
+    ? date.toISOString()
+    : "";
+}
+
+function capturedAtSourceName(source: string): string {
+  switch (source) {
+    case CapturedAtSource.None:
+      return "none";
+    case CapturedAtSource.Camera:
+      return "camera";
+    case CapturedAtSource.Exif:
+      return "exif";
+    case CapturedAtSource.FileModified:
+      return "file-modified";
+    default:
+      return source;
+  }
 }
 
 function calendarDate(value: string | Date): { date: Date; text: string } | null {
@@ -392,6 +429,9 @@ export class ImportService {
   private failure: RecognitionError | null = null;
   private controller: AbortController | null = null;
   private requestSequence = 0;
+  private jobId = 0;
+  private job = new ResumableJob();
+  private batchesReported = false;
 
   constructor({
     store,
@@ -473,6 +513,10 @@ export class ImportService {
       );
     }
 
+    this.dropStoredJobs();
+    this.jobId = 0;
+    this.job = new ResumableJob();
+    this.batchesReported = false;
     this.failure = null;
     const createdAt = this.clock.now();
     if (payload.kind === "text") {
@@ -555,7 +599,9 @@ export class ImportService {
         capturedAt: image.capturedAt
           ? new Date(image.capturedAt)
           : null,
-        capturedAtSource: image.capturedAtSource,
+        capturedAtSource: capturedAtSourceName(
+          image.capturedAtSource,
+        ),
       });
     }
 
@@ -624,8 +670,12 @@ export class ImportService {
       return false;
     }
 
-    const request = this.recognitionRequest();
-    if (!request) {
+    if (
+      this.payload.kind === "images" &&
+      (this.payload.images.length === 0 ||
+        this.draftValue.record.images?.length !==
+          this.payload.images.length)
+    ) {
       return this.reject(
         ErrorKind.InvalidInput,
         importEmptyInput(),
@@ -633,58 +683,27 @@ export class ImportService {
       );
     }
 
-    const requestNumber = ++this.requestSequence;
-    const controller = new AbortController();
-    this.controller = controller;
-    this.failure = null;
-    this.importState = ImportState.Recognizing;
-
-    try {
-      const result = await this.recognizer.recognize(
-        request,
-        controller.signal,
+    if (!this.recognitionRequest()) {
+      return this.reject(
+        ErrorKind.InvalidInput,
+        importEmptyInput(),
+        ImportState.Failed,
       );
-      if (
-        controller.signal.aborted ||
-        requestNumber !== this.requestSequence ||
-        this.controller !== controller ||
-        !this.received
-      ) {
-        return false;
-      }
-      await this.acceptRecognition(result);
-      if (
-        controller.signal.aborted ||
-        requestNumber !== this.requestSequence ||
-        this.controller !== controller ||
-        !this.received
-      ) {
-        return false;
-      }
-      return true;
-    } catch (error) {
-      if (
-        controller.signal.aborted ||
-        isAbortError(error) ||
-        requestNumber !== this.requestSequence ||
-        this.controller !== controller ||
-        !this.received
-      ) {
-        return false;
-      }
-      this.failure = isRecognitionError(error)
-        ? { ...error }
-        : makeRecognitionError(
-            ErrorKind.BadResponse,
-            error instanceof Error ? error.message : String(error),
-          );
-      this.importState = ImportState.Failed;
-      return false;
-    } finally {
-      if (this.controller === controller) {
-        this.controller = null;
+    }
+
+    if (this.payload.kind === "images") {
+      this.job.start();
+      if (this.jobId > 0) {
+        this.saveJob();
+      } else {
+        this.jobId = this.store.insertImportJob(
+          this.jobPayload(),
+          this.job,
+        );
       }
     }
+    this.batchesReported = false;
+    return this.runRecognition();
   }
 
   updateDraft(index: number, edits: ItemEdits): boolean {
@@ -977,6 +996,12 @@ export class ImportService {
             }
           }
         }
+        if (
+          this.jobId > 0 &&
+          !this.store.deleteImportJob(this.jobId)
+        ) {
+          throw new Error("delete import job failed");
+        }
         return record.id!;
       });
 
@@ -988,6 +1013,8 @@ export class ImportService {
       this.received = false;
       this.failure = null;
       this.importState = ImportState.Idle;
+      this.jobId = 0;
+      this.job = new ResumableJob();
       return importId > 0;
     } catch {
       return this.rejectForDraft(
@@ -1039,15 +1066,66 @@ export class ImportService {
         }
       }
     }
-    const ok =
-      paths.length === 0 || this.store.discardImportFiles(paths);
+    const ok = this.dropJob(this.jobId, paths);
 
     this.draftValue = null;
     this.received = false;
     this.failure = null;
     this.payload = null;
     this.importState = ImportState.Idle;
+    this.jobId = 0;
+    this.job = new ResumableJob();
     return ok;
+  }
+
+  hasUnfinishedJob(): boolean {
+    return !this.received && this.store.importJob() !== null;
+  }
+
+  async resume(): Promise<boolean> {
+    if (this.received || this.busy) {
+      return false;
+    }
+    const stored = this.store.importJob();
+    if (!stored) {
+      return false;
+    }
+    this.jobId = stored.id;
+    this.job = stored.job;
+    if (!(await this.restoreJobPayload(stored.payload))) {
+      this.discard();
+      return this.reject(
+        ErrorKind.InvalidInput,
+        "导入的图片已不在，请重新导入",
+      );
+    }
+    this.received = true;
+    if (this.job.state === JobState.Done) {
+      const result = this.resultFromJob();
+      if (result) {
+        try {
+          await this.acceptRecognition(result);
+        } catch (error) {
+          if (isAbortError(error)) {
+            return false;
+          }
+          throw error;
+        }
+        return this.received;
+      }
+      this.job.reset();
+    }
+    this.job.start();
+    this.saveJob();
+    this.batchesReported = false;
+    return this.runRecognition();
+  }
+
+  discardUnfinishedJob(): boolean {
+    if (this.received || this.busy) {
+      return false;
+    }
+    return this.dropStoredJobs();
   }
 
   private emptyDraft(values: {
@@ -1126,11 +1204,12 @@ export class ImportService {
     if (this.payload.images.length === 0) {
       return null;
     }
+    const inputKind =
+      Object.values(InputKind).find(
+        (kind) => kind === this.draftValue?.record.inputKind,
+      ) ?? InputKind.Screenshot;
     return {
-      kind:
-        this.payload.origin === "camera"
-          ? InputKind.Receipt
-          : InputKind.Screenshot,
+      kind: inputKind,
       images: this.payload.images.map((image) => ({
         path: image.path,
         captureDate: displayDate(image.capturedAt) || null,
@@ -1140,12 +1219,372 @@ export class ImportService {
     };
   }
 
+  private async runRecognition(): Promise<boolean> {
+    this.failure = null;
+    this.importState = ImportState.Recognizing;
+    let activeController: AbortController | null = null;
+
+    try {
+      for (;;) {
+        if (!this.received) {
+          return false;
+        }
+        const requestNumber = ++this.requestSequence;
+        const controller = new AbortController();
+        activeController = controller;
+        this.controller = controller;
+        const request = this.recognitionRequest();
+        if (!request) {
+          throw makeRecognitionError(
+            ErrorKind.InvalidInput,
+            "empty recognition request",
+          );
+        }
+
+        let restart = false;
+        if (this.payload?.kind === "images") {
+          request.firstBatch = this.job.nextBatch();
+          request.onBatch = (index, count, part) => {
+            if (
+              controller.signal.aborted ||
+              requestNumber !== this.requestSequence ||
+              this.controller !== controller ||
+              !this.received
+            ) {
+              return;
+            }
+            this.batchesReported = true;
+            if (!this.job.plan(count)) {
+              restart = true;
+              controller.abort(abortError("restart import batches"));
+              this.job.reset();
+              this.job.start();
+              this.saveJob();
+              return;
+            }
+            if (this.job.completeBatch(index, this.encodeBatch(part))) {
+              this.saveJob();
+            }
+          };
+        }
+
+        let result: RecognitionResult;
+        try {
+          result = await this.recognizer.recognize(
+            request,
+            controller.signal,
+          );
+        } catch (error) {
+          if (restart && controller.signal.aborted) {
+            continue;
+          }
+          throw error;
+        }
+        if (restart) {
+          continue;
+        }
+        if (
+          controller.signal.aborted ||
+          requestNumber !== this.requestSequence ||
+          this.controller !== controller ||
+          !this.received
+        ) {
+          return false;
+        }
+
+        let accepted = result;
+        if (this.payload?.kind === "images") {
+          if (!this.batchesReported) {
+            this.job.reset();
+            this.job.start();
+            if (this.job.plan(result.rawResponses.length)) {
+              for (const [index, response] of result.rawResponses.entries()) {
+                const span = result.batchSpans[index] ?? {
+                  firstImage: -1,
+                  lastImage: -1,
+                };
+                this.job.completeBatch(
+                  index,
+                  this.encodeBatch({
+                    ...result,
+                    rawResponses: [response],
+                    batchSpans: [span],
+                  }),
+                );
+              }
+            }
+            this.saveJob();
+          } else if (this.job.state === JobState.Done) {
+            accepted = this.resultFromJob() ?? result;
+          }
+        }
+
+        await this.acceptRecognition(accepted);
+        if (
+          controller.signal.aborted ||
+          requestNumber !== this.requestSequence ||
+          this.controller !== controller ||
+          !this.received
+        ) {
+          return false;
+        }
+        return true;
+      }
+    } catch (error) {
+      if (
+        activeController?.signal.aborted ||
+        isAbortError(error) ||
+        !this.received
+      ) {
+        return false;
+      }
+      this.failure = isRecognitionError(error)
+        ? { ...error }
+        : makeRecognitionError(
+            ErrorKind.BadResponse,
+            error instanceof Error ? error.message : String(error),
+          );
+      this.importState = ImportState.Failed;
+      if (
+        this.payload?.kind === "images" &&
+        this.job.fail()
+      ) {
+        this.saveJob();
+      }
+      return false;
+    } finally {
+      if (this.controller === activeController) {
+        this.controller = null;
+      }
+    }
+  }
+
+  private saveJob(): void {
+    if (
+      this.jobId > 0 &&
+      !this.store.saveImportJob(this.jobId, this.job)
+    ) {
+      console.warn(`import job ${this.jobId}: progress not saved`);
+    }
+  }
+
+  private jobPayload(): string {
+    const record = this.draftValue?.record;
+    return JSON.stringify({
+      inputKind: record?.inputKind ?? "",
+      origin: record?.origin ?? "",
+      createdAt: utcTimestamp(record?.createdAt),
+      isDemo: record?.isDemo === true,
+      images: (record?.images ?? []).map((image) => ({
+        path: image.path,
+        sha256: image.sha256,
+        mimeType: image.mimeType ?? "",
+        capturedAt: utcTimestamp(image.capturedAt),
+        capturedAtSource: image.capturedAtSource ?? "",
+      })),
+    });
+  }
+
+  private async restoreJobPayload(payload: Buffer): Promise<boolean> {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(payload.toString("utf8"));
+    } catch {
+      return false;
+    }
+    if (!isObject(parsed)) {
+      return false;
+    }
+
+    const inputKindText =
+      typeof parsed.inputKind === "string" ? parsed.inputKind : "";
+    const inputKind =
+      Object.values(InputKind).find((kind) => kind === inputKindText) ??
+      null;
+    const origin =
+      typeof parsed.origin === "string" ? parsed.origin : "";
+    const createdAt =
+      typeof parsed.createdAt === "string" &&
+      Number.isFinite(new Date(parsed.createdAt).getTime())
+        ? new Date(parsed.createdAt)
+        : new Date(Number.NaN);
+    const isDemo = parsed.isDemo === true;
+    const imageValues = Array.isArray(parsed.images) ? parsed.images : [];
+    const images: ReceivedImage[] = [];
+    const recordImages: NonNullable<ImportRecord["images"]> = [];
+    let complete = inputKind !== null;
+
+    for (const value of imageValues) {
+      const image = isObject(value) ? value : {};
+      const path = typeof image.path === "string" ? image.path : "";
+      const sha256 =
+        typeof image.sha256 === "string" ? image.sha256 : "";
+      const mimeType =
+        typeof image.mimeType === "string" ? image.mimeType : "";
+      const capturedAtText =
+        typeof image.capturedAt === "string" ? image.capturedAt : "";
+      const capturedAt =
+        capturedAtText.length > 0 &&
+        Number.isFinite(new Date(capturedAtText).getTime())
+          ? new Date(capturedAtText)
+          : null;
+      const capturedAtSource =
+        typeof image.capturedAtSource === "string"
+          ? image.capturedAtSource
+          : "";
+      const imageExists = await this.validImportedImage(path);
+      complete = imageExists && complete;
+      images.push({
+        path,
+        sha256,
+        mimeType,
+        capturedAt,
+        capturedAtSource,
+      });
+      recordImages.push({
+        path,
+        sha256,
+        mimeType,
+        capturedAt,
+        capturedAtSource,
+      });
+    }
+
+    this.payload = {
+      kind: "images",
+      origin,
+      text: "",
+      images,
+    };
+    this.draftValue = this.emptyDraft({
+      createdAt,
+      inputKind: inputKind ?? InputKind.Screenshot,
+      origin,
+      textLength: 0,
+      images: recordImages,
+    });
+    this.draftValue.record.isDemo = isDemo || this.demo;
+    return complete && images.length > 0;
+  }
+
+  private async validImportedImage(path: string): Promise<boolean> {
+    if (!this.importsDirectory) {
+      return false;
+    }
+    try {
+      const root = await realpath(this.importsDirectory);
+      const absolute = resolve(path);
+      const info = await lstat(absolute);
+      return (
+        info.isFile() &&
+        !info.isSymbolicLink() &&
+        (await realpath(dirname(absolute))) === root
+      );
+    } catch {
+      return false;
+    }
+  }
+
+  private encodeBatch(part: RecognitionResult): string {
+    const span = part.batchSpans[0];
+    return JSON.stringify({
+      firstImage: span?.firstImage ?? -1,
+      lastImage: span?.lastImage ?? -1,
+      response: part.rawResponses[0] ?? "",
+    });
+  }
+
+  private resultFromJob(): RecognitionResult | null {
+    const inputKind =
+      Object.values(InputKind).find(
+        (kind) => kind === this.draftValue?.record.inputKind,
+      ) ?? InputKind.Screenshot;
+    const parts: RecognitionResult[] = [];
+    for (const encoded of this.job.results()) {
+      let value: unknown;
+      try {
+        value = JSON.parse(encoded);
+      } catch {
+        return null;
+      }
+      if (!isObject(value)) {
+        return null;
+      }
+      const response =
+        typeof value.response === "string" ? value.response : "";
+      const firstImage =
+        typeof value.firstImage === "number"
+          ? Math.trunc(value.firstImage)
+          : -1;
+      const lastImage =
+        typeof value.lastImage === "number"
+          ? Math.trunc(value.lastImage)
+          : -1;
+      const outcome = parseChatCompletion(
+        response,
+        this.builtin.catalog,
+        inputKind,
+      );
+      if (!outcome.result) {
+        return null;
+      }
+      outcome.result.batchSpans = [{ firstImage, lastImage }];
+      parts.push(outcome.result);
+    }
+    return parts.length > 0 ? mergeResults(parts) : null;
+  }
+
+  private dropJob(id: number, candidates: readonly string[]): boolean {
+    if (id > 0) {
+      this.store.deleteImportJob(id);
+    }
+    const referenced = new Set(
+      this.store
+        .imports(true)
+        .flatMap((record) => record.images ?? [])
+        .map((image) => resolve(image.path)),
+    );
+    const paths = candidates.filter(
+      (path) =>
+        existsSync(path) && !referenced.has(resolve(path)),
+    );
+    return (
+      paths.length === 0 ||
+      this.store.discardImportFiles(paths)
+    );
+  }
+
+  private dropStoredJobs(): boolean {
+    let ok = true;
+    for (const stored of this.store.importJobRows()) {
+      let value: unknown;
+      try {
+        value = JSON.parse(stored.payload.toString("utf8"));
+      } catch {
+        value = {};
+      }
+      const imageValues =
+        isObject(value) && Array.isArray(value.images)
+          ? value.images
+          : [];
+      const paths = imageValues.flatMap((image): string[] =>
+        isObject(image) && typeof image.path === "string"
+          ? [image.path]
+          : [],
+      );
+      const dropped = this.dropJob(stored.id, paths);
+      ok = dropped && ok;
+    }
+    return ok;
+  }
+
   private async acceptRecognition(result: RecognitionResult): Promise<void> {
     const draft = this.draftValue;
     if (!draft) {
       return;
     }
-    draft.record.isDemo = this.demo || result.isDemo;
+    draft.record.isDemo =
+      draft.record.isDemo === true || this.demo || result.isDemo;
     draft.record.truncated = result.truncated;
     draft.record.sourceType = result.sourceType;
     draft.warning = result.truncated ? importMayBeIncomplete() : "";
