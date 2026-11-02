@@ -1,6 +1,5 @@
 import { ShoppingOrigin } from "../../shared/enums.js";
 import type { Catalog } from "./catalog.js";
-import type { Recipe, RecipeMatch } from "./recipe.js";
 import { orSeparator, shoppingListTitle } from "./texts.js";
 
 export interface ShoppingEntry {
@@ -51,18 +50,6 @@ export function makeShoppingEntry(
     note,
     createdAt: "",
   };
-}
-
-export function entriesForMissing(
-  recipe: Recipe,
-  match: RecipeMatch,
-  catalog: Catalog | null,
-): ShoppingEntry[] {
-  return match
-    .missingGroups()
-    .map((group) =>
-      makeShoppingEntry(group, ShoppingOrigin.Recipe, recipe.name, catalog),
-    );
 }
 
 function categoryRank(category: string, catalog: Catalog | null): number {

@@ -20,14 +20,8 @@ import {
   suggestionsAfterPurchase,
 } from "../../server/domain/pantry.js";
 import {
-  RecipeMatcher,
-  type Recipe,
-  type RecipeIngredient,
-} from "../../server/domain/recipe.js";
-import {
   dedupeKey,
   displayName,
-  entriesForMissing,
   makeShoppingEntry,
   sections,
   toText,
@@ -60,41 +54,6 @@ const catalog = Catalog.fromJson(`{
     {"name": "小葱", "category": "vegetable", "aliases": [], "parent": "葱", "pantry_default": true}
   ]
 }`);
-
-function ingredient(
-  raw: string,
-  name: string,
-  groups: string[][],
-  optional = false,
-): RecipeIngredient {
-  return {
-    raw,
-    name,
-    optional,
-    kind: "ingredient",
-    groups,
-  };
-}
-
-function recipe(ingredients: RecipeIngredient[]): Recipe {
-  return {
-    id: "t/汤",
-    name: "奶油土豆汤",
-    category: "",
-    categoryZh: "",
-    difficulty: null,
-    caloriesKcal: null,
-    timeMinutes: null,
-    summary: "",
-    ingredients,
-    ingredientNotes: [],
-    quantities: [],
-    quantityNotes: [],
-    steps: [],
-    notes: "",
-    sourceUrl: "",
-  };
-}
 
 function daysFrom(date: Date, days: number): Date {
   const result = new Date(date);
@@ -162,30 +121,6 @@ describe("household rules", () => {
     );
     expect(suggestionsAfterAbsent("猪肉", rules)).toBeNull();
     expect(suggestionsAfterPurchase("未归类", rules)).toBeNull();
-  });
-
-  it("turns missing recipe groups into categorized shopping entries", () => {
-    const soup = recipe([
-      ingredient("牛奶或淡奶油", "牛奶或淡奶油", [["牛奶", "淡奶油"]]),
-      ingredient("土豆", "土豆", [["土豆"]]),
-      ingredient("盐", "盐", [["盐"]]),
-      ingredient("五花肉", "五花肉", [["五花肉"]], true),
-    ]);
-    const matcher = new RecipeMatcher(catalog, [
-      { name: "盐", itemId: 0, pantry: true },
-    ]);
-
-    const entries = entriesForMissing(
-      soup,
-      matcher.match(soup),
-      catalog,
-    );
-
-    expect(entries).toHaveLength(2);
-    expect(displayName(entries[0]!)).toBe("牛奶 或 淡奶油");
-    expect(entries[0]?.category).toBe("egg_dairy");
-    expect(entries[0]?.note).toBe("奶油土豆汤");
-    expect(entries[1]?.category).toBe("vegetable");
   });
 
   it("groups shopping entries and exports stable text", () => {

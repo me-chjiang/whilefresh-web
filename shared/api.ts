@@ -58,40 +58,6 @@ export interface DraftItemDto {
   aiClassified: boolean;
 }
 
-export interface RecipeSummaryDto {
-  id: string;
-  name: string;
-  difficulty: number;
-  haveCount: number;
-  missingCount: number;
-  sourceUrl: string;
-  sourceName: string;
-  usedSelected: string[];
-  unusedSelected: string[];
-}
-
-export interface RecipeIngredientDto {
-  raw: string;
-  has: boolean;
-  known: boolean;
-  optional: boolean;
-}
-
-export interface RecipeQuantityDto {
-  name: string;
-  expr: string;
-}
-
-export interface RecipeDetailDto extends RecipeSummaryDto {
-  summary: string;
-  ingredients: RecipeIngredientDto[];
-  ingredientNotes: string[];
-  quantities: RecipeQuantityDto[];
-  quantityNotes: string[];
-  steps: string[];
-  notes: string;
-}
-
 export interface WebRecipeSummaryDto {
   id: string;
   name: string;
@@ -161,13 +127,6 @@ export interface ImportRecordDto {
   date: string;
 }
 
-export interface ClearPreviewDto {
-  selectedCount: number;
-  candidateCount: number;
-  completeCount: number;
-  uncovered: string[];
-}
-
 export interface ImportStatusDto {
   importState: ImportState;
   importError: string;
@@ -183,11 +142,6 @@ export interface StateDto extends ImportStatusDto {
   attentionCount: number;
   hasUnfinishedImport: boolean;
   selectedIds: number[];
-  recipes: RecipeSummaryDto[];
-  clearRecipes: RecipeSummaryDto[];
-  clearPreview: ClearPreviewDto;
-  clearResultsSummary: ClearPreviewDto | null;
-  clearResultsReady: boolean;
   shopping: ShoppingDto[];
   pantry: PantryDto[];
   suggestions: SuggestionDto[];
@@ -240,15 +194,6 @@ export interface DeleteAllDataResult extends ActionResult {
   warning?: string;
 }
 
-export interface ClearRecipesResult {
-  recipes: RecipeSummaryDto[];
-  summary: ClearPreviewDto;
-}
-
-export interface AddMissingResult {
-  added: number;
-}
-
 export interface ShoppingTextDto {
   text: string;
 }
@@ -286,11 +231,6 @@ export interface RemoveItemsRequest {
   ids: number[];
 }
 
-export interface RecipeRequest {
-  id: string;
-  selected?: number[];
-}
-
 export interface WebRecipeSearchRequest {
   keyword: string;
   page?: number;
@@ -302,10 +242,6 @@ export interface WebRecipeRequest {
 
 export interface ShoppingItemRequest {
   id: number;
-}
-
-export interface ClearRequest {
-  selected: number[];
 }
 
 export interface PantryItemRequest {
@@ -438,11 +374,6 @@ export const apiRoutes = {
     "DELETE",
     "/api/name-mappings",
   ),
-  recipes: route<void, RecipeSummaryDto[]>("GET", "/api/recipes"),
-  recipeDetail: route<RecipeRequest, RecipeDetailDto>(
-    "GET",
-    "/api/recipes/:id",
-  ),
   webRecipes: route<WebRecipeSearchRequest, WebRecipeSummaryDto[]>(
     "GET",
     "/api/web-recipes",
@@ -450,14 +381,6 @@ export const apiRoutes = {
   webRecipeDetail: route<WebRecipeRequest, WebRecipeDetailDto>(
     "GET",
     "/api/web-recipes/:id",
-  ),
-  clearPreview: route<ClearRequest, ClearPreviewDto>(
-    "POST",
-    "/api/clear/preview",
-  ),
-  searchClearRecipes: route<ClearRequest, ClearRecipesResult>(
-    "POST",
-    "/api/clear/search",
   ),
   addItem: route<AddManualItemRequest, SaveItemResult>("POST", "/api/items"),
   updateItem: route<UpdateItemRequest, SaveItemResult>(
@@ -509,10 +432,6 @@ export const apiRoutes = {
   decideSuggestion: route<SuggestionDecisionRequest, ActionResult>(
     "POST",
     "/api/suggestions/:id",
-  ),
-  addMissingIngredients: route<RecipeRequest, AddMissingResult>(
-    "POST",
-    "/api/recipes/:id/add-missing",
   ),
   shopping: route<void, ShoppingDto[]>("GET", "/api/shopping"),
   shoppingText: route<void, ShoppingTextDto>(

@@ -16,13 +16,9 @@ import { dirname, join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import type {
-  ClearPreviewDto,
-  ClearRecipesResult,
   ImportStatusDto,
   NameMappingDto,
   PreferencesDto,
-  RecipeDetailDto,
-  RecipeSummaryDto,
   ServiceSourcesDto,
   ShoppingDto,
   ShoppingTextDto,
@@ -36,11 +32,9 @@ import { SqliteNameMappingStore } from "../../server/data/store.js";
 import { fixedClock } from "../../server/domain/clock.js";
 import { ResumableJob } from "../../server/domain/resumable-job.js";
 import { DemoRecognizer } from "../../server/recognition/replay.js";
-import { registerClearRoutes } from "../../server/routes/clear.js";
 import { registerImportRoutes } from "../../server/routes/import.js";
 import { registerItemRoutes } from "../../server/routes/items.js";
 import { registerProfileRoutes } from "../../server/routes/profile.js";
-import { registerRecipeRoutes } from "../../server/routes/recipes.js";
 import { registerSettingsRoutes } from "../../server/routes/settings.js";
 import { registerShoppingRoutes } from "../../server/routes/shopping.js";
 import {
@@ -103,8 +97,6 @@ async function createHarness(options: HarnessOptions = {}): Promise<Harness> {
   });
 
   registerStateRoutes(app, context);
-  registerRecipeRoutes(app, context);
-  registerClearRoutes(app, context);
   registerItemRoutes(app, context);
   registerShoppingRoutes(app, context);
   registerProfileRoutes(app, context);
@@ -267,21 +259,6 @@ describe("HTTP API routes", () => {
     const state = await readState();
     expect(state.items).toEqual([]);
     expect(state.importState).toBe("idle");
-
-    const recipes = await harness.app.inject({
-      method: "GET",
-      url: "/api/recipes",
-    });
-    expect(recipes.statusCode).toBe(200);
-    const recipeList = recipes.json<RecipeSummaryDto[]>();
-    expect(recipeList.length).toBeGreaterThan(0);
-
-    const detail = await harness.app.inject({
-      method: "GET",
-      url: `/api/recipes/${encodeURIComponent(recipeList[0]!.id)}`,
-    });
-    expect(detail.statusCode).toBe(200);
-    expect(detail.json<RecipeDetailDto>().id).toBe(recipeList[0]!.id);
 
     const shopping = await harness.app.inject({
       method: "GET",
@@ -546,8 +523,6 @@ describe("HTTP API routes", () => {
       "/api/services",
       "/api/preferences",
       "/api/name-mappings",
-      "/api/recipes",
-      `/api/recipes/${encodeURIComponent(builtin.recipes[0]!.id)}`,
       "/api/shopping",
       "/api/shopping/text",
       "/api/import",
@@ -694,27 +669,6 @@ describe("HTTP API routes", () => {
     expect(rejected.json()).toEqual({ error: "只能忽略临期食材" });
   });
 
-  it("previews and searches clear-fridge recipes", async () => {
-    const id = await createItem("西红柿");
-    const preview = await harness.app.inject({
-      method: "POST",
-      url: "/api/clear/preview",
-      payload: { selected: [id] },
-    });
-    expect(preview.statusCode).toBe(200);
-    expect(preview.json<ClearPreviewDto>().selectedCount).toBe(1);
-
-    const search = await harness.app.inject({
-      method: "POST",
-      url: "/api/clear/search",
-      payload: { selected: [id] },
-    });
-    expect(search.statusCode).toBe(200);
-    const result = search.json<ClearRecipesResult>();
-    expect(result.summary.selectedCount).toBe(1);
-    expect(result.recipes.length).toBeGreaterThan(0);
-  });
-
   it("saves and deletes shelf and storage rules with separate consent routes", async () => {
     const confirm = await harness.app.inject({
       method: "POST",
@@ -777,7 +731,7 @@ describe("HTTP API routes", () => {
     expect(deleteStorage.statusCode).toBe(200);
   });
 
-  it("manages pantry items, suggestions, missing ingredients and shopping", async () => {
+  it("manages pantry items, suggestions and shopping", async () => {
     const addPantry = await harness.app.inject({
       method: "POST",
       url: "/api/pantry",
@@ -814,15 +768,6 @@ describe("HTTP API routes", () => {
     expect(shopping.statusCode).toBe(200);
     const shoppingItems = shopping.json<ShoppingDto[]>();
     expect(shoppingItems.length).toBeGreaterThan(0);
-
-    const recipe = builtin.recipes[0]!;
-    const addMissing = await harness.app.inject({
-      method: "POST",
-      url: `/api/recipes/${encodeURIComponent(recipe.id)}/add-missing`,
-      payload: { id: recipe.id, selected: [] },
-    });
-    expect(addMissing.statusCode).toBe(200);
-    expect(addMissing.json()).toHaveProperty("added");
 
     const removeShopping = await harness.app.inject({
       method: "DELETE",
@@ -1120,7 +1065,6 @@ describe("HTTP API routes", () => {
     ["POST", "/api/pantry", { name: "长".repeat(201) }],
     ["PUT", "/api/rules", { name: "长".repeat(201), oldLocation: "", location: "冷藏", days: "7" }],
     ["POST", "/api/import/text", { text: "长".repeat(200_001) }],
-    ["POST", "/api/recipes/valid/add-missing", { id: "a".repeat(201) }],
   ])("rejects overlong text for %s %s", async (method, url, payload) => {
     const response = await harness.app.inject({
       method: method as "POST" | "PATCH" | "PUT",
@@ -1149,8 +1093,6 @@ describe("HTTP API routes", () => {
   });
 
   it.each([
-    ["POST", "/api/clear/preview", { selected: [0] }],
-    ["POST", "/api/clear/search", { selected: [-1] }],
     ["POST", "/api/items/remove", { ids: [] }],
     ["POST", "/api/import/start", { privacyConfirmed: false, allowDuplicate: false }],
     ["POST", "/api/import/confirm", { allowDuplicate: "yes" }],
@@ -1169,13 +1111,7 @@ describe("HTTP API routes", () => {
     expect(response.json()).toEqual({ error: "请求参数不正确" });
   });
 
-  it("rejects invalid recipe query and multipart enum values", async () => {
-    const query = await harness.app.inject({
-      method: "GET",
-      url: `/api/recipes/${encodeURIComponent(builtin.recipes[0]!.id)}?selected=abc`,
-    });
-    expect(query.statusCode).toBe(400);
-
+  it("rejects invalid multipart enum values", async () => {
     const multipart = multipartBody(
       [
         ["origin", "unsupported"],

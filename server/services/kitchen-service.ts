@@ -31,14 +31,6 @@ import {
   type PantryOverride,
 } from "../domain/pantry.js";
 import {
-  RecipeMatcher,
-  rankForBrowsing,
-  rankForClearFridge,
-  type Recipe,
-  type RecipeMatch,
-  type StockEntry,
-} from "../domain/recipe.js";
-import {
   proposalsForEdit,
   resolveShelfLife,
   type RuleProposal,
@@ -46,7 +38,6 @@ import {
 } from "../domain/shelf-life.js";
 import {
   dedupeKey,
-  entriesForMissing,
   makeShoppingEntry,
   toText as shoppingListText,
   type ShoppingEntry,
@@ -63,13 +54,6 @@ export interface SaveItemResult {
   ok: boolean;
   error: string;
   proposals: RuleProposal[];
-}
-
-export interface ClearFridgePreview {
-  selectedCount: number;
-  candidateCount: number;
-  completeCount: number;
-  uncovered: string[];
 }
 
 function dateIsSet(value: string | null | undefined): boolean {
@@ -524,95 +508,6 @@ export class KitchenService {
     });
   }
 
-  recipes(search = ""): RecipeMatch[] {
-    const term = search.trim().toLocaleLowerCase();
-    const matches = new RecipeMatcher(
-      this.builtin.catalog,
-      this.stock(),
-    ).matchAll(this.builtin.recipes);
-    return rankForBrowsing(
-      term
-        ? matches.filter((match) =>
-            match.recipe.name.toLocaleLowerCase().includes(term),
-          )
-        : matches,
-    );
-  }
-
-  clearFridge(selected: readonly number[]): RecipeMatch[] {
-    return rankForClearFridge(
-      new RecipeMatcher(
-        this.builtin.catalog,
-        this.stock(selected),
-      ).matchAll(this.builtin.recipes),
-    );
-  }
-
-  clearFridgePreview(selected: readonly number[]): ClearFridgePreview {
-    const matcher = new RecipeMatcher(
-      this.builtin.catalog,
-      this.stock(selected),
-    );
-    const names = new Set(matcher.selectedNames);
-    const preview: ClearFridgePreview = {
-      selectedCount: names.size,
-      candidateCount: 0,
-      completeCount: 0,
-      uncovered: [],
-    };
-    if (names.size === 0) {
-      return preview;
-    }
-
-    const covered = new Set<string>();
-    for (const recipe of this.builtin.recipes) {
-      const match = matcher.match(recipe);
-      if (match.usedSelected.length === 0) {
-        continue;
-      }
-      preview.candidateCount += 1;
-      if (match.unusedSelected.length === 0) {
-        preview.completeCount += 1;
-      }
-      for (const name of match.usedSelected) {
-        covered.add(name);
-      }
-    }
-    preview.uncovered = [...names].filter((name) => !covered.has(name)).sort();
-    return preview;
-  }
-
-  recipe(id: string, selected: readonly number[] = []): RecipeMatch | null {
-    const recipe = this.builtin.recipes.find(
-      (candidate): candidate is Recipe => candidate.id === id,
-    );
-    if (!recipe) {
-      return null;
-    }
-    return new RecipeMatcher(
-      this.builtin.catalog,
-      this.stock(selected),
-    ).match(recipe);
-  }
-
-  addMissing(recipeId: string, selected: readonly number[] = []): number {
-    const match = this.recipe(recipeId, selected);
-    if (!match) {
-      return 0;
-    }
-    let added = 0;
-    for (const entry of entriesForMissing(
-      match.recipe,
-      match,
-      this.builtin.catalog,
-    )) {
-      if (this.store.addShoppingEntry(entry) > 0) {
-        added += 1;
-      }
-    }
-    return added;
-  }
-
   shopping(): ShoppingEntry[] {
     return this.store.shoppingEntries();
   }
@@ -639,28 +534,6 @@ export class KitchenService {
 
   deleteAllData(): boolean {
     return this.store.deleteAllData();
-  }
-
-  private stock(selected: readonly number[] = []): StockEntry[] {
-    const selectedIds = new Set(selected);
-    const result: StockEntry[] = this.fridge().map((item) => ({
-      name: item.canonicalName ?? "",
-      itemId: item.id ?? 0,
-      pantry: false,
-      selected: item.id != null && selectedIds.has(item.id),
-      nearExpiry:
-        this.freshness(item).freshness === Freshness.NearExpiry,
-    }));
-    for (const name of this.pantryRules().namesAtHome()) {
-      result.push({
-        name,
-        itemId: 0,
-        pantry: true,
-        selected: false,
-        nearExpiry: false,
-      });
-    }
-    return result;
   }
 
   private proposalsForEdit(

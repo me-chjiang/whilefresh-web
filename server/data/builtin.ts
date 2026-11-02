@@ -3,17 +3,10 @@ import { resolve } from "node:path";
 
 import { config } from "../config.js";
 import { Catalog } from "../domain/catalog.js";
-import {
-  RecipeBook,
-  type Recipe,
-  type RecipeSource,
-} from "../domain/recipe.js";
 import { ShelfLifeTable } from "../domain/shelf-life.js";
 
 export interface BuiltinData {
   readonly catalog: Catalog;
-  readonly recipes: readonly Recipe[];
-  readonly recipeSource: RecipeSource;
   readonly shelfLife: ShelfLifeTable;
   readonly vocabularyJson: string;
 }
@@ -38,15 +31,12 @@ export function loadBuiltin(): BuiltinData {
 
   const vocabularyJson = readDataFile("vocabulary.json");
   const catalog = Catalog.fromJson(vocabularyJson);
-  const recipeBook = RecipeBook.fromJson(readDataFile("recipes.json"));
   const shelfLife = existsSync(resolve(builtinDirectory, "shelf-life.json"))
     ? ShelfLifeTable.fromJson(readDataFile("shelf-life.json"))
     : new ShelfLifeTable();
 
   cached = Object.freeze({
     catalog,
-    recipes: recipeBook.recipes,
-    recipeSource: recipeBook.source,
     shelfLife,
     vocabularyJson,
   });

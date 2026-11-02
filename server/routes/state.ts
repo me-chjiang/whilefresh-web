@@ -12,7 +12,6 @@ import type { CategoryCode } from "../../shared/enums.js";
 import { ImportStatus, Storage } from "../../shared/enums.js";
 import type { BuiltinData } from "../data/builtin.js";
 import type { Clock } from "../domain/clock.js";
-import type { RecipeMatch } from "../domain/recipe.js";
 import { displayName } from "../domain/shopping-list.js";
 import type { AppState } from "../services/app-state.js";
 import { ImportService } from "../services/import-service.js";
@@ -65,20 +64,6 @@ function importName(inputKind: string, origin: string, images: number): string {
     name += ` · ${originName}`;
   }
   return name;
-}
-
-export function selectedFromQuery(value: unknown): number[] {
-  const raw = Array.isArray(value) ? value : value == null ? [] : [value];
-  const selected: number[] = [];
-  for (const item of raw.flatMap((part) =>
-    typeof part === "string" ? part.split(",") : [],
-  )) {
-    const id = Number(item);
-    if (Number.isSafeInteger(id) && id > 0 && !selected.includes(id)) {
-      selected.push(id);
-    }
-  }
-  return selected;
 }
 
 function rules(state: AppState): RuleDto[] {
@@ -177,8 +162,6 @@ export function stateDto(state: AppState, builtin: BuiltinData): StateDto {
     date: localDate(record.createdAt),
   }));
   const importStatus = state.importStatus();
-  const clearPreview = kitchen.clearFridgePreview(selectedIds);
-
   return {
     ...importStatus,
     items: state.items(),
@@ -186,13 +169,6 @@ export function stateDto(state: AppState, builtin: BuiltinData): StateDto {
     attentionCount: state.attentionCount(),
     hasUnfinishedImport: state.hasUnfinishedImport(),
     selectedIds,
-    recipes: kitchen.recipes().map((match) =>
-      recipeSummaryDto(match, builtin.recipeSource.name),
-    ),
-    clearRecipes: [],
-    clearPreview,
-    clearResultsSummary: null,
-    clearResultsReady: false,
     shopping,
     pantry,
     suggestions,
@@ -202,23 +178,6 @@ export function stateDto(state: AppState, builtin: BuiltinData): StateDto {
     recognitionConfigured: state.recognitionConfigured,
     startupNotice: state.startupNotice,
     privacyNotice: ImportService.privacyNotice(),
-  };
-}
-
-export function recipeSummaryDto(
-  match: RecipeMatch,
-  sourceName: string,
-): StateDto["recipes"][number] {
-  return {
-    id: match.recipe.id,
-    name: match.recipe.name,
-    difficulty: match.recipe.difficulty ?? 1,
-    haveCount: match.haveCount,
-    missingCount: match.missingCount,
-    sourceUrl: match.recipe.sourceUrl,
-    sourceName,
-    usedSelected: [...match.usedSelected],
-    unusedSelected: [...match.unusedSelected],
   };
 }
 

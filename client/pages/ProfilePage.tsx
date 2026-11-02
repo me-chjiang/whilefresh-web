@@ -761,9 +761,6 @@ export function ProfilePage() {
           }}
         >
           <p style={{ margin: 0 }}>
-            菜谱：HowToCook · Unlicense（原文及来源链接见菜谱详情）
-          </p>
-          <p style={{ margin: 0 }}>
             保质期参考：USDA FoodKeeper。仅作估计，请查看食材后决定。
           </p>
           <p style={{ margin: 0 }}>

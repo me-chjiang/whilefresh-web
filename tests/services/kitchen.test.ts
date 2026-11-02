@@ -372,38 +372,4 @@ describe("kitchen service integration", () => {
     expect(existsSync(imagePath!)).toBe(false);
   });
 
-  it("separates clear-fridge selection from confirmation and ignores seasoning", () => {
-    const tomato = manual("西红柿");
-    const salt = manual("盐");
-    const tomatoId = save(tomato);
-    const saltId = save(salt);
-
-    const preview = harness.kitchen.clearFridgePreview([
-      tomatoId,
-      saltId,
-    ]);
-    expect(preview.selectedCount).toBe(1);
-    expect(preview.candidateCount).toBeGreaterThan(0);
-    expect(preview.completeCount).toBeGreaterThan(0);
-    expect(harness.kitchen.shopping()).toHaveLength(0);
-
-    expect(harness.kitchen.clearFridge([])).toEqual([]);
-    const recipes = harness.kitchen.clearFridge([tomatoId, saltId]);
-    expect(recipes.length).toBeGreaterThan(0);
-    for (const recipe of recipes) {
-      expect(recipe.usedSelected).not.toContain("盐");
-      expect(recipe.unusedSelected).not.toContain("盐");
-    }
-
-    const missing = recipes.find((recipe) => recipe.missingCount > 0);
-    if (missing) {
-      expect(
-        harness.kitchen.addMissing(missing.recipe.id, [
-          tomatoId,
-          saltId,
-        ]),
-      ).toBeGreaterThan(0);
-      expect(harness.kitchen.shopping().length).toBeGreaterThan(0);
-    }
-  });
 });

@@ -8,11 +8,9 @@ import { EnvCredentialProvider } from "./ai/credentials.js";
 import { DeepSeekChatClient } from "./ai/deepseek-chat-client.js";
 import { loadBuiltin } from "./data/builtin.js";
 import { systemClock } from "./domain/clock.js";
-import { registerClearRoutes } from "./routes/clear.js";
 import { registerImportRoutes } from "./routes/import.js";
 import { registerItemRoutes } from "./routes/items.js";
 import { registerProfileRoutes } from "./routes/profile.js";
-import { registerRecipeRoutes } from "./routes/recipes.js";
 import { registerSettingsRoutes } from "./routes/settings.js";
 import { registerShoppingRoutes } from "./routes/shopping.js";
 import { registerStateRoutes, type RouteContext } from "./routes/state.js";
@@ -50,9 +48,7 @@ const context: RouteContext = {
 };
 
 registerStateRoutes(app, context);
-registerRecipeRoutes(app, context);
 registerWebRecipeRoutes(app, context);
-registerClearRoutes(app, context);
 registerItemRoutes(app, context);
 registerShoppingRoutes(app, context);
 registerProfileRoutes(app, context);
