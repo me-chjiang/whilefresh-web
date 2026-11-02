@@ -8,6 +8,7 @@ import { dirname, isAbsolute, resolve } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import {
   DateOrigin,
+  ImportStatus,
   ItemKind,
   ItemStatus,
   ShelfLifeSource,
@@ -134,6 +135,9 @@ export interface ImportRecord {
   isDemo?: boolean;
   truncated?: boolean;
   textLength?: number;
+  status?: ImportStatus;
+  duplicateOf?: number;
+  deletedAt?: Timestamp;
   images?: ImportImageRecord[];
 }
 
@@ -193,6 +197,7 @@ const itemUpdateSql =
   "WHERE id = ?";
 
 const dateOrigins = Object.values(DateOrigin);
+const importStatuses = Object.values(ImportStatus);
 const itemKinds = Object.values(ItemKind);
 const itemStatuses = Object.values(ItemStatus);
 const shelfLifeSources = Object.values(ShelfLifeSource);
@@ -442,6 +447,9 @@ function importFrom(row: SqlRow): ImportRecord {
     isDemo: number(row.is_demo) !== 0,
     truncated: number(row.truncated) !== 0,
     textLength: number(row.text_length),
+    status: oneOf(row.status, importStatuses, ImportStatus.Confirmed),
+    duplicateOf: number(row.duplicate_of),
+    deletedAt: timestampFrom(row.deleted_at),
     images: [],
   };
 }
@@ -715,8 +723,8 @@ export class Store {
         .prepare(
           `INSERT INTO imports (
             created_at, input_kind, origin, is_demo, truncated, text_length,
-            source_type
-          ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            source_type, status, duplicate_of, deleted_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           timestampValue(record.createdAt),
@@ -726,6 +734,9 @@ export class Store {
           record.truncated === true ? 1 : 0,
           number(record.textLength),
           record.sourceType === undefined ? "other" : text(record.sourceType),
+          record.status ?? ImportStatus.Confirmed,
+          (record.duplicateOf ?? 0) > 0 ? number(record.duplicateOf) : null,
+          timestampValue(record.deletedAt),
         );
       const id = Number(result.lastInsertRowid);
       if (!Number.isSafeInteger(id) || id <= 0) {
@@ -756,10 +767,14 @@ export class Store {
     }
   }
 
-  imports(): ImportRecord[] {
+  imports(includeDeleted = false): ImportRecord[] {
     try {
       const rows = this.database
-        .prepare("SELECT * FROM imports ORDER BY created_at DESC, id DESC")
+        .prepare(
+          `SELECT * FROM imports ${
+            includeDeleted ? "" : "WHERE deleted_at IS NULL"
+          } ORDER BY created_at DESC, id DESC`,
+        )
         .all();
       const records = rows.map(importFrom);
       const byId = new Map<number, ImportRecord>();
@@ -952,14 +967,44 @@ export class Store {
          SELECT path FROM import_images WHERE import_id = ?`,
         "DELETE FROM import_products WHERE import_id = ?",
         "DELETE FROM suggestions WHERE import_id = ? AND status = 'pending'",
-        "DELETE FROM items WHERE import_id = ?",
-        "UPDATE suggestions SET import_id = NULL WHERE import_id = ?",
+        "DELETE FROM items WHERE import_id = ? AND status = 'in_stock'",
         "DELETE FROM import_images WHERE import_id = ?",
-        "DELETE FROM imports WHERE id = ?",
       ];
       for (const sql of statements) {
         this.database.prepare(sql).run(id);
       }
+      this.database
+        .prepare("UPDATE imports SET deleted_at = ? WHERE id = ?")
+        .run(timestampValue(this.clock.now()), id);
+      if (!this.commit()) {
+        this.rollback();
+        return false;
+      }
+    } catch {
+      this.rollback();
+      return false;
+    }
+    return this.retryFileCleanup();
+  }
+
+  clearImportHistory(): boolean {
+    if (!this.transaction()) {
+      return false;
+    }
+
+    try {
+      const visible = "SELECT id FROM imports WHERE deleted_at IS NULL";
+      for (const sql of [
+        `INSERT OR IGNORE INTO file_cleanup
+         SELECT path FROM import_images WHERE import_id IN (${visible})`,
+        `DELETE FROM import_products WHERE import_id IN (${visible})`,
+        `DELETE FROM import_images WHERE import_id IN (${visible})`,
+      ]) {
+        this.database.prepare(sql).run();
+      }
+      this.database
+        .prepare("UPDATE imports SET deleted_at = ? WHERE deleted_at IS NULL")
+        .run(timestampValue(this.clock.now()));
       if (!this.commit()) {
         this.rollback();
         return false;
