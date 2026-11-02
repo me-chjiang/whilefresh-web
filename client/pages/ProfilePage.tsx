@@ -274,6 +274,8 @@ export function ProfilePage() {
     useState<ImportRecordDto | null>(null);
   const [deleteAllOpen, setDeleteAllOpen] = useState(false);
   const [deleteAllBusy, setDeleteAllBusy] = useState(false);
+  const [deleteHistoryOpen, setDeleteHistoryOpen] = useState(false);
+  const [deleteHistoryBusy, setDeleteHistoryBusy] = useState(false);
 
   const addPantry = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -386,6 +388,28 @@ export function ProfilePage() {
       notify(result.ok ? "已删除本次导入记录" : "删除失败，请重试");
     } catch (error) {
       notify(`删除失败：${messageFor(error)}`);
+    }
+  };
+
+  const deleteImportHistory = async () => {
+    if (deleteHistoryBusy) {
+      return;
+    }
+    setDeleteHistoryBusy(true);
+    try {
+      const result = await api.clearImportHistory();
+      await refresh();
+      setDeleteHistoryOpen(false);
+      notify(
+        "warning" in result &&
+          typeof result.warning === "string"
+          ? `已删除导入历史；${result.warning}`
+          : "已删除导入历史",
+      );
+    } catch (error) {
+      notify(`删除失败：${messageFor(error)}`);
+    } finally {
+      setDeleteHistoryBusy(false);
     }
   };
 
@@ -644,6 +668,14 @@ export function ProfilePage() {
             </div>
           ))
         )}
+        {state.imports.length > 0 && (
+          <InkButton
+            fullWidth
+            outline
+            text="删除历史"
+            onClick={() => setDeleteHistoryOpen(true)}
+          />
+        )}
         <InkButton
           fullWidth
           text="删除全部数据"
@@ -686,6 +718,20 @@ export function ProfilePage() {
         destructive
         onCancel={() => setPendingImport(null)}
         onConfirm={() => void deleteImport()}
+      />
+      <ConfirmDialog
+        open={deleteHistoryOpen}
+        message="只删除导入记录和截图，冰箱里的食材不受影响。"
+        confirmText={
+          deleteHistoryBusy ? "正在删除…" : "删除历史"
+        }
+        destructive
+        onCancel={() => {
+          if (!deleteHistoryBusy) {
+            setDeleteHistoryOpen(false);
+          }
+        }}
+        onConfirm={() => void deleteImportHistory()}
       />
       <ConfirmDialog
         open={deleteAllOpen}

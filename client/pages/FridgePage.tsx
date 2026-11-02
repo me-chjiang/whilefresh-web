@@ -67,6 +67,7 @@ export function FridgePage() {
   const [multiSelect, setMultiSelect] = useState(false);
   const [checkedIds, setCheckedIds] = useState<number[]>([]);
   const [removing, setRemoving] = useState(false);
+  const [importActionBusy, setImportActionBusy] = useState(false);
 
   const toggleSelection = (item: ItemDto) => {
     setMultiSelect(true);
@@ -121,6 +122,36 @@ export function FridgePage() {
     }
   };
 
+  const continueImport = async () => {
+    if (importActionBusy) {
+      return;
+    }
+    setImportActionBusy(true);
+    try {
+      await api.resumeImport();
+      openImport();
+    } catch (error) {
+      notify(messageFor(error));
+    } finally {
+      setImportActionBusy(false);
+    }
+  };
+
+  const discardImport = async () => {
+    if (importActionBusy) {
+      return;
+    }
+    setImportActionBusy(true);
+    try {
+      await api.discardUnfinishedImport();
+      await refresh();
+    } catch (error) {
+      notify(messageFor(error));
+    } finally {
+      setImportActionBusy(false);
+    }
+  };
+
   return (
     <section
       className="page"
@@ -136,6 +167,46 @@ export function FridgePage() {
         onAction={openImport}
         style={{ marginInline: "calc(-1 * var(--section-padding))" }}
       />
+
+      {state.hasUnfinishedImport && (
+        <div
+          role="status"
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginTop: "var(--gap-small)",
+            padding: "var(--gap-small) var(--gap)",
+            gap: "var(--gap-small)",
+            borderRadius: "var(--radius-row)",
+            background: "var(--note)",
+            color: "var(--ink)",
+            fontSize: "var(--text-subtitle)",
+          }}
+        >
+          <span style={{ flex: "1 1 120px" }}>有未完成的导入</span>
+          <div
+            style={{
+              display: "flex",
+              flex: "none",
+              gap: "var(--gap-small)",
+            }}
+          >
+            <InkButton
+              text="继续"
+              disabled={importActionBusy}
+              onClick={() => void continueImport()}
+            />
+            <InkButton
+              text="放弃"
+              outline
+              disabled={importActionBusy}
+              onClick={() => void discardImport()}
+            />
+          </div>
+        </div>
+      )}
 
       {state.items.length === 0 ? (
         <EmptyState
