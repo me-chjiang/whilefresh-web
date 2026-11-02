@@ -7,6 +7,7 @@ import { EmptyState } from "../components/EmptyState";
 import { Icon } from "../components/Icon";
 import { InkButton } from "../components/InkButton";
 import { PageHeader } from "../components/PageHeader";
+import { WebRecipeDetailPage } from "./WebRecipeDetailPage";
 
 export interface RecipesPageProps {
   initialKeyword?: string;
@@ -19,36 +20,6 @@ function errorMessage(error: unknown): string {
     return error.message;
   }
   return "请稍后重试";
-}
-
-function WebRecipeDetailPage({
-  recipeId,
-  onBack,
-}: {
-  recipeId: string;
-  onBack: () => void;
-}) {
-  return (
-    <section
-      className="page"
-      data-recipe-id={recipeId}
-      style={{
-        minHeight: "calc(100dvh - var(--nav-height) - var(--gap-large))",
-        margin: "var(--gap-small) var(--gap) var(--gap-large)",
-        paddingInline: "var(--section-padding)",
-      }}
-    >
-      <PageHeader
-        heading="菜谱卡"
-        backVisible
-        onBack={onBack}
-        style={{ marginInline: "calc(-1 * var(--section-padding))" }}
-      />
-      <p style={{ marginTop: "var(--gap-large)", color: "var(--muted)" }}>
-        菜谱详情将在后续步骤提供。
-      </p>
-    </section>
-  );
 }
 
 export function RecipesPage({ initialKeyword = "" }: RecipesPageProps) {
