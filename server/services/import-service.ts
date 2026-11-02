@@ -8,6 +8,7 @@ import {
   CategoryCode,
   DateOrigin,
   ImportState,
+  ImportStatus,
   ItemStatus,
   Storage,
   StorageSource,
@@ -24,8 +25,9 @@ import type {
   ImportRecord,
   RecordedDate,
 } from "../data/store.js";
-import { Store } from "../data/store.js";
+import { needsShelfLife, Store } from "../data/store.js";
 import type { Clock } from "../domain/clock.js";
+import { classifyItemKind } from "../domain/fridge-groups.js";
 import {
   DuplicateCheck,
   checkSameImage,
@@ -36,6 +38,7 @@ import {
   suggestionsAfterPurchase,
   PantryRules,
 } from "../domain/pantry.js";
+import { totalAmount } from "../domain/quantity.js";
 import {
   resolveShelfLife,
   suggestStorage,
@@ -93,6 +96,7 @@ export interface DraftItem {
   production: ParsedDraftDate;
   purchase: ParsedDraftDate;
   expiry: ParsedDraftDate;
+  needsShelfLife: boolean;
 }
 
 export interface ImportDraft {
@@ -887,19 +891,7 @@ export class ImportService {
           "请检查商品名称、数量和保质天数",
         );
       }
-      if (
-        item.category === ItemCategory.Seasoning &&
-        this.builtin.catalog.resolve(canonical) !== canonical
-      ) {
-        return this.rejectForDraft(
-          ErrorKind.InvalidInput,
-          "请为调料选择标准食材名，或改为食材入库",
-        );
-      }
-      if (
-        item.category === ItemCategory.Food &&
-        needsDateConfirmation(item)
-      ) {
+      if (needsDateConfirmation(item)) {
         return this.rejectForDraft(
           ErrorKind.InvalidInput,
           importNeedsBaseDate(),
@@ -949,11 +941,21 @@ export class ImportService {
               estimate.days,
             );
           }
-          if (draftItem.category === ItemCategory.Food) {
-            item.importId = record.id;
-            if (this.store.insertItem(item) <= 0) {
-              throw new Error("insert item failed");
-            }
+          const amount = totalAmount(
+            item.quantityText ?? "",
+            item.count ?? 1,
+          );
+          item.amount = amount.value;
+          item.unit = amount.unit;
+          item.importId = record.id;
+          if (this.store.insertItem(item) <= 0) {
+            throw new Error("insert item failed");
+          }
+          if (
+            this.builtin.catalog.resolve(item.canonicalName ?? "") !==
+            item.canonicalName
+          ) {
+            continue;
           }
           if (
             draftItem.category === ItemCategory.Seasoning ||
@@ -993,6 +995,29 @@ export class ImportService {
         "无法保存，请重试",
       );
     }
+  }
+
+  skipDuplicate(): boolean {
+    const draft = this.draftValue;
+    if (
+      !this.received ||
+      this.busy ||
+      !draft ||
+      !draft.duplicate.isDuplicate()
+    ) {
+      return false;
+    }
+    const record = {
+      ...draft.record,
+      images: [],
+      status: ImportStatus.SkippedDuplicate,
+      duplicateOf: draft.duplicate.importId,
+    };
+    if (this.store.insertImport(record) <= 0) {
+      return this.reject(ErrorKind.Internal, "无法保存，请重试");
+    }
+    this.discard();
+    return true;
   }
 
   discard(): boolean {
@@ -1178,6 +1203,7 @@ export class ImportService {
         production: { status: "empty", text: "" },
         purchase: { status: "empty", text: "" },
         expiry: { status: "empty", text: "" },
+        needsShelfLife: false,
       };
       draft.items.push(draftItem);
       if (recognized.category !== ItemCategory.Irrelevant) {
@@ -1308,6 +1334,13 @@ export class ImportService {
     const cache = this.store.aiEstimateCache();
     const rules = this.store.ruleBook();
     for (const item of draft.items) {
+      item.item.kind = classifyItemKind(
+        item.item.canonicalName ?? "",
+        item.category === ItemCategory.Seasoning,
+        item.item.storage ?? Storage.Fridge,
+        this.builtin.catalog,
+        this.builtin.shelfLife,
+      );
       const resolution = resolveShelfLife(activeValuesFor(item.item), {
         catalog: this.builtin.catalog,
         table: this.builtin.shelfLife,
@@ -1315,6 +1348,7 @@ export class ImportService {
         aiCache: cache,
       });
       applyShelfLife(item.item, resolution);
+      item.needsShelfLife = needsShelfLife(item.item);
       if (
         item.selected &&
         item.category !== ItemCategory.Irrelevant
