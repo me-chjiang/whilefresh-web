@@ -57,6 +57,7 @@ import { DemoRecognizer } from "../recognition/replay.js";
 import type { Recognizer } from "../recognition/types.js";
 import { ImportService } from "./import-service.js";
 import { KitchenService } from "./kitchen-service.js";
+import { SettingsService } from "./settings-service.js";
 
 export interface AppStateOptions {
   dataDir: string;
@@ -186,6 +187,7 @@ export class AppState {
   private readonly userKeys: UserKeyStore;
   private readonly envCredentials: CredentialProvider;
   private readonly realCredentials: CredentialProvider;
+  private readonly settingsService: SettingsService;
   private readonly realRecognizer: Recognizer | undefined;
   private readonly demoRecognizer: Recognizer | undefined;
   private recognitionConfiguredValue = false;
@@ -210,6 +212,11 @@ export class AppState {
     this.chatClient =
       options.chatClient ??
       new DeepSeekChatClient({ credentials: this.envCredentials });
+    this.settingsService = new SettingsService({
+      credentials: this.userKeys,
+      chatClient: this.chatClient,
+      credentialsChanged: () => this.applyCredentials(),
+    });
     this.realRecognizer = options.realRecognizer;
     this.demoRecognizer = options.demoRecognizer;
     this.applyCredentials();
@@ -223,7 +230,7 @@ export class AppState {
       return;
     }
 
-    this.active = this.real;
+    this.activate(this.real);
     if (!this.real.store.retryFileCleanup()) {
       this.startupNoticeValue = CLEANUP_NOTICE;
     }
@@ -233,7 +240,7 @@ export class AppState {
         const demo = this.openDemoSession();
         if (this.seedDemo(demo)) {
           this.demo = demo;
-          this.active = demo;
+          this.activate(demo);
         } else {
           this.destroySession(demo);
           this.startupNoticeValue ||= DEMO_CREATE_NOTICE;
@@ -266,23 +273,19 @@ export class AppState {
   }
 
   keySource(field: UserKeyField): KeySource {
-    return this.userKeys.keySource(field);
+    return this.settingsService.services()[field];
   }
 
   saveSecret(field: UserKeyField, value: string): boolean {
-    if (!this.userKeys.save(field, value)) {
-      return false;
-    }
-    this.applyCredentials();
-    return true;
+    return this.settingsService.saveSecret(field, value);
   }
 
   clearSecret(field: UserKeyField): boolean {
-    if (!this.userKeys.clear(field)) {
-      return false;
-    }
-    this.applyCredentials();
-    return true;
+    return this.settingsService.clearSecret(field);
+  }
+
+  get settings(): SettingsService {
+    return this.settingsService;
   }
 
   get activeKitchen(): KitchenService {
@@ -417,6 +420,7 @@ export class AppState {
 
   close(): void {
     this.active?.importService.discard();
+    this.settingsService.attach(null);
     this.active = null;
     this.closeDemo();
     if (this.real) {
@@ -520,6 +524,7 @@ export class AppState {
   private activate(session: AppSession): void {
     this.active = session;
     this.pendingRules = [];
+    this.settingsService.attach(session.store, session.names);
   }
 
   private applyCredentials(): void {
