@@ -10,20 +10,34 @@ import { join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 
+import sharp from "sharp";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { IngredientClassifier } from "../../server/ai/ingredient-classifier.js";
 import type { ChatExchange } from "../../server/ai/chat-recording.js";
+import { StaticCredentialProvider } from "../../server/ai/credentials.js";
+import { DeepSeekChatClient } from "../../server/ai/deepseek-chat-client.js";
 import { RecordedChatClient } from "../../server/ai/recorded-chat-client.js";
 import {
   DateOrigin,
+  ImportStatus,
   ImportState,
+  ItemKind,
   Storage,
 } from "../../shared/enums.js";
 import { loadBuiltin, type BuiltinData } from "../../server/data/builtin.js";
 import { openDatabase } from "../../server/data/db.js";
-import { SqliteNameMappingStore, Store } from "../../server/data/store.js";
+import {
+  needsShelfLife,
+  SqliteNameMappingStore,
+  Store,
+} from "../../server/data/store.js";
 import { fixedClock, type Clock } from "../../server/domain/clock.js";
+import {
+  FridgeGroup,
+  groupOf,
+} from "../../server/domain/fridge-groups.js";
+import { ResumableJob } from "../../server/domain/resumable-job.js";
 import {
   NameSource,
   type NameMappingStore,
@@ -34,6 +48,9 @@ import {
   writeRecording,
   type Recording,
 } from "../../server/recognition/recording.js";
+import {
+  DeepSeekRecognizer,
+} from "../../server/recognition/deepseek.js";
 import {
   DemoRecognizer,
   ReplayRecognizer,
@@ -51,6 +68,10 @@ import {
   type ImportImagesPayload,
 } from "../../server/services/import-service.js";
 import { KitchenService } from "../../server/services/kitchen-service.js";
+import {
+  FakeHttpServer,
+  type CapturedRequest,
+} from "../helpers/fake-http-server.js";
 
 const repository = fileURLToPath(new URL("../../", import.meta.url));
 const cartRecording = join(
@@ -197,6 +218,7 @@ class HeldReplayRecognizer extends ReplayRecognizer {
 describe("import service integration", () => {
   let harness: Harness;
   let recordingSequence = 0;
+  let httpServers: FakeHttpServer[] = [];
 
   beforeEach(() => {
     const directory = mkdtempSync(join(tmpdir(), "whilefresh-import-flow-"));
@@ -220,7 +242,10 @@ describe("import service integration", () => {
     };
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    const servers = httpServers;
+    httpServers = [];
+    await Promise.all(servers.map((server) => server.close()));
     harness.database.close();
     rmSync(harness.directory, { recursive: true, force: true });
   });
@@ -252,6 +277,64 @@ describe("import service integration", () => {
       origin: "gallery",
       images: [file],
     };
+  }
+
+  async function realImage(
+    color: { r: number; g: number; b: number },
+  ): Promise<StoredImportFile> {
+    recordingSequence += 1;
+    const path = join(
+      harness.importsDirectory,
+      `generated-image-${recordingSequence}.png`,
+    );
+    await sharp({
+      create: {
+        width: 8,
+        height: 12,
+        channels: 3,
+        background: color,
+      },
+    })
+      .png()
+      .toFile(path);
+    return {
+      path,
+      sha256: "",
+      mimeType: "image/png",
+      capturedAt: new Date(2026, 9, 21, 9, 0),
+      capturedAtSource: CapturedAtSource.Exif,
+    };
+  }
+
+  function chatReply(rawName: string, canonicalName: string): string {
+    return JSON.stringify(
+      completion({
+        source_type: "cart",
+        items: [
+          {
+            raw_name: rawName,
+            canonical_name: canonicalName,
+            category: "food",
+            storage: "fridge",
+          },
+        ],
+      }),
+    );
+  }
+
+  function recognizerFor(
+    server: FakeHttpServer,
+  ): DeepSeekRecognizer {
+    return new DeepSeekRecognizer(
+      new DeepSeekChatClient({
+        credentials: new StaticCredentialProvider("test-key"),
+        baseUrl: server.url,
+        idleTimeoutMs: 2_000,
+        deadlineMs: 4_000,
+        retryDelayMs: 0,
+      }),
+      { batchLimits: { maxImages: 1 } },
+    );
   }
 
   async function recording(
@@ -340,6 +423,304 @@ describe("import service integration", () => {
     expect(harness.kitchen.deleteImport(record!.id!)).toBe(true);
     expect(harness.store.items()).toHaveLength(0);
     expect(existsSync(input.path)).toBe(false);
+  });
+
+  it("records same-image and similar-item duplicates as skipped", async () => {
+    const imports = service(
+      new ReplayRecognizer(await recording(mixedItems())),
+    );
+    const originalImage = image();
+    expect(await imports.receive(imagePayload(originalImage))).toBe(true);
+    expect(imports.skipDuplicate()).toBe(false);
+    expect(await imports.start(true)).toBe(true);
+    expect(imports.confirm()).toBe(true);
+    const originalId = harness.store.imports()[0]!.id!;
+    const itemCount = harness.store.items().length;
+
+    const sameImage = image();
+    expect(await imports.receive(imagePayload(sameImage))).toBe(true);
+    expect(imports.draft()?.duplicate.kind).toBe("same_image");
+    expect(imports.skipDuplicate()).toBe(true);
+    expect(existsSync(sameImage.path)).toBe(false);
+
+    const similarImage = image("different bytes");
+    expect(await imports.receive(imagePayload(similarImage))).toBe(true);
+    expect(await imports.start(true)).toBe(true);
+    expect(imports.draft()?.duplicate.kind).toBe("similar_items");
+    expect(imports.skipDuplicate()).toBe(true);
+    expect(imports.draft()).toBeNull();
+    expect(imports.hasUnfinishedJob()).toBe(false);
+
+    const records = harness.store.imports();
+    expect(records).toHaveLength(3);
+    for (const record of records.slice(0, 2)) {
+      expect(record.status).toBe(ImportStatus.SkippedDuplicate);
+      expect(record.duplicateOf).toBe(originalId);
+      expect(record.images).toEqual([]);
+      expect(harness.store.itemsForImport(record.id!)).toEqual([]);
+    }
+    expect(records[2]?.status).toBe(ImportStatus.Confirmed);
+    expect(harness.store.items()).toHaveLength(itemCount);
+  });
+
+  it("puts seasonings and staples into stock", async () => {
+    const imports = service(
+      new ReplayRecognizer(
+        await recording([
+          {
+            raw_name: "生抽500ml×2",
+            canonical_name: "生抽",
+            quantity_text: "500ml×2",
+            category: "seasoning",
+          },
+          {
+            raw_name: "方便面5连包",
+            canonical_name: "方便面",
+            quantity_text: "5包",
+            category: "food",
+            storage: "room",
+          },
+          {
+            raw_name: "大米5kg",
+            canonical_name: "大米",
+            quantity_text: "5kg",
+            category: "food",
+            storage: "room",
+          },
+          {
+            raw_name: "鲜鸡蛋",
+            canonical_name: "鸡蛋",
+            quantity_text: "10枚",
+            count: 2,
+            category: "food",
+            storage: "fridge",
+            shelf_life_days: { fridge: 30 },
+          },
+          {
+            raw_name: "某牌秘制酱",
+            canonical_name: "未归类",
+            quantity_text: "约350克",
+            category: "seasoning",
+          },
+        ]),
+      ),
+    );
+
+    expect(await imports.receive(imagePayload(image()))).toBe(true);
+    expect(await imports.start(true)).toBe(true);
+    const draftItems = imports.draft()!.items;
+    expect(draftItems[0]?.item.kind).toBe(ItemKind.StapleSeasoning);
+    expect(draftItems[1]?.item.kind).toBe(ItemKind.StapleFood);
+    expect(draftItems[1]?.needsShelfLife).toBe(true);
+    expect(draftItems[2]?.item.kind).toBe(ItemKind.StapleFood);
+    expect(draftItems[3]?.item.kind).toBe(ItemKind.Food);
+    expect(draftItems[3]?.needsShelfLife).toBe(false);
+    expect(imports.confirm()).toBe(true);
+
+    const byName = new Map(
+      harness.store.items().map((item) => [item.rawName, item]),
+    );
+    expect(byName.size).toBe(5);
+    expect(byName.get("生抽500ml×2")).toMatchObject({
+      amount: 1000,
+      unit: "ml",
+    });
+    const instantNoodles = byName.get("方便面5连包")!;
+    expect(instantNoodles).toMatchObject({
+      amount: 5,
+      unit: "包",
+    });
+    expect(needsShelfLife(instantNoodles)).toBe(true);
+    expect(byName.get("大米5kg")?.amount).toBe(5000);
+    expect(byName.get("鲜鸡蛋")).toMatchObject({
+      amount: 20,
+      unit: "枚",
+    });
+    expect(byName.get("某牌秘制酱")).toMatchObject({
+      kind: ItemKind.StapleSeasoning,
+      amount: 350,
+    });
+    expect(
+      harness.kitchen.suggestions().map((suggestion) => suggestion.name),
+    ).not.toContain("未归类");
+
+    const groups = harness.kitchen.fridge().map((item) =>
+      groupOf({ kind: item.kind!, storage: item.storage! }),
+    );
+    expect(groups[0]).toBe(FridgeGroup.Fridge);
+    expect(
+      groups.filter((group) => group === FridgeGroup.StapleSeasoning),
+    ).toHaveLength(2);
+    expect(
+      groups.filter((group) => group === FridgeGroup.StapleFood),
+    ).toHaveLength(2);
+  });
+
+  it("resumes only unfinished batches with byte-identical requests", async () => {
+    const input = [
+      await realImage({ r: 220, g: 40, b: 40 }),
+      await realImage({ r: 40, g: 220, b: 40 }),
+      await realImage({ r: 40, g: 40, b: 220 }),
+    ];
+    const server = await new FakeHttpServer((_request, index) => {
+      switch (index) {
+        case 0:
+          return { body: chatReply("鲜鸡蛋", "鸡蛋") };
+        case 1:
+        case 2:
+          return { status: 500, body: "scripted server error" };
+        case 3:
+          return { body: chatReply("纯牛奶", "牛奶") };
+        default:
+          return { body: chatReply("土豆", "土豆") };
+      }
+    }).start();
+    httpServers.push(server);
+
+    const interrupted = service(recognizerFor(server));
+    expect(
+      await interrupted.receive({
+        kind: "images",
+        origin: "gallery",
+        images: input,
+      }),
+    ).toBe(true);
+    expect(await interrupted.start(true)).toBe(false);
+    expect(interrupted.lastError?.httpStatus).toBe(500);
+
+    const firstRun = server.requests.slice();
+    expect(firstRun).toHaveLength(3);
+    const originalSecondBatch = firstRun[1]!;
+    expect(firstRun[2]!.bodyBytes.equals(originalSecondBatch.bodyBytes)).toBe(
+      true,
+    );
+    for (const file of input) {
+      expect(existsSync(file.path)).toBe(true);
+    }
+
+    const resumed = service(recognizerFor(server));
+    expect(resumed.hasUnfinishedJob()).toBe(true);
+    expect(await resumed.resume()).toBe(true);
+    expect(resumed.hasUnfinishedJob()).toBe(false);
+
+    const resumedRequests: CapturedRequest[] = server.requests.slice(3);
+    expect(resumedRequests).toHaveLength(2);
+    expect(
+      resumedRequests[0]!.bodyBytes.equals(originalSecondBatch.bodyBytes),
+    ).toBe(true);
+    expect(
+      resumedRequests[1]!.bodyBytes.equals(originalSecondBatch.bodyBytes),
+    ).toBe(false);
+    expect(
+      resumed.draft()?.items.map((item) => item.item.canonicalName),
+    ).toEqual(["鸡蛋", "牛奶", "土豆"]);
+    expect(resumed.draft()?.record.images).toHaveLength(3);
+    expect(resumed.confirm()).toBe(true);
+    expect(harness.store.importJob()).toBeNull();
+    expect(harness.store.imports()[0]?.images).toHaveLength(3);
+    expect(harness.store.items()).toHaveLength(3);
+  });
+
+  it("resumes a finished job without recognition", async () => {
+    const input = image();
+    const first = service(
+      new ReplayRecognizer(await recording(mixedItems())),
+    );
+    expect(await first.receive(imagePayload(input))).toBe(true);
+    expect(await first.start(true)).toBe(true);
+    expect(harness.store.importJob()).not.toBeNull();
+    expect(existsSync(input.path)).toBe(true);
+
+    const resumed = service(
+      new ReplayRecognizer(join(harness.directory, "missing.json")),
+    );
+    expect(await resumed.resume()).toBe(true);
+    expect(resumed.lastError).toBeNull();
+    expect(resumed.draft()?.items).toHaveLength(3);
+    expect(
+      resumed.draft()?.items[0]?.item.productionDate?.date,
+    ).toBe("2026-10-20");
+    expect(resumed.confirm()).toBe(true);
+    expect(harness.store.importJob()).toBeNull();
+  });
+
+  it("can discard or replace unfinished jobs", async () => {
+    const missing = join(harness.directory, "missing.json");
+    const firstInput = image();
+    const first = service(new ReplayRecognizer(missing));
+    expect(await first.receive(imagePayload(firstInput))).toBe(true);
+    expect(await first.start(true)).toBe(false);
+
+    const imports = service(
+      new ReplayRecognizer(await recording(mixedItems())),
+    );
+    expect(imports.hasUnfinishedJob()).toBe(true);
+    expect(imports.discardUnfinishedJob()).toBe(true);
+    expect(imports.hasUnfinishedJob()).toBe(false);
+    expect(existsSync(firstInput.path)).toBe(false);
+
+    const secondInput = image("second");
+    const stale = service(new ReplayRecognizer(missing));
+    expect(await stale.receive(imagePayload(secondInput))).toBe(true);
+    expect(await stale.start(true)).toBe(false);
+
+    const thirdInput = image("third");
+    expect(await imports.receive(imagePayload(thirdInput))).toBe(true);
+    expect(existsSync(secondInput.path)).toBe(false);
+    expect(imports.discard()).toBe(true);
+    expect(harness.store.importJob()).toBeNull();
+  });
+
+  it("frees images held by unrestorable jobs", async () => {
+    const orphan = (): string => {
+      const path = image().path;
+      const id = harness.store.insertImportJob(
+        JSON.stringify({ images: [{ path }] }),
+        new ResumableJob(),
+      );
+      expect(id).toBeGreaterThan(0);
+      harness.database
+        .prepare("UPDATE import_jobs SET state = 'done' WHERE id = ?")
+        .run(id);
+      return path;
+    };
+    const imports = service(
+      new ReplayRecognizer(await recording(mixedItems())),
+    );
+
+    const first = orphan();
+    expect(harness.store.importJob()).toBeNull();
+    expect(imports.hasUnfinishedJob()).toBe(false);
+    expect(imports.discardUnfinishedJob()).toBe(true);
+    expect(harness.store.importJobRows()).toEqual([]);
+    expect(existsSync(first)).toBe(false);
+
+    const second = orphan();
+    expect(
+      await imports.receive(imagePayload(image("next"))),
+    ).toBe(true);
+    expect(harness.store.importJobRows()).toEqual([]);
+    expect(existsSync(second)).toBe(false);
+    expect(imports.discard()).toBe(true);
+  });
+
+  it("does not persist text import jobs", async () => {
+    const imports = service(
+      new ReplayRecognizer(join(harness.directory, "missing.json")),
+    );
+    expect(
+      await imports.receive({
+        kind: "text",
+        origin: "paste",
+        text: "鸡蛋 两盒",
+      }),
+    ).toBe(true);
+    expect(await imports.start(true)).toBe(false);
+    expect(harness.store.importJob()).toBeNull();
+    const row = harness.database
+      .prepare("SELECT COUNT(*) AS count FROM import_jobs")
+      .get();
+    expect(Number(row?.count)).toBe(0);
   });
 
   it("stops duplicate images and asks before accepting similar items", async () => {

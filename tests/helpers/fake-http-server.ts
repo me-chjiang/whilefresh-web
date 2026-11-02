@@ -10,6 +10,7 @@ export interface CapturedRequest {
   method: string | undefined;
   path: string | undefined;
   headers: IncomingHttpHeaders;
+  bodyBytes: Buffer;
   body: string;
 }
 
@@ -107,11 +108,13 @@ export class FakeHttpServer {
     for await (const chunk of request) {
       chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
     }
+    const bodyBytes = Buffer.concat(chunks);
     const captured: CapturedRequest = {
       method: request.method,
       path: request.url,
       headers: request.headers,
-      body: Buffer.concat(chunks).toString("utf8"),
+      bodyBytes,
+      body: bodyBytes.toString("utf8"),
     };
     this.requests.push(captured);
     try {
