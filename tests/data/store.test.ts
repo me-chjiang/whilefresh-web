@@ -249,7 +249,7 @@ describe("store", () => {
     expect(existsSync(stray)).toBe(false);
     expect(
       Number(harness.database.prepare("PRAGMA user_version").get()?.user_version),
-    ).toBe(1);
+    ).toBe(2);
   });
 
   it("keeps real import files when deleting demo data", () => {

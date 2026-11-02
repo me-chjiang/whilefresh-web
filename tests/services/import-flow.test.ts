@@ -10,8 +10,11 @@ import { join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { IngredientClassifier } from "../../server/ai/ingredient-classifier.js";
+import type { ChatExchange } from "../../server/ai/chat-recording.js";
+import { RecordedChatClient } from "../../server/ai/recorded-chat-client.js";
 import {
   DateOrigin,
   ImportState,
@@ -19,8 +22,12 @@ import {
 } from "../../shared/enums.js";
 import { loadBuiltin, type BuiltinData } from "../../server/data/builtin.js";
 import { openDatabase } from "../../server/data/db.js";
-import { Store } from "../../server/data/store.js";
+import { SqliteNameMappingStore, Store } from "../../server/data/store.js";
 import { fixedClock, type Clock } from "../../server/domain/clock.js";
+import {
+  NameSource,
+  type NameMappingStore,
+} from "../../server/domain/vocabulary-resolver.js";
 import { CapturedAtSource } from "../../server/import/captured-at.js";
 import type { StoredImportFile } from "../../server/import/import-files.js";
 import {
@@ -61,6 +68,12 @@ interface Harness {
   kitchen: KitchenService;
 }
 
+interface ImportServiceOptions {
+  classifier?: IngredientClassifier;
+  classifierConfigured?: boolean;
+  mappings?: NameMappingStore;
+}
+
 interface CompletionChoice {
   message: {
     role: "assistant";
@@ -84,6 +97,42 @@ function completion(
         finish_reason: finishReason,
       },
     ],
+  };
+}
+
+function classifierAnswer(content: string): ChatExchange {
+  return {
+    request: {
+      model: "deepseek-flash",
+      messageCount: 2,
+      imageCount: 0,
+      textChars: 0,
+      jsonMode: true,
+      maxTokens: 0,
+    },
+    requestDigest: "",
+    elapsedMs: 0,
+    response: JSON.stringify(completion(content)),
+  };
+}
+
+function classifierFailure(): ChatExchange {
+  return {
+    request: {
+      model: "deepseek-flash",
+      messageCount: 2,
+      imageCount: 0,
+      textChars: 0,
+      jsonMode: true,
+      maxTokens: 0,
+    },
+    requestDigest: "",
+    elapsedMs: 0,
+    error: {
+      kind: ErrorKind.Timeout,
+      detail: "deadline",
+      httpStatus: 0,
+    },
   };
 }
 
@@ -239,7 +288,11 @@ describe("import service integration", () => {
     return path;
   }
 
-  function service(recognizer: Recognizer, demo = false): ImportService {
+  function service(
+    recognizer: Recognizer,
+    demo = false,
+    options: ImportServiceOptions = {},
+  ): ImportService {
     return new ImportService({
       store: harness.store,
       builtin: harness.builtin,
@@ -247,6 +300,9 @@ describe("import service integration", () => {
       recognizer,
       demo,
       importsDirectory: harness.importsDirectory,
+      classifier: options.classifier,
+      classifierConfigured: options.classifierConfigured,
+      mappings: options.mappings,
     });
   }
 
@@ -390,6 +446,246 @@ describe("import service integration", () => {
     const record = harness.store.imports()[0]!;
     expect(record.images).toHaveLength(0);
     expect(record.textLength).toBe(text.length);
+  });
+
+  it("marks a name returned by the classifier as AI classified", async () => {
+    const client = new RecordedChatClient({
+      exchanges: [
+        classifierAnswer(
+          '{"items":[{"index":1,"raw_name":"花胶 100g","canonical_name":"鱼"}]}',
+        ),
+      ],
+    });
+    const imports = service(
+      new ReplayRecognizer(
+        await recording([
+          {
+            raw_name: "花胶 100g",
+            canonical_name: "未归类",
+            category: "food",
+            storage: "fridge",
+          },
+        ]),
+      ),
+      false,
+      { classifier: new IngredientClassifier(client) },
+    );
+
+    expect(await imports.receive(imagePayload(image()))).toBe(true);
+    expect(await imports.start(true)).toBe(true);
+
+    const item = imports.draft()?.items[0];
+    expect(item?.item.canonicalName).toBe("鱼");
+    expect(item?.nameSource).toBe(NameSource.AiClassified);
+    expect(imports.status().draftItems[0]?.aiClassified).toBe(true);
+    expect(client.requests()).toHaveLength(1);
+  });
+
+  it("keeps the uncategorized name when classification fails", async () => {
+    const warning = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const client = new RecordedChatClient({
+        exchanges: [classifierFailure()],
+      });
+      const imports = service(
+        new ReplayRecognizer(
+          await recording([
+            {
+              raw_name: "花胶 100g",
+              canonical_name: "未归类",
+              category: "food",
+              storage: "fridge",
+            },
+          ]),
+        ),
+        false,
+        { classifier: new IngredientClassifier(client) },
+      );
+
+      expect(await imports.receive(imagePayload(image()))).toBe(true);
+      expect(await imports.start(true)).toBe(true);
+      expect(warning).toHaveBeenCalledWith(
+        "import: classification failed",
+      );
+
+      const item = imports.draft()?.items[0];
+      expect(item?.item.canonicalName).toBe("未归类");
+      expect(item?.item.displayName).toBe("花胶 100g");
+      expect(item?.nameSource).toBe(NameSource.Unresolved);
+      expect(imports.confirm()).toBe(true);
+      expect(harness.store.imports()).toHaveLength(1);
+    } finally {
+      warning.mockRestore();
+    }
+  });
+
+  it("marks a name changed by the user as user edited", async () => {
+    const imports = service(
+      new ReplayRecognizer(
+        await recording([
+          {
+            raw_name: "藕粉 500g",
+            canonical_name: "未归类",
+            category: "food",
+            storage: "fridge",
+          },
+        ]),
+      ),
+    );
+
+    expect(await imports.receive(imagePayload(image()))).toBe(true);
+    expect(await imports.start(true)).toBe(true);
+    expect(imports.updateDraft(0, { name: "土豆" })).toBe(true);
+
+    const item = imports.draft()?.items[0];
+    expect(item?.item.canonicalName).toBe("土豆");
+    expect(item?.nameSource).toBe(NameSource.UserEdited);
+    expect(imports.status().draftItems[0]?.aiClassified).toBe(false);
+  });
+
+  it("remembers only confirmed AI-classified and user-edited names", async () => {
+    const client = new RecordedChatClient({
+      exchanges: [
+        classifierAnswer(
+          '{"items":[{"index":1,"raw_name":"花胶 100g","canonical_name":"鱼"}]}',
+        ),
+      ],
+    });
+    const mappings = new SqliteNameMappingStore(
+      harness.database,
+      harness.clock,
+    );
+    const imports = service(
+      new ReplayRecognizer(
+        await recording([
+          {
+            raw_name: "花胶 100g",
+            canonical_name: "未归类",
+            category: "food",
+            storage: "fridge",
+          },
+          {
+            raw_name: "藕粉 500g",
+            canonical_name: "未归类",
+            category: "food",
+            storage: "fridge",
+          },
+          {
+            raw_name: "黑猪梅花肉切片 300g",
+            canonical_name: "猪肉",
+            category: "food",
+            storage: "fridge",
+          },
+          {
+            raw_name: "有机小番茄 250g",
+            canonical_name: "未归类",
+            category: "food",
+            storage: "fridge",
+          },
+        ]),
+      ),
+      false,
+      {
+        classifier: new IngredientClassifier(client),
+        mappings,
+      },
+    );
+
+    expect(await imports.receive(imagePayload(image()))).toBe(true);
+    expect(await imports.start(true)).toBe(true);
+    expect(imports.updateDraft(1, { name: "土豆" })).toBe(true);
+    expect(imports.draft()?.items.map((item) => item.nameSource)).toEqual([
+      NameSource.AiClassified,
+      NameSource.UserEdited,
+      NameSource.Recognized,
+      NameSource.LocalMatch,
+    ]);
+    expect(imports.confirm()).toBe(true);
+
+    expect(mappings.mapped("花胶 100g")).toBe("鱼");
+    expect(mappings.mapped("藕粉 500g")).toBe("土豆");
+    expect(mappings.mapped("黑猪梅花肉切片 300g")).toBe("");
+    expect(mappings.mapped("有机小番茄 250g")).toBe("");
+    expect(mappings.entries()).toHaveLength(2);
+  });
+
+  it("uses the user mapping directly on the next identical import", async () => {
+    const client = new RecordedChatClient({
+      exchanges: [
+        classifierAnswer(
+          '{"items":[{"index":1,"raw_name":"花胶 100g","canonical_name":"鱼"}]}',
+        ),
+      ],
+    });
+    const mappings = new SqliteNameMappingStore(
+      harness.database,
+      harness.clock,
+    );
+    const imports = service(
+      new ReplayRecognizer(
+        await recording([
+          {
+            raw_name: "花胶 100g",
+            canonical_name: "未归类",
+            category: "food",
+            storage: "fridge",
+          },
+        ]),
+      ),
+      false,
+      {
+        classifier: new IngredientClassifier(client),
+        mappings,
+      },
+    );
+
+    expect(await imports.receive(imagePayload(image("first")))).toBe(true);
+    expect(await imports.start(true)).toBe(true);
+    expect(imports.confirm()).toBe(true);
+    expect(await imports.receive(imagePayload(image("second")))).toBe(true);
+    expect(await imports.start(true)).toBe(true);
+
+    const item = imports.draft()?.items[0];
+    expect(item?.item.canonicalName).toBe("鱼");
+    expect(item?.nameSource).toBe(NameSource.UserMapping);
+    expect(imports.status().draftItems[0]?.aiClassified).toBe(false);
+    expect(client.requests()).toHaveLength(1);
+  });
+
+  it("does not call the classifier in demo mode", async () => {
+    const client = new RecordedChatClient({
+      exchanges: [
+        classifierAnswer(
+          '{"items":[{"index":1,"raw_name":"花胶 100g","canonical_name":"鱼"}]}',
+        ),
+      ],
+    });
+    const imports = service(
+      new ReplayRecognizer(
+        await recording([
+          {
+            raw_name: "花胶 100g",
+            canonical_name: "未归类",
+            category: "food",
+            storage: "fridge",
+          },
+        ]),
+      ),
+      true,
+      {
+        classifier: new IngredientClassifier(client),
+        classifierConfigured: false,
+      },
+    );
+
+    expect(await imports.receive(imagePayload(image()))).toBe(true);
+    expect(await imports.start(true)).toBe(true);
+    expect(imports.draft()?.record.isDemo).toBe(true);
+    expect(imports.draft()?.items[0]?.item.canonicalName).toBe("未归类");
+    expect(imports.draft()?.items[0]?.nameSource).toBe(
+      NameSource.Unresolved,
+    );
+    expect(client.requests()).toHaveLength(0);
   });
 
   it("cancels an in-flight recognition before deleting all data", async () => {
