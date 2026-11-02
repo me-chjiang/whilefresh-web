@@ -12,6 +12,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
@@ -23,6 +24,8 @@ import type {
   ShoppingDto,
   ShoppingTextDto,
   StateDto,
+  WebRecipeDetailDto,
+  WebRecipeSummaryDto,
 } from "../../shared/api.js";
 import { ImportStatus, SuggestionKind } from "../../shared/enums.js";
 import { RecordedChatClient } from "../../server/ai/recorded-chat-client.js";
@@ -32,11 +35,13 @@ import { SqliteNameMappingStore } from "../../server/data/store.js";
 import { fixedClock } from "../../server/domain/clock.js";
 import { ResumableJob } from "../../server/domain/resumable-job.js";
 import { DemoRecognizer } from "../../server/recognition/replay.js";
+import type { RecipeSource } from "../../server/recipes/types.js";
 import { registerImportRoutes } from "../../server/routes/import.js";
 import { registerItemRoutes } from "../../server/routes/items.js";
 import { registerProfileRoutes } from "../../server/routes/profile.js";
 import { registerSettingsRoutes } from "../../server/routes/settings.js";
 import { registerShoppingRoutes } from "../../server/routes/shopping.js";
+import { registerWebRecipeRoutes } from "../../server/routes/web-recipes.js";
 import {
   registerStateRoutes,
   type RouteContext,
@@ -45,6 +50,7 @@ import {
   AppState,
   type AppStateOptions,
 } from "../../server/services/app-state.js";
+import { RecordedRecipeSource } from "../helpers/recorded-recipe-source.js";
 
 interface Harness {
   app: FastifyInstance;
@@ -57,9 +63,13 @@ interface HarnessOptions {
   dataDir?: string;
   realRecognizer?: AppStateOptions["realRecognizer"];
   chatClient?: AppStateOptions["chatClient"];
+  recipeSource?: RecipeSource;
 }
 
 const builtin = loadBuiltin();
+const recipeSamples = fileURLToPath(
+  new URL("../../test-data/recipes/xiachufang/", import.meta.url),
+);
 const clock = fixedClock(new Date(2026, 9, 21, 12, 0));
 const onePixelPng = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
@@ -76,6 +86,7 @@ async function createHarness(options: HarnessOptions = {}): Promise<Harness> {
     apiKey: "",
     chatClient: options.chatClient,
     realRecognizer: options.realRecognizer,
+    recipeSource: options.recipeSource,
   });
   const context: RouteContext = {
     state,
@@ -102,6 +113,7 @@ async function createHarness(options: HarnessOptions = {}): Promise<Harness> {
   registerProfileRoutes(app, context);
   registerSettingsRoutes(app, context);
   registerImportRoutes(app, context);
+  registerWebRecipeRoutes(app, context);
 
   app.get("/api/health", async () => ({ status: "ok" }));
   app.setNotFoundHandler((request, reply) => {
@@ -138,6 +150,12 @@ async function createHarness(options: HarnessOptions = {}): Promise<Harness> {
   });
 
   return { app, state, context, dataDir };
+}
+
+function recordedRecipeSource(): RecordedRecipeSource {
+  const source = new RecordedRecipeSource();
+  expect(source.addDirectory(recipeSamples)).toBe(7);
+  return source;
 }
 
 function multipartBody(fields: readonly [string, string][], files: readonly {
@@ -248,7 +266,7 @@ describe("HTTP API routes", () => {
     return response.json<ImportStatusDto>();
   }
 
-  it("serves health, state, recipes, shopping and import reads", async () => {
+  it("serves health, state, shopping and import reads", async () => {
     const health = await harness.app.inject({
       method: "GET",
       url: "/api/health",
@@ -280,6 +298,78 @@ describe("HTTP API routes", () => {
     });
     expect(importStatus.statusCode).toBe(200);
     expect(importStatus.json<ImportStatusDto>().importState).toBe("idle");
+  });
+
+  it("serves recorded web recipe searches and details", async () => {
+    await replaceHarness({ recipeSource: recordedRecipeSource() });
+
+    const search = await harness.app.inject({
+      method: "GET",
+      url: `/api/web-recipes?keyword=${encodeURIComponent("虾仁")}`,
+    });
+    expect(search.statusCode).toBe(200);
+    const recipes = search.json<WebRecipeSummaryDto[]>();
+    expect(recipes).toHaveLength(2);
+    expect(recipes[0]).toEqual({
+      id: "103468406",
+      name: "【虾仁滑蛋】超嫩滑，复刻茶餐厅经典",
+      imageUrl: expect.stringContaining("chuimg.com"),
+      sourceUrl: "https://www.xiachufang.com/recipe/103468406/",
+    });
+
+    const detail = await harness.app.inject({
+      method: "GET",
+      url: "/api/web-recipes/103468406",
+    });
+    expect(detail.statusCode).toBe(200);
+    const recipe = detail.json<WebRecipeDetailDto>();
+    expect(recipe).toMatchObject({
+      id: "103468406",
+      name: "【虾仁滑蛋】超嫩滑，复刻茶餐厅经典",
+      attribution: {
+        source: "下厨房",
+        url: "https://www.xiachufang.com/recipe/103468406/",
+      },
+    });
+    expect(recipe.ingredients).toHaveLength(3);
+    expect(recipe.ingredients[0]).toEqual({ raw: "鸡蛋 4个" });
+  });
+
+  it("rejects invalid web recipe parameters", async () => {
+    await replaceHarness({ recipeSource: recordedRecipeSource() });
+    const requests = [
+      "/api/web-recipes",
+      "/api/web-recipes?keyword=",
+      `/api/web-recipes?keyword=${encodeURIComponent("虾仁")}&page=0`,
+      "/api/web-recipes/not-an-id",
+    ];
+
+    for (const url of requests) {
+      const response = await harness.app.inject({
+        method: "GET",
+        url,
+      });
+      expect(response.statusCode, url).toBe(400);
+      expect(response.json()).toEqual({ error: "请求参数不正确" });
+    }
+  });
+
+  it("turns recorded web recipe failures into upstream errors", async () => {
+    await replaceHarness({ recipeSource: recordedRecipeSource() });
+
+    const search = await harness.app.inject({
+      method: "GET",
+      url: `/api/web-recipes?keyword=${encodeURIComponent("没录过")}`,
+    });
+    expect(search.statusCode).toBe(502);
+    expect(search.json()).toEqual({ error: "没有找到" });
+
+    const detail = await harness.app.inject({
+      method: "GET",
+      url: "/api/web-recipes/107722218",
+    });
+    expect(detail.statusCode).toBe(502);
+    expect(detail.json()).toEqual({ error: "菜谱源不可用" });
   });
 
   it("manages service sources and their stored secret", async () => {

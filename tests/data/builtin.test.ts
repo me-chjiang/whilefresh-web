@@ -14,7 +14,7 @@ const context = {
 };
 
 describe("built-in data", () => {
-  it("loads the shipped recipe and vocabulary sizes", () => {
+  it("loads the shipped vocabulary and shelf-life sizes", () => {
     expect(data.catalog.entries).toHaveLength(581);
     expect(data.shelfLife.isEmpty()).toBe(false);
     expect(data.shelfLife.sourceName()).toBe("USDA FoodKeeper");
