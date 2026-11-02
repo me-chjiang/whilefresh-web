@@ -18,6 +18,7 @@ type QueryValue =
 export interface ApiRequestOptions {
   path?: PathParameters;
   query?: Readonly<Record<string, QueryValue>>;
+  signal?: AbortSignal;
 }
 
 export interface ApiClientOptions {
@@ -126,6 +127,7 @@ export class ApiClient {
       headers:
         body === undefined ? undefined : { "Content-Type": "application/json" },
       body,
+      signal: options.signal,
     });
     return readResponse<ResponseOf<TRoute>>(response);
   }
@@ -142,6 +144,7 @@ export class ApiClient {
     const response = await this.fetchImpl(`${this.baseUrl}${path}`, {
       method: route.method,
       body,
+      signal: options.signal,
     });
     return readResponse<ResponseOf<TRoute>>(response);
   }
@@ -183,6 +186,16 @@ export const api = {
     client.request(apiRoutes.recipeDetail, undefined, {
       path: { id: request.id },
       query: { selected: request.selected },
+    }),
+  webRecipes: (keyword: string, page = 1, signal?: AbortSignal) =>
+    client.request(apiRoutes.webRecipes, undefined, {
+      query: { keyword, page },
+      signal,
+    }),
+  webRecipeDetail: (id: string, signal?: AbortSignal) =>
+    client.request(apiRoutes.webRecipeDetail, undefined, {
+      path: { id },
+      signal,
     }),
   clearPreview: (request: Api.ClearRequest) =>
     client.request(apiRoutes.clearPreview, request),

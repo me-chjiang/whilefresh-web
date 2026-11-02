@@ -92,6 +92,41 @@ export interface RecipeDetailDto extends RecipeSummaryDto {
   notes: string;
 }
 
+export interface WebRecipeSummaryDto {
+  id: string;
+  name: string;
+  imageUrl: string;
+  sourceUrl: string;
+}
+
+export interface WebRecipeIngredientDto {
+  raw: string;
+}
+
+export interface WebRecipeStepDto {
+  order: number;
+  text: string;
+  imageUrl: string;
+}
+
+export interface WebRecipeAttributionDto {
+  source: string;
+  url: string;
+  author: string;
+}
+
+export interface WebRecipeDetailDto {
+  id: string;
+  name: string;
+  imageUrl: string;
+  rating: number;
+  ingredients: WebRecipeIngredientDto[];
+  steps: WebRecipeStepDto[];
+  tips: string[];
+  partial: boolean;
+  attribution: WebRecipeAttributionDto;
+}
+
 export interface ShoppingDto {
   id: number;
   name: string;
@@ -256,6 +291,15 @@ export interface RecipeRequest {
   selected?: number[];
 }
 
+export interface WebRecipeSearchRequest {
+  keyword: string;
+  page?: number;
+}
+
+export interface WebRecipeRequest {
+  id: string;
+}
+
 export interface ShoppingItemRequest {
   id: number;
 }
@@ -398,6 +442,14 @@ export const apiRoutes = {
   recipeDetail: route<RecipeRequest, RecipeDetailDto>(
     "GET",
     "/api/recipes/:id",
+  ),
+  webRecipes: route<WebRecipeSearchRequest, WebRecipeSummaryDto[]>(
+    "GET",
+    "/api/web-recipes",
+  ),
+  webRecipeDetail: route<WebRecipeRequest, WebRecipeDetailDto>(
+    "GET",
+    "/api/web-recipes/:id",
   ),
   clearPreview: route<ClearRequest, ClearPreviewDto>(
     "POST",

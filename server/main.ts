@@ -16,6 +16,7 @@ import { registerRecipeRoutes } from "./routes/recipes.js";
 import { registerSettingsRoutes } from "./routes/settings.js";
 import { registerShoppingRoutes } from "./routes/shopping.js";
 import { registerStateRoutes, type RouteContext } from "./routes/state.js";
+import { registerWebRecipeRoutes } from "./routes/web-recipes.js";
 import { AppState } from "./services/app-state.js";
 
 const app = Fastify({ logger: true });
@@ -50,6 +51,7 @@ const context: RouteContext = {
 
 registerStateRoutes(app, context);
 registerRecipeRoutes(app, context);
+registerWebRecipeRoutes(app, context);
 registerClearRoutes(app, context);
 registerItemRoutes(app, context);
 registerShoppingRoutes(app, context);
