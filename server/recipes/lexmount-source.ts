@@ -139,6 +139,25 @@ function isObject(value: unknown): value is JsonObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+const VERIFY_TITLE = /验证|安全|拦截|captcha|denied|forbidden/i;
+
+// app/src/recipes/lexmount-recipe-source.cpp:451 — judged before the contract is built.
+function blockedPage(
+  operation: ContractOperation,
+  scraped: unknown,
+): string | null {
+  const value = isObject(scraped) ? scraped : {};
+  const diag = isObject(value.diag) ? value.diag : {};
+  const title = typeof diag.title === "string" ? diag.title.slice(0, 60) : "";
+  const host = typeof diag.host === "string" ? diag.host : "";
+  const path = typeof diag.path === "string" ? diag.path : "";
+  const blocked =
+    operation === "search"
+      ? diag.list !== true && (path !== "/search/" || VERIFY_TITLE.test(title))
+      : !("Content" in value);
+  return blocked ? `not a recipe page: title="${title}" at ${host}${path}` : null;
+}
+
 function failure(kind: RecipeErrorKind, detail: string): LexmountRecipeError {
   return new LexmountRecipeError({ kind, detail });
 }
@@ -472,6 +491,10 @@ export class LexmountRecipeSource implements RecipeSource {
         request,
         signal,
       );
+      const blocked = blockedPage(request.operation, scraped);
+      if (blocked) {
+        throw failure(RecipeErrorKind.Blocked, blocked);
+      }
       const query: ContractQuery = {
         keyword: request.keyword,
         id: request.id,
