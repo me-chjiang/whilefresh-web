@@ -142,10 +142,18 @@ export class DeepSeekRecognizer implements Recognizer {
     if (batches.length === 0) {
       throw failure(ErrorKind.InvalidInput, "no prepared batches");
     }
+    const firstBatch = request.firstBatch ?? 0;
+    if (firstBatch < 0 || firstBatch >= batches.length) {
+      throw failure(
+        ErrorKind.InvalidInput,
+        `first batch ${firstBatch} of ${batches.length}`,
+      );
+    }
 
     const parts: RecognitionResult[] = [];
-    for (const batch of batches) {
+    for (let index = firstBatch; index < batches.length; index += 1) {
       throwIfAborted(signal);
+      const batch = batches[index]!;
       let answer;
       try {
         answer = await this.client.send(batch.request, signal);
@@ -161,6 +169,8 @@ export class DeepSeekRecognizer implements Recognizer {
       }
       outcome.result.batchSpans = [batch.span];
       parts.push(outcome.result);
+      request.onBatch?.(index, batches.length, outcome.result);
+      throwIfAborted(signal);
     }
 
     const result = mergeResults(parts);

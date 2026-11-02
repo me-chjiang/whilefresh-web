@@ -97,6 +97,12 @@ export interface RecognitionRequest {
   images: ImageInput[];
   text: string;
   vocabulary: Catalog;
+  firstBatch?: number;
+  onBatch?: (
+    index: number,
+    count: number,
+    part: RecognitionResult,
+  ) => void;
 }
 
 export interface Recognizer {
