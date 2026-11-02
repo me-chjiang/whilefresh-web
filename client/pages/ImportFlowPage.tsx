@@ -284,6 +284,11 @@ function DraftItemCard({
           {item.shelfLifeNote}
         </p>
       )}
+      {item.needsShelfLife && (
+        <p style={{ margin: 0, color: "var(--overdue)", fontSize: "var(--text-meta)" }}>
+          待录保质期
+        </p>
+      )}
 
       <p style={{ margin: 0, fontSize: "var(--text-meta)" }}>{expiryText}</p>
       {item.needsDate && (
@@ -389,6 +394,11 @@ function DraftItemRow({ item, disabled, onMove }: DraftItemRowProps) {
           </span>
         )}
       </div>
+      {item.needsShelfLife && (
+        <p style={{ margin: 0, color: "var(--overdue)", fontSize: "var(--text-meta)" }}>
+          待录保质期
+        </p>
+      )}
       <div style={{ display: "flex", gap: "var(--gap-small)" }}>
         {item.group !== "food" && (
           <InkButton
@@ -656,6 +666,17 @@ export function ImportFlowPage({ open }: ImportFlowPageProps) {
     closePanel();
   };
 
+  const skipDuplicate = async () => {
+    const next = await runStatusAction(
+      () => api.skipDuplicateImport(),
+      "无法跳过重复导入，请重试",
+    );
+    if (next?.importState !== ImportState.Idle) {
+      return;
+    }
+    closePanel();
+  };
+
   const addManualItem = async () => {
     const name = manualName.trim();
     if (!name) {
@@ -868,8 +889,8 @@ export function ImportFlowPage({ open }: ImportFlowPageProps) {
                 fullWidth
                 outline
                 disabled={busy}
-                text="放弃"
-                onClick={closePanel}
+                text="跳过"
+                onClick={() => void skipDuplicate()}
               />
             </div>
           )}
@@ -1040,7 +1061,7 @@ export function ImportFlowPage({ open }: ImportFlowPageProps) {
 
               <section style={sectionStyle}>
                 <h3 style={groupHeadingStyle}>
-                  调料 · {seasonings.length} 项
+                  常备调料 · {seasonings.length} 项
                 </h3>
                 {seasonings.length === 0 ? (
                   <p style={{ margin: 0, color: "var(--muted)" }}>
@@ -1095,6 +1116,15 @@ export function ImportFlowPage({ open }: ImportFlowPageProps) {
                   background: "var(--card)",
                 }}
               >
+                {status.draftDuplicate && (
+                  <InkButton
+                    fullWidth
+                    outline
+                    disabled={busy}
+                    text="跳过"
+                    onClick={() => void skipDuplicate()}
+                  />
+                )}
                 <InkButton
                   fullWidth
                   titleStyle
