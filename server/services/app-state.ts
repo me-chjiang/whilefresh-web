@@ -40,9 +40,18 @@ import type { RuleProposal } from "../domain/shelf-life.js";
 import {
   DeepSeekChatClient,
 } from "../ai/deepseek-chat-client.js";
-import { EnvCredentialProvider } from "../ai/credentials.js";
+import {
+  EnvCredentialProvider,
+  LayeredCredentialProvider,
+  type CredentialProvider,
+} from "../ai/credentials.js";
 import type { ChatClient } from "../ai/chat-client.js";
 import { IngredientClassifier } from "../ai/ingredient-classifier.js";
+import {
+  UserKeyStore,
+  type KeySource,
+  type UserKeyField,
+} from "../ai/user-keys.js";
 import { DeepSeekRecognizer } from "../recognition/deepseek.js";
 import { DemoRecognizer } from "../recognition/replay.js";
 import type { Recognizer } from "../recognition/types.js";
@@ -58,6 +67,10 @@ export interface AppStateOptions {
   realRecognizer?: Recognizer;
   demoRecognizer?: Recognizer;
 }
+
+type CredentialChatClient = ChatClient & {
+  setCredentials?: (provider: CredentialProvider) => void;
+};
 
 interface AppSession {
   readonly demo: boolean;
@@ -169,10 +182,13 @@ export class AppState {
   private readonly importsDir: string;
   private readonly builtin: BuiltinData;
   private readonly clock: Clock;
-  private readonly chatClient: ChatClient;
+  private readonly chatClient: CredentialChatClient;
+  private readonly userKeys: UserKeyStore;
+  private readonly envCredentials: CredentialProvider;
+  private readonly realCredentials: CredentialProvider;
   private readonly realRecognizer: Recognizer | undefined;
   private readonly demoRecognizer: Recognizer | undefined;
-  private readonly recognitionConfiguredValue: boolean;
+  private recognitionConfiguredValue = false;
 
   private real: AppSession | null = null;
   private demo: AppSession | null = null;
@@ -185,13 +201,18 @@ export class AppState {
     this.importsDir = join(options.dataDir, "imports");
     this.builtin = options.builtin;
     this.clock = options.clock;
+    this.userKeys = new UserKeyStore(options.dataDir);
+    this.envCredentials = new EnvCredentialProvider();
+    this.realCredentials = new LayeredCredentialProvider(
+      this.userKeys,
+      this.envCredentials,
+    );
     this.chatClient =
       options.chatClient ??
-      new DeepSeekChatClient({ credentials: new EnvCredentialProvider() });
+      new DeepSeekChatClient({ credentials: this.envCredentials });
     this.realRecognizer = options.realRecognizer;
     this.demoRecognizer = options.demoRecognizer;
-    this.recognitionConfiguredValue =
-      this.realRecognizer != null || this.chatClient.isConfigured();
+    this.applyCredentials();
 
     try {
       mkdirSync(this.dataDir, { recursive: true });
@@ -221,6 +242,7 @@ export class AppState {
         this.startupNoticeValue ||= DEMO_CREATE_NOTICE;
       }
     }
+    this.applyCredentials();
 
     if (
       !this.demoMode &&
@@ -241,6 +263,26 @@ export class AppState {
 
   get startupNotice(): string {
     return this.startupNoticeValue;
+  }
+
+  keySource(field: UserKeyField): KeySource {
+    return this.userKeys.keySource(field);
+  }
+
+  saveSecret(field: UserKeyField, value: string): boolean {
+    if (!this.userKeys.save(field, value)) {
+      return false;
+    }
+    this.applyCredentials();
+    return true;
+  }
+
+  clearSecret(field: UserKeyField): boolean {
+    if (!this.userKeys.clear(field)) {
+      return false;
+    }
+    this.applyCredentials();
+    return true;
   }
 
   get activeKitchen(): KitchenService {
@@ -360,6 +402,7 @@ export class AppState {
       }
       this.demo = next;
       this.activate(next);
+      this.applyCredentials();
       return true;
     }
 
@@ -368,6 +411,7 @@ export class AppState {
     }
     this.activate(this.real);
     this.closeDemo();
+    this.applyCredentials();
     return true;
   }
 
@@ -476,6 +520,14 @@ export class AppState {
   private activate(session: AppSession): void {
     this.active = session;
     this.pendingRules = [];
+  }
+
+  private applyCredentials(): void {
+    this.chatClient.setCredentials?.(
+      this.demoMode ? this.envCredentials : this.realCredentials,
+    );
+    this.recognitionConfiguredValue =
+      this.realRecognizer != null || this.chatClient.isConfigured();
   }
 
   private removeDemoDatabase(): void {
