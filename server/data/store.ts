@@ -8,6 +8,7 @@ import { dirname, isAbsolute, resolve } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import {
   DateOrigin,
+  ItemKind,
   ItemStatus,
   ShelfLifeSource,
   ShoppingOrigin,
@@ -62,6 +63,10 @@ export interface FridgeItem {
   category?: string;
   quantityText?: string;
   count?: number;
+  kind?: ItemKind;
+  amount?: number;
+  unit?: string;
+  snoozedUntil?: string | null;
   storage?: Storage;
   storageSource?: StorageSource;
   useFirst?: boolean;
@@ -82,6 +87,34 @@ export interface FridgeItem {
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
   referenceConditionsConfirmed?: boolean;
+}
+
+function isValidIsoDate(value: string | null | undefined): value is string {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return false;
+  }
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return (
+    Number.isFinite(date.getTime()) &&
+    date.toISOString().slice(0, 10) === value
+  );
+}
+
+export function isSnoozed(
+  item: Pick<FridgeItem, "snoozedUntil">,
+  today: string,
+): boolean {
+  const snoozedUntil = item.snoozedUntil;
+  return isValidIsoDate(snoozedUntil) && today < snoozedUntil;
+}
+
+export function needsShelfLife(
+  item: Pick<FridgeItem, "kind" | "expiryDate">,
+): boolean {
+  return (
+    (item.kind ?? ItemKind.Food) !== ItemKind.Food &&
+    !isValidIsoDate(item.expiryDate)
+  );
 }
 
 export interface ImportImageRecord {
@@ -146,6 +179,10 @@ const itemColumns = [
   "created_at",
   "updated_at",
   "reference_conditions_confirmed",
+  "kind",
+  "amount",
+  "unit",
+  "snoozed_until",
 ] as const;
 
 const itemInsertSql =
@@ -156,6 +193,7 @@ const itemUpdateSql =
   "WHERE id = ?";
 
 const dateOrigins = Object.values(DateOrigin);
+const itemKinds = Object.values(ItemKind);
 const itemStatuses = Object.values(ItemStatus);
 const shelfLifeSources = Object.values(ShelfLifeSource);
 const startBases = Object.values(StartBasis);
@@ -246,6 +284,10 @@ function normalizeItem(item: FridgeItem): void {
   item.category = text(item.category);
   item.quantityText = text(item.quantityText);
   item.count = number(item.count, 1);
+  item.kind ??= ItemKind.Food;
+  item.amount = number(item.amount);
+  item.unit = text(item.unit);
+  item.snoozedUntil = nullableText(item.snoozedUntil);
   item.storage = item.storage ?? Storage.Fridge;
   item.storageSource = item.storageSource ?? StorageSource.Default;
   item.useFirst = item.useFirst === true;
@@ -321,6 +363,10 @@ function itemBindings(item: FridgeItem): SqlValue[] {
     timestampValue(item.createdAt),
     timestampValue(item.updatedAt),
     item.referenceConditionsConfirmed === true ? 1 : 0,
+    item.kind ?? ItemKind.Food,
+    item.amount ?? 0,
+    item.unit ?? "",
+    item.snoozedUntil ?? null,
   ];
 }
 
@@ -379,6 +425,10 @@ function itemFrom(row: SqlRow): FridgeItem {
     updatedAt: timestampFrom(row.updated_at),
     referenceConditionsConfirmed:
       number(row.reference_conditions_confirmed) !== 0,
+    kind: oneOf(row.kind, itemKinds, ItemKind.Food),
+    amount: number(row.amount),
+    unit: text(row.unit),
+    snoozedUntil: nullableText(row.snoozed_until),
   };
 }
 
