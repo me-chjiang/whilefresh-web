@@ -1,6 +1,7 @@
 import type {
   CategoryCode,
   ImportState,
+  ItemKind,
   StartBasis,
 } from "./enums.js";
 
@@ -16,6 +17,10 @@ export interface ItemDto {
   source: string;
   days: string;
   first: boolean;
+  kind: ItemKind;
+  group: string;
+  needsShelfLife: boolean;
+  snoozed: boolean;
   bulk: boolean;
   purchasedAt: string;
   storedAt: string;
@@ -48,6 +53,8 @@ export interface DraftItemDto {
   packageExpiresAt: string;
   group: DraftItemGroup;
   needsDate: boolean;
+  kind: ItemKind;
+  needsShelfLife: boolean;
   aiClassified: boolean;
 }
 
@@ -138,6 +145,8 @@ export interface ImportStatusDto {
 export interface StateDto extends ImportStatusDto {
   items: ItemDto[];
   nearCount: number;
+  attentionCount: number;
+  hasUnfinishedImport: boolean;
   selectedIds: number[];
   recipes: RecipeSummaryDto[];
   clearRecipes: RecipeSummaryDto[];

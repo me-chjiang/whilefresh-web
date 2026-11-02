@@ -12,6 +12,7 @@ import {
   CategoryCode,
   DateOrigin,
   Freshness,
+  ItemKind,
   ShelfLifeSource,
   StartBasis,
   Storage,
@@ -19,15 +20,22 @@ import {
 import type { BuiltinData } from "../data/builtin.js";
 import { openDatabase } from "../data/db.js";
 import {
+  isSnoozed,
+  needsShelfLife as itemNeedsShelfLife,
   SqliteNameMappingStore,
   Store,
   type FridgeItem,
 } from "../data/store.js";
 import { addDays, type Clock } from "../domain/clock.js";
 import {
+  FridgeGroup,
+  groupOf,
+} from "../domain/fridge-groups.js";
+import {
   evaluateFreshness,
   type FreshnessState,
 } from "../domain/freshness.js";
+import { needsShelfLife as needsShelfLifeText } from "../domain/texts.js";
 import type { RuleProposal } from "../domain/shelf-life.js";
 import {
   DeepSeekChatClient,
@@ -116,19 +124,31 @@ function sourceName(source: ShelfLifeSource | undefined): string {
 }
 
 function displayDays(item: FridgeItem, state: FreshnessState): string {
-  if (
-    item.shelfLifeSource === ShelfLifeSource.Package &&
-    item.expiryDate
-  ) {
-    return `${item.expiryDate.slice(5)} 到期`;
-  }
-  if (state.freshness === Freshness.BeyondEstimate) {
-    return "请查看后决定";
-  }
   if (state.remainingDays != null) {
-    return `约剩 ${state.remainingDays} 天`;
+    return state.remainingDays < 0
+      ? `过期${-state.remainingDays}天`
+      : `剩余${state.remainingDays}天`;
   }
-  return "保质期未知";
+  return itemNeedsShelfLife(item) ? needsShelfLifeText() : "";
+}
+
+function fridgeGroupName(item: FridgeItem): string {
+  const group = groupOf({
+    kind: item.kind ?? ItemKind.Food,
+    storage: item.storage ?? Storage.Fridge,
+  });
+  switch (group) {
+    case FridgeGroup.StapleSeasoning:
+      return "常备调料";
+    case FridgeGroup.StapleFood:
+      return "常备食材";
+    case FridgeGroup.Freezer:
+      return "冷冻";
+    case FridgeGroup.Room:
+      return "常温";
+    default:
+      return "冷藏";
+  }
 }
 
 function startDate(item: FridgeItem): string {
@@ -251,6 +271,10 @@ export class AppState {
       source: sourceName(item.shelfLifeSource),
       days: displayDays(item, state),
       first: item.useFirst === true,
+      kind: item.kind ?? ItemKind.Food,
+      group: fridgeGroupName(item),
+      needsShelfLife: itemNeedsShelfLife(item),
+      snoozed: isSnoozed(item, this.clock.today()),
       bulk: this.activeKitchen.pantryRules().isBulk(canonicalName),
       purchasedAt: item.purchaseDate?.date ?? "",
       storedAt: item.entryDate ?? "",
@@ -279,6 +303,14 @@ export class AppState {
 
   nearCount(): number {
     return this.activeKitchen.nearCount();
+  }
+
+  attentionCount(): number {
+    return this.activeKitchen.attention().length;
+  }
+
+  hasUnfinishedImport(): boolean {
+    return this.activeImportService.hasUnfinishedJob();
   }
 
   rememberRules(proposals: readonly RuleProposal[]): void {

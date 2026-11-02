@@ -9,7 +9,7 @@ import type {
   SuggestionDto,
 } from "../../shared/api.js";
 import type { CategoryCode } from "../../shared/enums.js";
-import { Storage } from "../../shared/enums.js";
+import { ImportStatus, Storage } from "../../shared/enums.js";
 import type { BuiltinData } from "../data/builtin.js";
 import type { Clock } from "../domain/clock.js";
 import type { RecipeMatch } from "../domain/recipe.js";
@@ -173,7 +173,7 @@ export function stateDto(state: AppState, builtin: BuiltinData): StateDto {
       record.inputKind ?? "",
       record.origin ?? "",
       record.images?.length ?? 0,
-    )}`,
+    )}${record.status === ImportStatus.SkippedDuplicate ? " · 已跳过" : ""}`,
     date: localDate(record.createdAt),
   }));
   const importStatus = state.importStatus();
@@ -183,6 +183,8 @@ export function stateDto(state: AppState, builtin: BuiltinData): StateDto {
     ...importStatus,
     items: state.items(),
     nearCount: state.nearCount(),
+    attentionCount: state.attentionCount(),
+    hasUnfinishedImport: state.hasUnfinishedImport(),
     selectedIds,
     recipes: kitchen.recipes().map((match) =>
       recipeSummaryDto(match, builtin.recipeSource.name),

@@ -11,6 +11,7 @@ import {
   DateOrigin,
   ImportState,
   ImportStatus,
+  ItemKind,
   ItemStatus,
   Storage,
   StorageSource,
@@ -1870,6 +1871,8 @@ export class ImportService {
       packageExpiresAt: value.packageExpiry?.date ?? "",
       group: draftGroup(item),
       needsDate: needsDateConfirmation(item),
+      kind: value.kind ?? ItemKind.Food,
+      needsShelfLife: item.needsShelfLife,
       aiClassified: item.nameSource === NameSource.AiClassified,
     };
   }
