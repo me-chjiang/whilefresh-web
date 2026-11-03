@@ -972,6 +972,15 @@ describe("HTTP API routes", () => {
       ],
     });
     expect(originalId).toBeGreaterThan(0);
+    expect(
+      harness.state.activeStore.insertItem({
+        importId: originalId,
+        canonicalName: "鸡蛋",
+        displayName: "鸡蛋",
+        quantityText: "10枚",
+        category: "egg",
+      }),
+    ).toBeGreaterThan(0);
 
     const duplicate = await uploadOneImage();
     expect(duplicate.importState).toBe("duplicate");

@@ -435,7 +435,7 @@ describe("store", () => {
     expect(existsSync(stray)).toBe(false);
     expect(
       Number(harness.database.prepare("PRAGMA user_version").get()?.user_version),
-    ).toBe(2);
+    ).toBe(3);
   });
 
   it("keeps real import files when deleting demo data", () => {
@@ -615,5 +615,54 @@ describe("store", () => {
     expect(fingerprints[0]?.imageSha256).toEqual(["sha-a"]);
     expect(fingerprints[0]?.items).toHaveLength(1);
     expect(fingerprints[0]?.createdAt).toEqual(harness.clock.now());
+  });
+
+  it("leaves imports with no stock out of fingerprints until stock returns", () => {
+    const record: ImportRecord = {
+      inputKind: "screenshot",
+      images: [{ path: "/nowhere/a.jpg", sha256: "sha-a" }],
+    };
+    const other: ImportRecord = {
+      inputKind: "screenshot",
+      images: [{ path: "/nowhere/b.jpg", sha256: "sha-b" }],
+    };
+    const empty: ImportRecord = { inputKind: "screenshot" };
+    for (const value of [record, other, empty]) {
+      expect(harness.store.insertImport(value)).toBeGreaterThan(0);
+    }
+    const potato = sampleItem(record.id!, "土豆", "500g");
+    const egg = sampleItem(record.id!, "鸡蛋", "10枚");
+    const spinach = sampleItem(other.id!, "菠菜", "300g");
+    for (const item of [potato, egg, spinach]) {
+      expect(harness.store.insertItem(item)).toBeGreaterThan(0);
+    }
+    const activeIds = () =>
+      harness.store
+        .importFingerprints()
+        .map((fingerprint) => fingerprint.importId)
+        .sort((left, right) => left - right);
+
+    expect(activeIds()).toEqual([record.id, other.id]);
+
+    potato.status = ItemStatus.Used;
+    expect(harness.store.updateItem(potato)).toBe(true);
+    expect(activeIds()).toEqual([record.id, other.id]);
+
+    egg.status = ItemStatus.Absent;
+    expect(harness.store.updateItem(egg)).toBe(true);
+    expect(activeIds()).toEqual([other.id]);
+
+    potato.status = ItemStatus.InStock;
+    expect(harness.store.updateItem(potato)).toBe(true);
+    expect(activeIds()).toEqual([record.id, other.id]);
+    expect(
+      harness.store
+        .importFingerprints()
+        .find((fingerprint) => fingerprint.importId === record.id)?.items,
+    ).toHaveLength(2);
+
+    spinach.status = ItemStatus.Discarded;
+    expect(harness.store.updateItem(spinach)).toBe(true);
+    expect(activeIds()).toEqual([record.id]);
   });
 });

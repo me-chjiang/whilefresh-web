@@ -165,6 +165,41 @@ const migrations: readonly (readonly string[])[] = [
       committed_at TEXT
     )`,
   ],
+  // stock_cleared lets duplicate checks skip imports with nothing left in
+  // stock; triggers keep it current on every item insert, move, or delete.
+  [
+    "ALTER TABLE imports ADD COLUMN stock_cleared INTEGER NOT NULL DEFAULT 0",
+    `UPDATE imports SET stock_cleared = NOT EXISTS (
+      SELECT 1 FROM items WHERE import_id = imports.id AND status = 'in_stock'
+    )`,
+    "CREATE INDEX imports_active ON imports(stock_cleared, deleted_at)",
+    `CREATE TRIGGER imports_stock_on_insert AFTER INSERT ON imports
+    BEGIN
+      UPDATE imports SET stock_cleared = NOT EXISTS (
+        SELECT 1 FROM items WHERE import_id = NEW.id AND status = 'in_stock'
+      ) WHERE id = NEW.id;
+    END`,
+    `CREATE TRIGGER items_stock_on_insert AFTER INSERT ON items
+    WHEN NEW.import_id IS NOT NULL
+    BEGIN
+      UPDATE imports SET stock_cleared = NOT EXISTS (
+        SELECT 1 FROM items WHERE import_id = NEW.import_id AND status = 'in_stock'
+      ) WHERE id = NEW.import_id;
+    END`,
+    `CREATE TRIGGER items_stock_on_update AFTER UPDATE OF status, import_id ON items
+    BEGIN
+      UPDATE imports SET stock_cleared = NOT EXISTS (
+        SELECT 1 FROM items WHERE import_id = imports.id AND status = 'in_stock'
+      ) WHERE id IN (OLD.import_id, NEW.import_id);
+    END`,
+    `CREATE TRIGGER items_stock_on_delete AFTER DELETE ON items
+    WHEN OLD.import_id IS NOT NULL
+    BEGIN
+      UPDATE imports SET stock_cleared = NOT EXISTS (
+        SELECT 1 FROM items WHERE import_id = OLD.import_id AND status = 'in_stock'
+      ) WHERE id = OLD.import_id;
+    END`,
+  ],
 ];
 
 export function openDatabase(path: string): DatabaseSync {

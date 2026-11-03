@@ -842,24 +842,45 @@ export class Store {
   }
 
   importFingerprints(): ImportFingerprint[] {
-    const fingerprints = this.imports().map((record) => ({
-      importId: record.id ?? 0,
-      createdAt: timestampFrom(record.createdAt) ?? new Date(0),
-      imageSha256: (record.images ?? []).map((image) => image.sha256),
-      items: [] as ImportItem[],
-    }));
-    const byId = new Map(
-      fingerprints.map((fingerprint) => [fingerprint.importId, fingerprint]),
-    );
-
+    const active =
+      "SELECT id FROM imports WHERE stock_cleared = 0 AND deleted_at IS NULL";
     try {
+      const fingerprints = this.database
+        .prepare(
+          `SELECT id, created_at FROM imports
+           WHERE stock_cleared = 0 AND deleted_at IS NULL
+           ORDER BY created_at DESC, id DESC`,
+        )
+        .all()
+        .map((row) => ({
+          importId: number(row.id),
+          createdAt: timestampFrom(row.created_at) ?? new Date(0),
+          imageSha256: [] as string[],
+          items: [] as ImportItem[],
+        }));
+      const byId = new Map(
+        fingerprints.map((fingerprint) => [fingerprint.importId, fingerprint]),
+      );
+
+      const images = this.database
+        .prepare(
+          `SELECT import_id, sha256 FROM import_images
+           WHERE import_id IN (${active})
+           ORDER BY import_id, position`,
+        )
+        .all();
+      for (const row of images) {
+        byId.get(number(row.import_id))?.imageSha256.push(text(row.sha256));
+      }
+
       const rows = this.database
         .prepare(
           `SELECT import_id, canonical_name, quantity FROM import_products
+           WHERE import_id IN (${active})
            UNION ALL
            SELECT import_id, canonical_name, quantity_text || char(31) || count
            FROM items
-           WHERE import_id IS NOT NULL
+           WHERE import_id IN (${active})
              AND import_id NOT IN (SELECT import_id FROM import_products)`,
         )
         .all();
@@ -872,10 +893,10 @@ export class Store {
           ]);
         }
       }
+      return fingerprints;
     } catch {
       return [];
     }
-    return fingerprints;
   }
 
   insertImportJob(

@@ -6,6 +6,15 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { openDatabase } from "../../server/data/db.js";
 
+const versionThreeDowngrade = `
+  DROP TRIGGER imports_stock_on_insert;
+  DROP TRIGGER items_stock_on_insert;
+  DROP TRIGGER items_stock_on_update;
+  DROP TRIGGER items_stock_on_delete;
+  DROP INDEX imports_active;
+  ALTER TABLE imports DROP COLUMN stock_cleared;
+`;
+
 describe("database", () => {
   let directory: string;
 
@@ -50,7 +59,7 @@ describe("database", () => {
       ]);
       expect(
         Number(database.prepare("PRAGMA user_version").get()?.user_version),
-      ).toBe(2);
+      ).toBe(3);
     } finally {
       database.close();
     }
@@ -84,6 +93,7 @@ describe("database", () => {
     latest.close();
 
     const legacy = new DatabaseSync(path);
+    legacy.exec(versionThreeDowngrade);
     legacy.exec(`
       DROP TABLE import_job_batches;
       DROP TABLE import_jobs;
@@ -105,7 +115,7 @@ describe("database", () => {
     try {
       expect(
         Number(upgraded.prepare("PRAGMA user_version").get()?.user_version),
-      ).toBe(2);
+      ).toBe(3);
       expect(
         upgraded
           .prepare(
@@ -127,6 +137,51 @@ describe("database", () => {
         duplicate_of: null,
         deleted_at: null,
       });
+      expect(
+        upgraded.prepare("SELECT stock_cleared FROM imports").get(),
+      ).toEqual({ stock_cleared: 0 });
+    } finally {
+      upgraded.close();
+    }
+  });
+
+  it("marks version two imports that have no stock left", () => {
+    const path = join(directory, "version-two.db");
+    const latest = openDatabase(path);
+    const insertImport = latest.prepare(
+      "INSERT INTO imports (created_at, input_kind) VALUES (?, ?)",
+    );
+    const insertItem = latest.prepare(
+      `INSERT INTO items (
+        import_id, canonical_name, display_name, quantity_text, storage,
+        entry_date, created_at, updated_at, status
+      ) VALUES (?, ?, ?, '', 'fridge', '2026-10-01', ?, ?, ?)`,
+    );
+    const at = "2026-10-01T00:00:00.000Z";
+    for (let index = 0; index < 3; index += 1) {
+      insertImport.run(at, "screenshot");
+    }
+    insertItem.run(1, "鸡蛋", "鸡蛋", at, at, "in_stock");
+    insertItem.run(1, "土豆", "土豆", at, at, "used");
+    insertItem.run(2, "菠菜", "菠菜", at, at, "discarded");
+    latest.close();
+
+    const legacy = new DatabaseSync(path);
+    legacy.exec(versionThreeDowngrade);
+    legacy.exec("PRAGMA user_version = 2");
+    legacy.close();
+
+    const upgraded = openDatabase(path);
+    try {
+      expect(
+        upgraded
+          .prepare("SELECT id, stock_cleared FROM imports ORDER BY id")
+          .all(),
+      ).toEqual([
+        { id: 1, stock_cleared: 0 },
+        { id: 2, stock_cleared: 1 },
+        { id: 3, stock_cleared: 1 },
+      ]);
     } finally {
       upgraded.close();
     }
@@ -135,7 +190,7 @@ describe("database", () => {
   it("refuses to open a database with a newer schema", () => {
     const path = join(directory, "newer.db");
     const database = new DatabaseSync(path);
-    database.exec("PRAGMA user_version = 3");
+    database.exec("PRAGMA user_version = 4");
     database.close();
 
     expect(() => openDatabase(path)).toThrow(/newer/);
