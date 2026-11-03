@@ -889,8 +889,8 @@ export function ImportFlowPage({ open }: ImportFlowPageProps) {
                 fullWidth
                 outline
                 disabled={busy}
-                text="跳过"
-                onClick={() => void skipDuplicate()}
+                text="放弃"
+                onClick={closePanel}
               />
             </div>
           )}
@@ -930,8 +930,8 @@ export function ImportFlowPage({ open }: ImportFlowPageProps) {
                 fullWidth
                 outline
                 disabled={busy}
-                text="放弃"
-                onClick={closePanel}
+                text="跳过"
+                onClick={() => void skipDuplicate()}
               />
             </div>
           )}
