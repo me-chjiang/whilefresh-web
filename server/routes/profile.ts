@@ -14,6 +14,7 @@ import {
   proposeStorageRule,
 } from "../domain/shelf-life.js";
 import {
+  emptyBodySchema,
   stateDto,
   storageFromName,
   type RouteContext,
@@ -22,12 +23,6 @@ import {
 const locationSchema = {
   type: "string",
   enum: ["冷藏", "冷冻", "常温", "fridge", "freezer", "room"],
-} as const;
-
-const emptyBodySchema = {
-  type: "object",
-  additionalProperties: false,
-  maxProperties: 0,
 } as const;
 
 function fail(
@@ -44,6 +39,7 @@ export function registerProfileRoutes(
 ): void {
   app.post(
     "/api/rules/remembered/confirm",
+    { schema: { body: emptyBodySchema } },
     async (_request, reply): Promise<ActionResult | FastifyReply> => {
       if (!context.state.confirmRememberedRules()) {
         return fail(reply, 500, "规则未保存，请重试");
@@ -54,6 +50,7 @@ export function registerProfileRoutes(
 
   app.post(
     "/api/rules/remembered/dismiss",
+    { schema: { body: emptyBodySchema } },
     async (): Promise<ActionResult> => {
       context.state.dismissRememberedRules();
       return { ok: true };
@@ -240,6 +237,7 @@ export function registerProfileRoutes(
 
   app.delete(
     "/api/data",
+    { schema: { body: emptyBodySchema } },
     async (_request, reply): Promise<DeleteAllDataResult | FastifyReply> => {
       context.state.activeImportService.discard();
       const cleaned = context.state.activeKitchen.deleteAllData();

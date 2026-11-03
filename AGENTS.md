@@ -13,6 +13,7 @@
 
 - 技术栈：Node 24、pnpm、Fastify 5、`node:sqlite`、sharp、exifr、Vite + React 19、Vitest、Playwright；TypeScript strict ESM。
 - 分层依赖：`server/domain` 无 I/O；`data`、`recognition`、`import` 依赖 `domain`；`ai`、`recipes` 只依赖 `domain`，其中 `recognition` 还可以依赖 `ai`；`services` 组合以上各层；`routes` 只调用 `services`；前端只经 `client/api.ts` 访问服务端。
+- 接口请求体：GET 不带请求体；其余方法一律发送 JSON 对象，无参数时发送 `{}`（由 `client/api.ts` 统一处理）。服务端每个非 GET 路由都声明 body schema，无参数的路由使用 `server/routes/state.ts` 的 `emptyBodySchema`。`tests/routes/api.test.ts` 的契约用例会用真实前端方法调用每个接口，新增前端方法不补这条调用就无法通过类型检查。
 - 改动后至少运行 `pnpm typecheck` 与 `pnpm test`；涉及界面或流程时加跑 `pnpm e2e`。输出重定向到 `/tmp/` 下的日志文件，失败时只看末尾。
 - 依赖只装在项目本地。
 - 过夜流水线（`scripts/nightly.sh`）执行 `docs/codex-plan.md` 时，以该计划的全局约定与当前步骤为准；其中“功能步骤后测试可暂时失败”优先于上面的“改动后运行测试”。

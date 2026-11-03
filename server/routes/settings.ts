@@ -8,7 +8,7 @@ import type {
   ServiceSourcesDto,
   SetServiceRequest,
 } from "../../shared/api.js";
-import type { RouteContext } from "./state.js";
+import { emptyBodySchema, type RouteContext } from "./state.js";
 
 type ServiceField = keyof ServiceSourcesDto;
 
@@ -165,6 +165,7 @@ export function registerSettingsRoutes(
     {
       schema: {
         params: serviceParamsSchema,
+        body: emptyBodySchema,
         response: {
           200: actionResponseSchema,
         },
@@ -223,6 +224,7 @@ export function registerSettingsRoutes(
     "/api/preferences/:id",
     {
       schema: {
+        body: emptyBodySchema,
         params: {
           type: "object",
           additionalProperties: false,
@@ -250,6 +252,7 @@ export function registerSettingsRoutes(
     "/api/preferences/summarize",
     {
       schema: {
+        body: emptyBodySchema,
         response: {
           200: preferencesResponseSchema,
         },
@@ -278,6 +281,7 @@ export function registerSettingsRoutes(
     "/api/name-mappings/:raw",
     {
       schema: {
+        body: emptyBodySchema,
         params: {
           type: "object",
           additionalProperties: false,
@@ -307,6 +311,7 @@ export function registerSettingsRoutes(
     "/api/name-mappings",
     {
       schema: {
+        body: emptyBodySchema,
         response: {
           200: actionResponseSchema,
         },

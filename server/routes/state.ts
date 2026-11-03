@@ -23,6 +23,14 @@ export interface RouteContext {
   clock: Clock;
 }
 
+// Every non-GET request carries a JSON object body; client/api.ts sends {}
+// when a route has no parameters, so parameterless routes accept exactly that.
+export const emptyBodySchema = {
+  type: "object",
+  additionalProperties: false,
+  maxProperties: 0,
+} as const;
+
 function localDate(value: Date | string | null | undefined): string {
   if (!value) {
     return "";

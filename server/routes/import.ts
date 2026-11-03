@@ -14,7 +14,7 @@ import type {
   TextImportRequest,
 } from "../../shared/api.js";
 import { saveImportFiles } from "../import/import-files.js";
-import type { RouteContext } from "./state.js";
+import { emptyBodySchema, type RouteContext } from "./state.js";
 
 interface DraftParams {
   i: number;
@@ -54,12 +54,6 @@ const draftIndexBody = {
   properties: {
     index: { type: "integer", minimum: 0, maximum: 1000 },
   },
-} as const;
-
-const emptyBodySchema = {
-  type: "object",
-  additionalProperties: false,
-  maxProperties: 0,
 } as const;
 
 const draftEditsSchema = {
@@ -282,6 +276,7 @@ export function registerImportRoutes(
 
   app.post(
     "/api/import/cancel",
+    { schema: { body: emptyBodySchema } },
     async (): Promise<ImportStatusDto> => {
       context.state.activeImportService.discard();
       return status(context);

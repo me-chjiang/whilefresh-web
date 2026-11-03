@@ -121,7 +121,14 @@ export class ApiClient {
       expandPath(route.path, options.path ?? {}),
       options.query,
     );
-    const body = payload === undefined ? undefined : JSON.stringify(payload);
+    // Non-GET routes validate a JSON object body, so a parameterless call
+    // still sends {}; see emptyBodySchema in server/routes/state.ts.
+    const body =
+      payload !== undefined
+        ? JSON.stringify(payload)
+        : route.method === "GET"
+          ? undefined
+          : "{}";
     const response = await this.fetchImpl(`${this.baseUrl}${path}`, {
       method: route.method,
       headers:

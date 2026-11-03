@@ -14,7 +14,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type {
   ImportStatusDto,
@@ -191,6 +191,29 @@ function multipartBody(fields: readonly [string, string][], files: readonly {
   return {
     body: Buffer.concat(chunks),
     contentType: `multipart/form-data; boundary=${boundary}`,
+  };
+}
+
+function injectFetch(app: FastifyInstance): typeof globalThis.fetch {
+  return async (input, init) => {
+    const url = String(input);
+    const request = new Request(new URL(url, "http://localhost"), init);
+    const body = request.body
+      ? Buffer.from(await request.arrayBuffer())
+      : undefined;
+    const response = await app.inject({
+      method: request.method as "GET",
+      url,
+      headers: Object.fromEntries(request.headers),
+      payload: body,
+    });
+    return new Response(
+      response.rawPayload.length > 0 ? new Uint8Array(response.rawPayload) : null,
+      {
+        status: response.statusCode,
+        headers: { "content-type": String(response.headers["content-type"] ?? "") },
+      },
+    );
   };
 }
 
@@ -406,6 +429,7 @@ describe("HTTP API routes", () => {
 
     const cleared = await harness.app.inject({
       method: "DELETE",
+      payload: {},
       url: "/api/services/deepseek",
     });
     expect(cleared.statusCode).toBe(200);
@@ -484,6 +508,7 @@ describe("HTTP API routes", () => {
 
     const summarized = await harness.app.inject({
       method: "POST",
+      payload: {},
       url: "/api/preferences/summarize",
     });
     expect(summarized.statusCode).toBe(200);
@@ -496,6 +521,7 @@ describe("HTTP API routes", () => {
 
     const deleted = await harness.app.inject({
       method: "DELETE",
+      payload: {},
       url: `/api/preferences/${preferences.items[0]!.id}`,
     });
     expect(deleted.statusCode).toBe(200);
@@ -567,6 +593,7 @@ describe("HTTP API routes", () => {
 
     const forgotten = await harness.app.inject({
       method: "DELETE",
+      payload: {},
       url: `/api/name-mappings/${encodeURIComponent("土猪肉")}`,
     });
     expect(forgotten.statusCode).toBe(200);
@@ -581,6 +608,7 @@ describe("HTTP API routes", () => {
 
     const cleared = await harness.app.inject({
       method: "DELETE",
+      payload: {},
       url: "/api/name-mappings",
     });
     expect(cleared.statusCode).toBe(200);
@@ -762,6 +790,7 @@ describe("HTTP API routes", () => {
   it("saves and deletes shelf and storage rules with separate consent routes", async () => {
     const confirm = await harness.app.inject({
       method: "POST",
+      payload: {},
       url: "/api/rules/remembered/confirm",
     });
     expect(confirm.statusCode).toBe(200);
@@ -769,6 +798,7 @@ describe("HTTP API routes", () => {
 
     const dismiss = await harness.app.inject({
       method: "POST",
+      payload: {},
       url: "/api/rules/remembered/dismiss",
     });
     expect(dismiss.statusCode).toBe(200);
@@ -952,6 +982,7 @@ describe("HTTP API routes", () => {
     });
     const cancelled = await harness.app.inject({
       method: "POST",
+      payload: {},
       url: "/api/import/cancel",
     });
     expect(cancelled.statusCode).toBe(200);
@@ -1126,6 +1157,7 @@ describe("HTTP API routes", () => {
     await createItem("土豆");
     const response = await harness.app.inject({
       method: "DELETE",
+      payload: {},
       url: "/api/data",
     });
     expect(response.statusCode).toBe(200);
@@ -1233,5 +1265,115 @@ describe("HTTP API routes", () => {
     });
     expect(upload.statusCode).toBe(400);
     expect(upload.json()).toEqual({ error: "请求参数不正确" });
+  });
+  it("accepts every request shape the web client sends", async () => {
+    await replaceHarness({
+      chatClient: new RecordedChatClient({ exchanges: [] }),
+      recipeSource: recordedRecipeSource(),
+    });
+    vi.stubGlobal("fetch", injectFetch(harness.app));
+    vi.resetModules();
+    try {
+      const { api, ApiError } = await import("../../client/api.js");
+      const png = onePixelPng.buffer.slice(
+        onePixelPng.byteOffset,
+        onePixelPng.byteOffset + onePixelPng.byteLength,
+      );
+      // Typed as a complete record so a new client method cannot skip this check.
+      const calls: Record<
+        Exclude<keyof typeof api, "client">,
+        () => Promise<unknown>
+      > = {
+        health: () => api.health(),
+        state: () => api.state(),
+        services: () => api.services(),
+        setService: () => api.setService("deepseek", "test-key"),
+        clearService: () => api.clearService("deepseek"),
+        preferences: () => api.preferences(),
+        addPreference: () => api.addPreference("不吃香菜"),
+        deletePreference: () => api.deletePreference(1),
+        summarizePreferences: () => api.summarizePreferences(),
+        nameMappings: () => api.nameMappings(),
+        forgetNameMapping: () => api.forgetNameMapping("花胶"),
+        clearNameMappings: () => api.clearNameMappings(),
+        webRecipes: () => api.webRecipes("土豆"),
+        webRecipeDetail: () => api.webRecipeDetail("103468406"),
+        addItem: () =>
+          api.addItem({ name: "鸡蛋", quantity: "10枚", location: "冷藏" }),
+        updateItem: () =>
+          api.updateItem({ id: 1, edits: { quantity: "8枚" } }),
+        useItem: () => api.useItem({ id: 1 }),
+        markItemAbsent: () => api.markItemAbsent({ id: 1 }),
+        discardItem: () => api.discardItem({ id: 1 }),
+        snoozeItem: () => api.snoozeItem({ id: 1 }),
+        setItemUseFirst: () => api.setItemUseFirst({ id: 1, enabled: true }),
+        removeItems: () => api.removeItems({ ids: [1] }),
+        confirmRememberedRules: () => api.confirmRememberedRules(),
+        dismissRememberedRules: () => api.dismissRememberedRules(),
+        saveRule: () =>
+          api.saveRule({
+            name: "鸡蛋",
+            oldLocation: "冷藏",
+            location: "冷藏",
+            days: "20",
+          }),
+        deleteRule: () =>
+          api.deleteRule({ name: "鸡蛋", location: "冷藏", kind: "shelf" }),
+        addPantryItem: () => api.addPantryItem({ name: "生抽" }),
+        removePantryItem: () => api.removePantryItem({ name: "生抽" }),
+        decideSuggestion: () => api.decideSuggestion({ id: 1, accept: true }),
+        shopping: () => api.shopping(),
+        shoppingText: () => api.shoppingText(),
+        removeShoppingItem: () => api.removeShoppingItem({ id: 1 }),
+        deleteImport: () => api.deleteImport({ id: 1 }),
+        clearImportHistory: () => api.clearImportHistory(),
+        deleteAllData: () => api.deleteAllData(),
+        setDemoMode: () => api.setDemoMode(true),
+        importStatus: () => api.importStatus(),
+        uploadImportImages: () =>
+          api.uploadImportImages({
+            origin: "gallery",
+            files: [
+              {
+                filename: "first.png",
+                mimeType: "image/png",
+                data: png,
+                lastModified: 1792540800000,
+              },
+            ],
+          }),
+        cancelImport: () => api.cancelImport(),
+        beginTextImport: () => api.beginTextImport("鸡蛋 10枚"),
+        startImport: () =>
+          api.startImport({ privacyConfirmed: true, allowDuplicate: true }),
+        editDraftItem: () =>
+          api.editDraftItem({ index: 0, edits: { quantity: "8枚" } }),
+        setDraftCategory: () =>
+          api.setDraftCategory({ index: 0, category: "food" }),
+        dropDraftItem: () => api.dropDraftItem({ index: 0 }),
+        retrieveDraftItem: () => api.retrieveDraftItem({ index: 0 }),
+        confirmImport: () => api.confirmImport(true),
+        skipDuplicateImport: () => api.skipDuplicateImport(),
+        resumeImport: () => api.resumeImport(),
+        discardUnfinishedImport: () => api.discardUnfinishedImport(),
+      };
+
+      const rejected: string[] = [];
+      for (const [name, call] of Object.entries(calls)) {
+        try {
+          await call();
+        } catch (error) {
+          if (!(error instanceof ApiError)) {
+            throw error;
+          }
+          if (error.status === 400) {
+            rejected.push(`${name}: ${error.message}`);
+          }
+        }
+      }
+      expect(rejected).toEqual([]);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });
