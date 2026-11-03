@@ -64,7 +64,14 @@ const actionResponseSchema = {
 const preferencesResponseSchema = {
   type: "object",
   additionalProperties: false,
-  required: ["items", "summary", "stale", "summarizing"],
+  required: [
+    "items",
+    "summary",
+    "stale",
+    "summarizing",
+    "error",
+    "summarizeAvailable",
+  ],
   properties: {
     items: {
       type: "array",
@@ -82,6 +89,8 @@ const preferencesResponseSchema = {
     summary: { type: "string" },
     stale: { type: "boolean" },
     summarizing: { type: "boolean" },
+    error: { type: "string" },
+    summarizeAvailable: { type: "boolean" },
   },
 } as const;
 
@@ -107,9 +116,17 @@ function fail(
 }
 
 function preferencesDto(context: RouteContext): PreferencesDto {
-  const { items, summary, stale, summarizing } =
-    context.state.settings.preferencesState();
-  return { items, summary, stale, summarizing };
+  const settings = context.state.settings;
+  const { items, summary, stale, summarizing, error } =
+    settings.preferencesState();
+  return {
+    items,
+    summary,
+    stale,
+    summarizing,
+    error,
+    summarizeAvailable: settings.summarizeAvailable(),
+  };
 }
 
 export function registerSettingsRoutes(

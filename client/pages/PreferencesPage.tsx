@@ -19,7 +19,7 @@ const cardStyle = {
 } as const;
 
 export function PreferencesPage() {
-  const { state, goBack } = useAppShell();
+  const { goBack } = useAppShell();
   const [preferences, setPreferences] = useState<PreferencesDto | null>(
     null,
   );
@@ -92,7 +92,9 @@ export function PreferencesPage() {
       setPreferences(await api.summarizePreferences());
     } catch {
       setPreferences((current) =>
-        current ? { ...current, summarizing: false } : current,
+        current
+          ? { ...current, summarizing: false, error: "整理失败" }
+          : current,
       );
     } finally {
       setSummaryBusy(false);
@@ -132,6 +134,7 @@ export function PreferencesPage() {
 
   const items = preferences?.items ?? [];
   const summarizing = summaryBusy || (preferences?.summarizing ?? false);
+  const summarizeAvailable = preferences?.summarizeAvailable ?? false;
 
   return (
     <section
@@ -298,7 +301,18 @@ export function PreferencesPage() {
               待整理
             </span>
           )}
-          {!state.recognitionConfigured && (
+          {preferences?.error && (
+            <span
+              role="alert"
+              style={{
+                color: "var(--tomato)",
+                fontSize: "var(--text-meta)",
+              }}
+            >
+              {preferences.error}
+            </span>
+          )}
+          {!summarizeAvailable && (
             <span
               style={{
                 color: "var(--muted)",
@@ -311,7 +325,7 @@ export function PreferencesPage() {
           <InkButton
             text={summarizing ? "整理中" : "整理"}
             disabled={
-              !state.recognitionConfigured ||
+              !summarizeAvailable ||
               summarizing ||
               items.length === 0
             }

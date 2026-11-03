@@ -28,6 +28,8 @@ import type {
   WebRecipeSummaryDto,
 } from "../../shared/api.js";
 import { ImportStatus, SuggestionKind } from "../../shared/enums.js";
+import { ChatClientError, type ChatClient } from "../../server/ai/chat-client.js";
+import { ErrorKind } from "../../server/ai/chat-types.js";
 import { RecordedChatClient } from "../../server/ai/recorded-chat-client.js";
 import { loadBuiltin } from "../../server/data/builtin.js";
 import { openDatabase } from "../../server/data/db.js";
@@ -485,6 +487,8 @@ describe("HTTP API routes", () => {
       summary: "",
       stale: false,
       summarizing: false,
+      error: "",
+      summarizeAvailable: true,
     });
 
     const added = await harness.app.inject({
@@ -535,6 +539,52 @@ describe("HTTP API routes", () => {
       summary: "",
       stale: false,
       summarizing: false,
+      error: "",
+      summarizeAvailable: true,
+    });
+  });
+
+  it("reports why summarizing preferences failed", async () => {
+    const rejecting = (configured: boolean): ChatClient => ({
+      isConfigured: () => configured,
+      send: () =>
+        Promise.reject(
+          new ChatClientError({
+            kind: ErrorKind.AuthFailed,
+            detail: "test",
+            httpStatus: 401,
+          }),
+        ),
+    });
+    const summarize = async (): Promise<PreferencesDto> => {
+      const added = await harness.app.inject({
+        method: "POST",
+        url: "/api/preferences",
+        payload: { text: "不吃香菜" },
+      });
+      expect(added.statusCode).toBe(200);
+      const response = await harness.app.inject({
+        method: "POST",
+        url: "/api/preferences/summarize",
+        payload: {},
+      });
+      expect(response.statusCode).toBe(200);
+      return response.json<PreferencesDto>();
+    };
+
+    await replaceHarness({ chatClient: rejecting(true) });
+    expect(await summarize()).toMatchObject({
+      summary: "",
+      summarizing: false,
+      error: "密钥无效",
+      summarizeAvailable: true,
+    });
+
+    await replaceHarness({ chatClient: rejecting(false) });
+    expect(await summarize()).toMatchObject({
+      summarizing: false,
+      error: "未配置密钥",
+      summarizeAvailable: false,
     });
   });
 

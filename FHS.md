@@ -16,7 +16,7 @@
 │   └── development.md         # 开发文档：环境、运行、数据目录、安全、测试
 ├── server/
 │   ├── main.ts / config.ts    # Fastify 装配与配置（环境变量 WHILEFRESH_*）
-│   ├── domain/                # 纯函数领域逻辑：日期、新鲜度、词表、保质期链、常备、菜谱匹配、待买、重复检测
+│   ├── domain/                # 纯函数领域逻辑：日期、新鲜度、词表、保质期链、常备、待买、重复检测
 │   ├── data/                  # node:sqlite 库与迁移、Store、内置数据加载
 │   ├── ai/                    # AI 聊天客户端、提示词构建、归类与偏好整理
 │   ├── recognition/           # 识别接口与实现（DeepSeek、回放、演示）、提示词、切片、解析、录制

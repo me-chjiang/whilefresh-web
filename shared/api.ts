@@ -182,6 +182,8 @@ export interface PreferencesDto {
   summary: string;
   stale: boolean;
   summarizing: boolean;
+  error: string;
+  summarizeAvailable: boolean;
 }
 
 export interface NameMappingDto {
