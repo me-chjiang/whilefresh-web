@@ -16,7 +16,7 @@ import { Toast } from "./components/Toast";
 import { ClearFridgePage } from "./pages/ClearFridgePage";
 import { FridgePage } from "./pages/FridgePage";
 import { ImportFlowPage } from "./pages/ImportFlowPage";
-import { RecipesPage } from "./pages/RecipesPage";
+import { RecipesPage, useRecipeSearch } from "./pages/RecipesPage";
 import {
   createNavigation,
   currentPageStack,
@@ -45,12 +45,14 @@ export interface AppShellContextValue {
   currentTab: TabIndex;
   pageStack: readonly PageStackEntry[];
   importOpen: boolean;
-  switchTab: (index: TabIndex, initialKeyword?: string) => void;
+  switchTab: (index: TabIndex) => void;
+  recipeSearch: ReturnType<typeof useRecipeSearch>;
+  openRecipeSearch: (keyword: string) => void;
   pushPage: (page: PageSpec) => void;
   goBack: () => void;
   openImport: () => void;
   closeImport: () => void;
-  notify: (message: string) => void;
+  notify: (message: string, action?: NoticeAction) => void;
   setDemoMode: (enabled: boolean) => Promise<void>;
   clearSelectedIds: readonly number[];
   toggleClearItem: (id: number) => void;
@@ -66,9 +68,15 @@ export function useAppShell(): AppShellContextValue {
   return value;
 }
 
+export interface NoticeAction {
+  label: string;
+  run: () => void;
+}
+
 interface Notice {
   id: number;
   message: string;
+  action?: NoticeAction;
 }
 
 interface PageContent {
@@ -122,7 +130,9 @@ export default function App() {
   const [clearSelectionOverride, setClearSelectionOverride] = useState<
     number[] | null
   >(null);
-  const [recipeInitialKeyword, setRecipeInitialKeyword] = useState("");
+  const recipeSearch = useRecipeSearch();
+  const resetRecipeSearch = recipeSearch.reset;
+  const runRecipeSearch = recipeSearch.run;
   const [stateError, setStateError] = useState("");
   const [notice, setNotice] = useState<Notice | null>(null);
   const noticeSequence = useRef(0);
@@ -133,8 +143,8 @@ export default function App() {
   const lastDate = useRef(localDateKey());
   const dateRefreshPending = useRef(false);
 
-  const notify = useCallback((message: string) => {
-    setNotice({ id: ++noticeSequence.current, message });
+  const notify = useCallback((message: string, action?: NoticeAction) => {
+    setNotice({ id: ++noticeSequence.current, message, action });
   }, []);
 
   const dismissNotice = useCallback((noticeId: number) => {
@@ -204,6 +214,16 @@ export default function App() {
       if (!next) {
         return;
       }
+      const missingContent = next.stacks.some((stack) =>
+        stack.some((entry) => !pageContents.current.has(entry.key)),
+      );
+      if (missingContent) {
+        const root = createNavigation();
+        navigationRef.current = root;
+        setNavigation(root);
+        window.history.replaceState(toHistoryNavigation(root), "");
+        return;
+      }
       navigationRef.current = next;
       setNavigation(next);
     };
@@ -243,19 +263,38 @@ export default function App() {
   }, [checkDate]);
 
   const selectTab = useCallback(
-    (index: TabIndex, initialKeyword = "") => {
+    (index: TabIndex) => {
       const current = navigationRef.current;
       if (index === current.currentTab) {
         if (current.importOpen) {
           window.history.back();
+        } else if (currentPageStack(current).length > 0) {
+          installNavigation(switchTab(current, index), "push");
         }
         return;
       }
+      const leavingFridge = current.currentTab === 0;
       const next = switchTab(current, index);
-      installNavigation(next, current.importOpen ? "replace" : "push");
-      setRecipeInitialKeyword(initialKeyword);
+      if (current.importOpen) {
+        installNavigation(next, "replace");
+      } else {
+        installNavigation(next, leavingFridge ? "push" : "replace");
+      }
     },
     [installNavigation],
+  );
+
+  const openRecipeSearch = useCallback(
+    (keyword: string) => {
+      void runRecipeSearch(keyword);
+      const current = navigationRef.current;
+      const next = {
+        ...switchTab(current, 1),
+        stacks: current.stacks.map((stack, i) => (i === 1 ? [] : stack)),
+      };
+      installNavigation(next, current.importOpen ? "replace" : "push");
+    },
+    [installNavigation, runRecipeSearch],
   );
 
   const openImport = useCallback(() => {
@@ -307,16 +346,25 @@ export default function App() {
         stateRef.current = next;
         setState(next);
         setClearSelectionOverride(null);
-        setRecipeInitialKeyword("");
+        resetRecipeSearch();
         setStateError("");
         pageContents.current.clear();
-        installNavigation(createNavigation(), "replace");
+        const before = navigationRef.current;
+        installNavigation(
+          {
+            ...createNavigation(),
+            currentTab: before.currentTab,
+            tabHistory: before.currentTab === 0 ? [] : [0],
+            importOpen: before.importOpen,
+          },
+          "replace",
+        );
         notify(enabled ? "已开启演示模式" : "已退出演示模式");
       } catch (error) {
         notify(`切换失败：${errorText(error)}`);
       }
     },
-    [installNavigation, notify],
+    [installNavigation, notify, resetRecipeSearch],
   );
 
   const currentStack = currentPageStack(navigation);
@@ -348,6 +396,8 @@ export default function App() {
         pageStack: currentStack,
         importOpen: navigation.importOpen,
         switchTab: selectTab,
+        recipeSearch,
+        openRecipeSearch,
         pushPage,
         goBack,
         openImport,
@@ -406,7 +456,7 @@ export default function App() {
   } else if (navigation.currentTab === 0) {
     content = <FridgePage />;
   } else if (navigation.currentTab === 1) {
-    content = <RecipesPage initialKeyword={recipeInitialKeyword} />;
+    content = <RecipesPage />;
   } else if (navigation.currentTab === 2) {
     content = <ClearFridgePage />;
   } else if (navigation.currentTab === 3) {
@@ -421,7 +471,7 @@ export default function App() {
         style={{
           minHeight: "100dvh",
           paddingBottom:
-            "calc(var(--nav-height) + var(--gap-small) + env(safe-area-inset-bottom))",
+            "calc(var(--nav-height) + var(--stamp-rise) + var(--gap-small) + env(safe-area-inset-bottom))",
         }}
       >
         <DemoBanner visible={state?.demoMode ?? false} />
@@ -438,6 +488,7 @@ export default function App() {
         <Toast
           noticeId={notice?.id ?? 0}
           message={notice?.message ?? ""}
+          action={notice?.action}
           onDismiss={dismissNotice}
         />
 

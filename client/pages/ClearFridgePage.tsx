@@ -1,32 +1,17 @@
-import type { CSSProperties } from "react";
-
 import { CategoryDot } from "../components/CategoryDot";
+import { CheckBox } from "../components/CheckBox";
 import { EmptyState } from "../components/EmptyState";
 import { InkButton } from "../components/InkButton";
 import { PageHeader } from "../components/PageHeader";
 import { SectionTape } from "../components/SectionTape";
 import { useAppShell } from "../App";
 
-const chipStyle = (selected: boolean): CSSProperties => ({
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  width: "auto",
-  minHeight: "var(--touch)",
-  padding: "var(--gap-small)",
-  gap: "var(--gap-small)",
-  border: `1.5px solid ${selected ? "var(--ink)" : "var(--chip-outline)"}`,
-  borderRadius: "var(--radius-row)",
-  color: selected ? "var(--ink)" : "var(--chip-muted)",
-  background: selected ? "var(--selected-paper)" : "transparent",
-});
-
 export function ClearFridgePage() {
   const {
     state,
     clearSelectedIds,
     toggleClearItem,
-    switchTab,
+    openRecipeSearch,
   } = useAppShell();
 
   const searchKitchen = () => {
@@ -34,30 +19,19 @@ export function ClearFridgePage() {
       .filter((item) => clearSelectedIds.includes(item.id))
       .map((item) => item.name)
       .join(" ");
-    switchTab(1, keyword);
+    openRecipeSearch(keyword);
   };
 
   return (
-    <section
-      className="page"
-      style={{
-        minHeight: "calc(100dvh - var(--nav-height) - var(--gap-large))",
-        margin: "var(--gap-small) var(--gap) var(--gap-large)",
-        paddingInline: "var(--section-padding)",
-      }}
-    >
+    <section className="page-shell">
       <PageHeader
         heading="清冰箱"
         subtitle="用掉临期和先用的食材"
-        style={{ marginInline: "calc(-1 * var(--section-padding))" }}
       />
 
       <div
         className="note-paper"
-        style={{
-          position: "relative",
-          marginTop: "var(--gap-large)",
-        }}
+        style={{ marginTop: "var(--gap-large)" }}
       >
         <SectionTape
           label="选料"
@@ -65,49 +39,23 @@ export function ClearFridgePage() {
           angle={0}
           style={{
             position: "absolute",
-            top: "calc(-1 * var(--tape-height) / 2)",
+            top: -12,
             left: "50%",
             transform: "translateX(-50%) rotate(1.5deg)",
+            minHeight: 22,
+            height: 22,
+            paddingInline: 22,
           }}
         />
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "baseline",
-            justifyContent: "space-between",
-            gap: "var(--gap)",
-            marginTop: "var(--gap-small)",
-          }}
-        >
-          <h2
-            style={{
-              margin: 0,
-              fontSize: "var(--text-panel)",
-              fontWeight: "var(--weight-black)",
-            }}
-          >
-            要用掉的食材
-          </h2>
-          <span
-            style={{
-              flex: "none",
-              color: "var(--note-muted)",
-              fontSize: "var(--text-subtitle)",
-            }}
-          >
+        <div className="panel-head">
+          <h2>要用掉的食材</h2>
+          <span>
             已选 {clearSelectedIds.length} / {state.items.length}
           </span>
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "var(--gap-small)",
-            marginTop: "var(--gap)",
-          }}
-        >
+        <div className="pick-chips">
           {state.items.map((item) => {
             const selected = clearSelectedIds.includes(item.id);
             const tag = item.first
@@ -120,52 +68,24 @@ export function ClearFridgePage() {
               <button
                 key={item.id}
                 type="button"
+                className={`pick-chip${selected ? " pick-chip--on" : ""}`}
                 aria-pressed={selected}
                 aria-label={`${item.name}${tag ? `，${tag}` : ""}`}
                 onClick={() => toggleClearItem(item.id)}
-                style={chipStyle(selected)}
               >
-                <span
-                  aria-hidden="true"
-                  style={{
-                    display: "inline-flex",
-                    flex: "none",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: 19,
-                    height: 19,
-                    border: `1.5px solid ${selected ? "var(--tomato)" : "var(--chip-outline)"}`,
-                    borderRadius: "var(--radius-tag)",
-                    color: "var(--text-on-tomato)",
-                    background: selected ? "var(--tomato)" : "transparent",
-                    fontSize: "var(--text-small)",
-                    fontWeight: "var(--weight-bold)",
-                    lineHeight: 1,
-                  }}
-                >
-                  {selected ? "✓" : ""}
-                </span>
-                <CategoryDot category={item.category} size={16} />
-                <span
-                  style={{
-                    fontSize: "var(--text-quantity)",
-                    fontWeight: "var(--weight-bold)",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {item.name}
-                </span>
+                <CheckBox checked={selected} />
+                <CategoryDot category={item.category} size={15} />
+                <span>{item.name}</span>
                 {tag && (
-                  <span
-                    style={{
-                      color: item.first ? "var(--ink)" : "var(--nearing)",
-                      fontSize: "var(--text-small)",
-                      fontWeight: "var(--weight-strong)",
-                      whiteSpace: "nowrap",
-                    }}
+                  <small
+                    className={
+                      item.first
+                        ? "pick-chip__tag"
+                        : "pick-chip__tag pick-chip__tag--near"
+                    }
                   >
                     {tag}
-                  </span>
+                  </small>
                 )}
               </button>
             );
@@ -175,7 +95,7 @@ export function ClearFridgePage() {
 
       <InkButton
         fullWidth
-        iconName="notes"
+        iconName="search"
         text="搜下厨房"
         disabled={clearSelectedIds.length === 0}
         onClick={searchKitchen}

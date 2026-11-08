@@ -89,7 +89,6 @@ interface AppSession {
 
 const DATABASE_NOTICE = "无法打开本机数据库，数据无法保存";
 const CLEANUP_NOTICE = "部分导入图片尚未清理，稍后会自动重试";
-const NO_API_KEY_NOTICE = "未配置识别服务密钥，可在「我的」开启演示模式";
 const DEMO_CREATE_NOTICE = "无法创建演示数据";
 
 const categories = Object.values(CategoryCode);
@@ -272,14 +271,6 @@ export class AppState {
       }
     }
     this.applyCredentials();
-
-    if (
-      !this.demoMode &&
-      !this.recognitionConfiguredValue &&
-      this.startupNoticeValue.length === 0
-    ) {
-      this.startupNoticeValue = NO_API_KEY_NOTICE;
-    }
   }
 
   get demoMode(): boolean {

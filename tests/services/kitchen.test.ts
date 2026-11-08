@@ -372,4 +372,133 @@ describe("kitchen service integration", () => {
     expect(existsSync(imagePath!)).toBe(false);
   });
 
+  describe("undo journal", () => {
+    function stockCleared(importId: number): number {
+      const row = harness.database
+        .prepare("SELECT stock_cleared FROM imports WHERE id = ?")
+        .get(importId) as { stock_cleared: number } | undefined;
+      return Number(row?.stock_cleared);
+    }
+
+    it("restores a discarded item and the import stock flag", () => {
+      const item = imported("土豆");
+      const importId = createImport([item]);
+      const id = item.id!;
+      expect(stockCleared(importId)).toBe(0);
+
+      const result = harness.kitchen.runUndoable([id], () =>
+        harness.kitchen.discardItem(id),
+      );
+      expect(result.ok).toBe(true);
+      expect(result.token).not.toBe("");
+      expect(harness.store.item(id)?.status).toBe(ItemStatus.Discarded);
+      expect(stockCleared(importId)).toBe(1);
+
+      expect(harness.kitchen.undo(result.token)).toBe("ok");
+      const restored = harness.store.item(id);
+      expect(restored?.status).toBe(ItemStatus.InStock);
+      expect(restored?.statusChangedAt ?? null).toBeNull();
+      expect(stockCleared(importId)).toBe(0);
+    });
+
+    it("undoes markAbsent on a pantry item including override and suggestion", () => {
+      const id = save(manual("生抽"));
+      const result = harness.kitchen.runUndoable([id], () =>
+        harness.kitchen.markAbsent(id),
+      );
+      expect(result.ok).toBe(true);
+      expect(result.suggestions).toEqual(["生抽"]);
+      expect(harness.store.pantryOverrides()).toEqual([
+        expect.objectContaining({ name: "生抽", out: true }),
+      ]);
+      expect(harness.kitchen.suggestions()).toHaveLength(1);
+
+      expect(harness.kitchen.undo(result.token)).toBe("ok");
+      expect(harness.store.item(id)?.status).toBe(ItemStatus.InStock);
+      expect(harness.store.pantryOverrides()).toEqual([]);
+      expect(harness.kitchen.suggestions()).toHaveLength(0);
+    });
+
+    it("restores a previous override and keeps a suggestion that already existed", () => {
+      expect(
+        harness.kitchen.setPantryOverride({ name: "生抽", pantry: true, out: false }),
+      ).toBe(true);
+      const id = save(manual("生抽"));
+      expect(harness.kitchen.markAbsent(id)).toBe(true);
+      const second = save(manual("生抽"));
+      expect(harness.kitchen.suggestions()).toHaveLength(1);
+
+      const result = harness.kitchen.runUndoable([second], () =>
+        harness.kitchen.markAbsent(second),
+      );
+      expect(result.suggestions).toEqual(["生抽"]);
+      expect(harness.kitchen.undo(result.token)).toBe("ok");
+      expect(harness.store.item(second)?.status).toBe(ItemStatus.InStock);
+      expect(harness.kitchen.suggestions()).toHaveLength(1);
+    });
+
+    it("undoes a bulk removal in one call", () => {
+      const first = save(manual("生菜"));
+      const second = save(manual("油菜"));
+      const result = harness.kitchen.runUndoable([first, second], () =>
+        [first, second].every((id) => harness.kitchen.markAbsent(id)),
+      );
+      expect(result.ok).toBe(true);
+      expect(harness.kitchen.fridge()).toHaveLength(0);
+
+      expect(harness.kitchen.undo(result.token)).toBe("ok");
+      expect(harness.kitchen.fridge().map((item) => item.id).sort()).toEqual(
+        [first, second].sort(),
+      );
+    });
+
+    it("clears the snooze on undo", () => {
+      const item = manual("牛奶");
+      item.manualDays = 8;
+      item.entryDate = addDays(harness.clock.today(), -7);
+      const id = save(item);
+      const result = harness.kitchen.runUndoable([id], () =>
+        harness.kitchen.snoozeItem(id),
+      );
+      expect(result.ok).toBe(true);
+      expect(harness.store.item(id)?.snoozedUntil).toBeTruthy();
+
+      expect(harness.kitchen.undo(result.token)).toBe("ok");
+      expect(harness.store.item(id)?.snoozedUntil ?? null).toBeNull();
+    });
+
+    it("refuses to undo when the item changed afterwards", () => {
+      const id = save(manual("黄瓜"));
+      const result = harness.kitchen.runUndoable([id], () =>
+        harness.kitchen.useItem(id),
+      );
+      expect(harness.kitchen.markAbsent(id)).toBe(true);
+      expect(harness.kitchen.undo(result.token)).toBe("changed");
+      expect(harness.store.item(id)?.status).toBe(ItemStatus.Absent);
+    });
+
+    it("expires after the TTL and rejects a token used twice", () => {
+      const id = save(manual("黄瓜"));
+      const expired = harness.kitchen.runUndoable([id], () =>
+        harness.kitchen.useItem(id),
+      );
+      harness.advanceDays(1);
+      expect(harness.kitchen.undo(expired.token)).toBe("expired");
+
+      const other = save(manual("西红柿"));
+      const result = harness.kitchen.runUndoable([other], () =>
+        harness.kitchen.discardItem(other),
+      );
+      expect(harness.kitchen.undo(result.token)).toBe("ok");
+      expect(harness.kitchen.undo(result.token)).toBe("expired");
+      expect(harness.kitchen.undo("missing")).toBe("expired");
+    });
+
+    it("records no token when the action fails", () => {
+      const result = harness.kitchen.runUndoable([9999], () =>
+        harness.kitchen.discardItem(9999),
+      );
+      expect(result).toEqual({ ok: false, token: "", suggestions: [] });
+    });
+  });
 });

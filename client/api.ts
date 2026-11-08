@@ -84,7 +84,37 @@ function responseError(text: string, status: number): ApiError {
   } catch {
     // A non-JSON error is replaced by a stable, user-facing message.
   }
+  if (status === 413) {
+    return new ApiError("文件太大，请减少图片后重试", status);
+  }
+  if (status === 502 || status === 503 || status === 504) {
+    return new ApiError("服务暂时不可用，请稍后重试", status);
+  }
   return new ApiError(`请求失败（${status}）`, status);
+}
+
+function isAbort(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "name" in error &&
+    error.name === "AbortError"
+  );
+}
+
+async function send(
+  fetchImpl: typeof globalThis.fetch,
+  url: string,
+  init: RequestInit,
+): Promise<Response> {
+  try {
+    return await fetchImpl(url, init);
+  } catch (error) {
+    if (isAbort(error)) {
+      throw error;
+    }
+    throw new ApiError("无法连接到服务，请检查网络后重试", 0);
+  }
 }
 
 async function readResponse<TResponse>(response: Response): Promise<TResponse> {
@@ -129,7 +159,7 @@ export class ApiClient {
         : route.method === "GET"
           ? undefined
           : "{}";
-    const response = await this.fetchImpl(`${this.baseUrl}${path}`, {
+    const response = await send(this.fetchImpl, `${this.baseUrl}${path}`, {
       method: route.method,
       headers:
         body === undefined ? undefined : { "Content-Type": "application/json" },
@@ -148,7 +178,7 @@ export class ApiClient {
       expandPath(route.path, options.path ?? {}),
       options.query,
     );
-    const response = await this.fetchImpl(`${this.baseUrl}${path}`, {
+    const response = await send(this.fetchImpl, `${this.baseUrl}${path}`, {
       method: route.method,
       body,
       signal: options.signal,
@@ -226,6 +256,8 @@ export const api = {
     }),
   removeItems: (request: Api.RemoveItemsRequest) =>
     client.request(apiRoutes.removeItems, request),
+  undoItemAction: (request: Api.UndoItemRequest) =>
+    client.request(apiRoutes.undoItemAction, request),
   confirmRememberedRules: () =>
     client.request(apiRoutes.confirmRememberedRules),
   dismissRememberedRules: () =>

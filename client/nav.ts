@@ -52,12 +52,25 @@ export function switchTab(
   index: TabIndex,
 ): AppNavigation {
   if (index === navigation.currentTab) {
-    return navigation;
+    return popToRoot(navigation);
   }
   return {
     ...navigation,
     currentTab: index,
-    tabHistory: [...navigation.tabHistory, navigation.currentTab],
+    stacks: navigation.stacks.map((stack, i) =>
+      i === navigation.currentTab ? [] : stack,
+    ),
+    tabHistory: index === 0 ? [] : [0],
+    importOpen: false,
+  };
+}
+
+export function popToRoot(navigation: AppNavigation): AppNavigation {
+  return {
+    ...navigation,
+    stacks: navigation.stacks.map((stack, i) =>
+      i === navigation.currentTab ? [] : stack,
+    ),
     importOpen: false,
   };
 }

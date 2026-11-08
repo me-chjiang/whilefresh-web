@@ -3,15 +3,19 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from "react";
 
 import type { ItemDto } from "../../shared/api";
 import { CategoryDot } from "./CategoryDot";
+import { CheckBox } from "./CheckBox";
 import { FreshnessStamp } from "./FreshnessStamp";
 import { Icon } from "./Icon";
 
 const ACTION_BUTTON_WIDTH = 75;
+const MAX_ACTIONS_WIDTH = 3 * ACTION_BUTTON_WIDTH;
 const FIRST_SWIPE_THRESHOLD = 55;
 const RIGHT_DRAG_LIMIT = 90;
 const DRAG_SLOP = 6;
@@ -28,6 +32,8 @@ export interface PantryRowProps {
   onDiscarded?: (ingredient: ItemDto) => void;
   onSnoozed?: (ingredient: ItemDto) => void;
   onFirstRequested?: (ingredient: ItemDto) => void;
+  forceClosed?: boolean;
+  onOpenChange?: (open: boolean) => void;
   className?: string;
   style?: CSSProperties;
 }
@@ -56,6 +62,8 @@ export function PantryRow({
   onDiscarded,
   onSnoozed,
   onFirstRequested,
+  forceClosed = false,
+  onOpenChange,
   className,
   style,
 }: PantryRowProps) {
@@ -66,9 +74,16 @@ export function PantryRow({
   const longPressTimerRef = useRef<number | null>(null);
   const longPressedRef = useRef(false);
   const suppressClickRef = useRef(false);
+  const contentRef = useRef<HTMLButtonElement>(null);
+  const actionsRef = useRef<HTMLDivElement>(null);
+  const focusActionRef = useRef(false);
   const canSnooze = ingredient.freshness === "nearing" && !ingredient.snoozed;
   const actionCount = canSnooze ? 4 : 3;
-  const actionWidth = actionCount * ACTION_BUTTON_WIDTH;
+  const actionButtonWidth = Math.min(
+    ACTION_BUTTON_WIDTH,
+    MAX_ACTIONS_WIDTH / actionCount,
+  );
+  const actionWidth = actionCount * actionButtonWidth;
 
   const updateOffset = (nextOffset: number) => {
     offsetRef.current = nextOffset;
@@ -220,13 +235,43 @@ export function PantryRow({
     finishGesture(event, true);
   };
 
-  const handleClick = () => {
+  const handleKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
+    if (multiSelect) {
+      return;
+    }
+    if (event.key === "ArrowLeft" && offsetRef.current === 0) {
+      event.preventDefault();
+      focusActionRef.current = true;
+      updateOffset(-actionWidth);
+    } else if (
+      (event.key === "ArrowRight" || event.key === "Escape") &&
+      offsetRef.current < 0
+    ) {
+      event.preventDefault();
+      updateOffset(0);
+    }
+  };
+
+  const handleActionKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Escape" || event.key === "ArrowRight") {
+      event.preventDefault();
+      event.stopPropagation();
+      updateOffset(0);
+      contentRef.current?.focus();
+    }
+  };
+
+  const handleClick = (event: ReactMouseEvent<HTMLButtonElement>) => {
     if (suppressClickRef.current) {
       suppressClickRef.current = false;
       return;
     }
     if (offsetRef.current < 0) {
       updateOffset(0);
+      return;
+    }
+    if (event.shiftKey && !multiSelect) {
+      onSelectionRequested?.(ingredient);
       return;
     }
     if (multiSelect) {
@@ -243,25 +288,40 @@ export function PantryRow({
 
   const actionsVisible = offset < 0 && !multiSelect;
 
+  useEffect(() => {
+    onOpenChange?.(actionsVisible);
+    if (actionsVisible && focusActionRef.current) {
+      focusActionRef.current = false;
+      actionsRef.current
+        ?.querySelector<HTMLButtonElement>("button:not(:disabled)")
+        ?.focus();
+    }
+  }, [actionsVisible]);
+
+  useEffect(() => {
+    if (forceClosed && offsetRef.current < 0) {
+      updateOffset(0);
+    }
+  }, [forceClosed]);
+
   return (
     <div
-      className={className}
-      style={{
-        position: "relative",
-        height: "calc(var(--row-height) + var(--gap-small))",
-        overflow: "hidden",
-        ...style,
-      }}
+      className={["pantry-row", actionsVisible && "pantry-row--open", className]
+        .filter(Boolean)
+        .join(" ")}
+      style={style}
     >
       <div
+        ref={actionsRef}
         aria-hidden={!actionsVisible}
+        onKeyDown={handleActionKeyDown}
         style={{
           position: "absolute",
           top: 0,
           right: 0,
+          bottom: 0,
           display: "flex",
           width: actionWidth,
-          height: "var(--row-height)",
           visibility: actionsVisible ? "visible" : "hidden",
         }}
       >
@@ -272,8 +332,8 @@ export function PantryRow({
           onClick={() => runAction((item) => onUsed?.(item))}
           style={{
             display: "flex",
-            width: ACTION_BUTTON_WIDTH,
-            height: "var(--row-height)",
+            width: actionButtonWidth,
+            height: "100%",
             minWidth: 0,
             minHeight: 0,
             flexDirection: "column",
@@ -296,8 +356,8 @@ export function PantryRow({
           onClick={() => runAction((item) => onDiscarded?.(item))}
           style={{
             display: "flex",
-            width: ACTION_BUTTON_WIDTH,
-            height: "var(--row-height)",
+            width: actionButtonWidth,
+            height: "100%",
             minWidth: 0,
             minHeight: 0,
             flexDirection: "column",
@@ -320,8 +380,8 @@ export function PantryRow({
           onClick={() => runAction((item) => onUnavailable?.(item))}
           style={{
             display: "flex",
-            width: ACTION_BUTTON_WIDTH,
-            height: "var(--row-height)",
+            width: actionButtonWidth,
+            height: "100%",
             minWidth: 0,
             minHeight: 0,
             flexDirection: "column",
@@ -345,8 +405,8 @@ export function PantryRow({
             onClick={() => runAction((item) => onSnoozed?.(item))}
             style={{
               display: "flex",
-              width: ACTION_BUTTON_WIDTH,
-              height: "var(--row-height)",
+              width: actionButtonWidth,
+              height: "100%",
               minWidth: 0,
               minHeight: 0,
               flexDirection: "column",
@@ -366,7 +426,9 @@ export function PantryRow({
       </div>
 
       <button
+        ref={contentRef}
         type="button"
+        onKeyDown={handleKeyDown}
         aria-pressed={multiSelect ? checked : undefined}
         aria-label={
           ingredient.days
@@ -383,45 +445,26 @@ export function PantryRow({
           position: "relative",
           zIndex: 1,
           display: "flex",
-          width: "100%",
-          height: "var(--row-height)",
+          width: actionsVisible ? `calc(100% + ${offset}px)` : "100%",
+          height: "100%",
           minHeight: 0,
           alignItems: "center",
-          gap: "var(--gap-small)",
-          paddingInline: "var(--gap-small)",
+          gap: "var(--row-gap)",
+          paddingInline: "var(--gap-tiny)",
           overflow: "hidden",
           border: checked ? "1px solid var(--tomato)" : "1px solid transparent",
-          borderRadius: "var(--radius-row)",
+          borderRadius: actionsVisible ? 0 : "var(--radius-row)",
           color: "var(--ink)",
           background: "var(--card)",
           textAlign: "left",
           touchAction: "pan-y",
-          transform: `translateX(${offset}px)`,
-          transition: dragging ? "none" : "transform 160ms ease",
+          transform: offset > 0 ? `translateX(${offset}px)` : undefined,
+          transition: dragging ? "none" : "transform 160ms ease, width 160ms ease",
           userSelect: "none",
           WebkitUserSelect: "none",
         }}
       >
-        {multiSelect && (
-          <span
-            style={{
-              display: "flex",
-              width: 20,
-              height: 20,
-              flex: "none",
-              alignItems: "center",
-              justifyContent: "center",
-              border: "1px solid var(--outline)",
-              borderRadius: "var(--radius-tag)",
-              color: "var(--text-on-tomato)",
-              background: checked ? "var(--tomato)" : "var(--selected-paper)",
-              fontSize: "var(--text-subtitle)",
-              fontWeight: "var(--weight-bold)",
-            }}
-          >
-            {checked ? "✓" : ""}
-          </span>
-        )}
+        {multiSelect && <CheckBox checked={checked} />}
 
         <CategoryDot category={ingredient.category} />
 
@@ -433,11 +476,18 @@ export function PantryRow({
             flexDirection: "column",
           }}
         >
-          <span style={{ display: "flex", minWidth: 0, gap: "var(--gap-small)" }}>
+          <span
+            style={{
+              display: "flex",
+              minWidth: 0,
+              alignItems: "center",
+              gap: "var(--gap-small)",
+            }}
+          >
             <span
               style={{
                 minWidth: 0,
-                flex: 1,
+                flex: "0 1 auto",
                 overflow: "hidden",
                 fontSize: "var(--text-body)",
                 fontWeight: "var(--weight-bold)",
@@ -448,26 +498,24 @@ export function PantryRow({
               {ingredient.name}
             </span>
             {ingredient.first && (
-              <span
-                className="badge"
-                style={{ flex: "none", paddingInline: 6 }}
-              >
-                先用
-              </span>
+              <span className="badge">先用</span>
             )}
           </span>
-          <span
-            style={{
-              display: "block",
-              overflow: "hidden",
-              color: "var(--muted)",
-              fontSize: "var(--text-meta)",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {ingredient.days}
-          </span>
+          {!actionsVisible && (
+            <span
+              style={{
+                display: "block",
+                marginTop: 1,
+                overflow: "hidden",
+                color: "var(--muted)",
+                fontSize: "var(--text-meta)",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {ingredient.days}
+            </span>
+          )}
         </span>
 
         <span
@@ -479,20 +527,8 @@ export function PantryRow({
         >
           {ingredient.quantity}
         </span>
-        <FreshnessStamp status={ingredient.freshness} />
+        {!actionsVisible && <FreshnessStamp status={ingredient.freshness} />}
       </button>
-
-      <span
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          right: 0,
-          bottom: 0,
-          left: 0,
-          height: 1,
-          background: "var(--rule)",
-        }}
-      />
     </div>
   );
 }

@@ -360,7 +360,11 @@ describe("HTTP API routes", () => {
       },
     });
     expect(recipe.ingredients).toHaveLength(3);
-    expect(recipe.ingredients[0]).toEqual({ raw: "鸡蛋 4个" });
+    expect(recipe.ingredients[0]).toEqual({
+      raw: "鸡蛋 4个",
+      name: "鸡蛋",
+      amount: "4个",
+    });
   });
 
   it("rejects invalid web recipe parameters", async () => {
@@ -793,7 +797,8 @@ describe("HTTP API routes", () => {
       payload: { id: usedId },
     });
     expect(used.statusCode).toBe(200);
-    expect(used.json()).toEqual({ ok: true });
+    expect(used.json()).toMatchObject({ ok: true, suggestions: [] });
+    expect(used.json<{ undoToken: string }>().undoToken).not.toBe("");
 
     const absent = await harness.app.inject({
       method: "POST",
@@ -801,7 +806,9 @@ describe("HTTP API routes", () => {
       payload: { id },
     });
     expect(absent.statusCode).toBe(200);
-    expect(absent.json()).toEqual({ ok: true });
+    expect(absent.json()).toMatchObject({ ok: true });
+    expect(absent.json<{ undoToken: string }>().undoToken).not.toBe("");
+    expect(Array.isArray(absent.json<{ suggestions: unknown }>().suggestions)).toBe(true);
 
     const firstRemoveId = await createItem("生菜");
     const secondRemoveId = await createItem("油菜");
@@ -811,7 +818,80 @@ describe("HTTP API routes", () => {
       payload: { ids: [firstRemoveId, secondRemoveId] },
     });
     expect(removed.statusCode).toBe(200);
-    expect(removed.json()).toEqual({ ok: true });
+    expect(removed.json()).toMatchObject({ ok: true });
+    expect(removed.json<{ undoToken: string }>().undoToken).not.toBe("");
+  });
+
+  it("undoes a discard and a bulk removal through the undo route", async () => {
+    const id = await createItem("土豆");
+    const discarded = await harness.app.inject({
+      method: "POST",
+      url: `/api/items/${id}/discard`,
+      payload: { id },
+    });
+    const token = discarded.json<{ undoToken: string }>().undoToken;
+    expect(token).not.toBe("");
+    expect((await readState()).items.some((item) => item.id === id)).toBe(false);
+
+    const undone = await harness.app.inject({
+      method: "POST",
+      url: "/api/items/undo",
+      payload: { token },
+    });
+    expect(undone.statusCode).toBe(200);
+    expect(undone.json()).toEqual({ ok: true });
+    expect((await readState()).items.some((item) => item.id === id)).toBe(true);
+
+    const again = await harness.app.inject({
+      method: "POST",
+      url: "/api/items/undo",
+      payload: { token },
+    });
+    expect(again.statusCode).toBe(404);
+    expect(again.json()).toEqual({ error: "撤销已过期" });
+
+    const first = await createItem("生菜");
+    const second = await createItem("油菜");
+    const removed = await harness.app.inject({
+      method: "POST",
+      url: "/api/items/remove",
+      payload: { ids: [first, second] },
+    });
+    const bulkToken = removed.json<{ undoToken: string }>().undoToken;
+    const items = (await readState()).items.map((item) => item.id);
+    expect(items).not.toContain(first);
+    expect(items).not.toContain(second);
+    const restored = await harness.app.inject({
+      method: "POST",
+      url: "/api/items/undo",
+      payload: { token: bulkToken },
+    });
+    expect(restored.statusCode).toBe(200);
+    const after = (await readState()).items.map((item) => item.id);
+    expect(after).toContain(first);
+    expect(after).toContain(second);
+  });
+
+  it("rejects an undo after the item changed again", async () => {
+    const id = await createItem("白菜");
+    const used = await harness.app.inject({
+      method: "POST",
+      url: `/api/items/${id}/use`,
+      payload: { id },
+    });
+    const token = used.json<{ undoToken: string }>().undoToken;
+    await harness.app.inject({
+      method: "POST",
+      url: `/api/items/${id}/absent`,
+      payload: { id },
+    });
+    const undone = await harness.app.inject({
+      method: "POST",
+      url: "/api/items/undo",
+      payload: { token },
+    });
+    expect(undone.statusCode).toBe(409);
+    expect(undone.json()).toEqual({ error: "食材状态已变化，无法撤销" });
   });
 
   it("discards an item and rejects an item that was already processed", async () => {
@@ -823,7 +903,8 @@ describe("HTTP API routes", () => {
       payload: { id },
     });
     expect(discarded.statusCode).toBe(200);
-    expect(discarded.json()).toEqual({ ok: true });
+    expect(discarded.json()).toMatchObject({ ok: true });
+    expect(discarded.json<{ undoToken: string }>().undoToken).not.toBe("");
     expect((await readState()).items.some((item) => item.id === id)).toBe(
       false,
     );
@@ -855,7 +936,7 @@ describe("HTTP API routes", () => {
       payload: { id: nearId },
     });
     expect(snoozed.statusCode).toBe(200);
-    expect(snoozed.json()).toEqual({ ok: true });
+    expect(snoozed.json()).toMatchObject({ ok: true });
     expect(
       (await readState()).items.find((item) => item.id === nearId)?.snoozed,
     ).toBe(true);
@@ -1308,6 +1389,8 @@ describe("HTTP API routes", () => {
 
   it.each([
     ["POST", "/api/items/remove", { ids: [] }],
+    ["POST", "/api/items/undo", {}],
+    ["POST", "/api/items/undo", { token: "" }],
     ["POST", "/api/import/start", { privacyConfirmed: false, allowDuplicate: false }],
     ["POST", "/api/import/confirm", { allowDuplicate: "yes" }],
     ["DELETE", "/api/imports", { force: true }],
@@ -1391,6 +1474,7 @@ describe("HTTP API routes", () => {
         snoozeItem: () => api.snoozeItem({ id: 1 }),
         setItemUseFirst: () => api.setItemUseFirst({ id: 1, enabled: true }),
         removeItems: () => api.removeItems({ ids: [1] }),
+        undoItemAction: () => api.undoItemAction({ token: "none" }),
         confirmRememberedRules: () => api.confirmRememberedRules(),
         dismissRememberedRules: () => api.dismissRememberedRules(),
         saveRule: () =>

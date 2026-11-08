@@ -10,6 +10,7 @@ export interface InkButtonProps
   extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "color"> {
   text?: ReactNode;
   iconName?: string;
+  iconSize?: number;
   accent?: string;
   outline?: boolean;
   titleStyle?: boolean;
@@ -21,6 +22,7 @@ export const InkButton = forwardRef<HTMLButtonElement, InkButtonProps>(
     {
       text,
       iconName = "",
+      iconSize = 24,
       accent = "var(--green)",
       outline = false,
       titleStyle = false,
@@ -33,6 +35,9 @@ export const InkButton = forwardRef<HTMLButtonElement, InkButtonProps>(
     },
     ref,
   ) {
+    const solidAccent = disabled
+      ? `color-mix(in srgb, ${accent} 50%, var(--card))`
+      : accent;
     return (
       <button
         {...props}
@@ -47,10 +52,16 @@ export const InkButton = forwardRef<HTMLButtonElement, InkButtonProps>(
           minHeight: "var(--touch)",
           padding: "var(--gap-small) var(--gap-large)",
           gap: iconName ? "var(--gap-small)" : 0,
-          border: outline ? "1.5px solid var(--outline)" : `1.5px solid ${accent}`,
+          border: outline
+            ? "1.5px solid var(--outline)"
+            : `1.5px solid ${solidAccent}`,
           borderRadius: "var(--radius-row)",
-          color: outline ? "var(--ink)" : "var(--text-on-green)",
-          background: outline ? "var(--card)" : accent,
+          color: !outline
+            ? "var(--text-on-green)"
+            : disabled
+              ? "var(--muted)"
+              : "var(--ink)",
+          background: outline ? "var(--card)" : solidAccent,
           fontFamily: titleStyle ? "var(--font-serif)" : "var(--font-sans)",
           fontSize: titleStyle
             ? "var(--text-recipe)"
@@ -59,7 +70,6 @@ export const InkButton = forwardRef<HTMLButtonElement, InkButtonProps>(
             ? "var(--weight-black)"
             : "var(--weight-bold)",
           lineHeight: 1.25,
-          opacity: disabled ? 0.55 : undefined,
           cursor: disabled ? "default" : undefined,
           ...style,
         }}
@@ -67,7 +77,7 @@ export const InkButton = forwardRef<HTMLButtonElement, InkButtonProps>(
         {iconName && (
           <Icon
             name={iconName}
-            size={24}
+            size={iconSize}
             color={outline ? "var(--ink)" : "var(--text-on-green)"}
           />
         )}

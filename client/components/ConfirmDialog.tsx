@@ -12,6 +12,7 @@ export interface ConfirmDialogProps {
   open: boolean;
   message: string;
   confirmText?: string;
+  cancelText?: string;
   destructive?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
@@ -23,6 +24,7 @@ export function ConfirmDialog({
   open,
   message,
   confirmText = "确认",
+  cancelText = "取消",
   destructive = false,
   onConfirm,
   onCancel,
@@ -48,12 +50,14 @@ export function ConfirmDialog({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
+        // Capture + stop so an underlying sheet's Escape handler doesn't also fire.
+        event.stopPropagation();
         onCancelRef.current();
       }
     };
-    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown, true);
     return () => {
-      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown, true);
       previousFocus?.focus();
     };
   }, [open]);
@@ -109,7 +113,7 @@ export function ConfirmDialog({
         >
           <InkButton
             ref={cancelRef}
-            text="取消"
+            text={cancelText}
             outline
             onClick={onCancel}
           />

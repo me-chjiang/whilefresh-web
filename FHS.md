@@ -37,7 +37,7 @@
 │   ├── fonts/                 # Noto Serif SC Black 子集与 OFL 许可
 │   ├── textures/              # 可平铺纸纹与胶带纹理
 │   └── icons/                 # Tabler 线条 SVG（附许可文件）
-├── tests/                     # Vitest，按被测层分子目录（domain/ data/ ai/ recognition/ recipes/ services/ routes/）
+├── tests/                     # Vitest，按被测层分子目录（domain/ data/ ai/ recognition/ recipes/ services/ routes/ client/）
 │   └── helpers/               # 假 HTTP / Lexmount 服务与录制菜谱源等测试辅助
 ├── e2e/                       # Playwright 端到端测试（演示模式全流程）
 ├── test-data/                 # 合成样本、标准答案、合成样本的识别录制与测试词表

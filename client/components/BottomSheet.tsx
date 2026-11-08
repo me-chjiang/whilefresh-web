@@ -7,14 +7,18 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
+import { Icon } from "./Icon";
 import { SectionTape } from "./SectionTape";
 
 export interface BottomSheetProps {
   open: boolean;
   heading: string;
   tapeText?: string;
+  subtitle?: ReactNode;
+  footer?: ReactNode;
   sheetHeight?: number;
   onClose: () => void;
+  onMaskClick?: () => void;
   children: ReactNode;
   className?: string;
   style?: CSSProperties;
@@ -24,8 +28,11 @@ export function BottomSheet({
   open,
   heading,
   tapeText = "",
+  subtitle,
+  footer,
   sheetHeight = 600,
   onClose,
+  onMaskClick,
   children,
   className,
   style,
@@ -63,9 +70,11 @@ export function BottomSheet({
     return null;
   }
 
+  const height = `min(${sheetHeight}px, calc(100dvh - 48px))`;
+
   return createPortal(
     <>
-      <div className="modal-mask" aria-hidden="true" />
+      <div className="modal-mask" aria-hidden="true" onClick={onMaskClick ?? onClose} />
       <section
         ref={panelRef}
         className={["sheet", className].filter(Boolean).join(" ")}
@@ -80,45 +89,30 @@ export function BottomSheet({
           bottom: 0,
           left: 0,
           width: "min(100%, var(--app-max-width))",
-          maxHeight: `min(${sheetHeight}px, calc(100dvh - var(--gap-large)))`,
+          maxHeight: height,
           marginInline: "auto",
-          boxShadow: "var(--shadow-two)",
           ...style,
         }}
       >
         {tapeText && (
-          <div
-            style={{
-              position: "absolute",
-              zIndex: 2,
-              top: 0,
-              left: "50%",
-              transform: "translateX(-50%)",
-            }}
-          >
+          <div className="sheet__tape">
             <SectionTape label={tapeText} />
           </div>
         )}
-        <header
-          className="sheet__header"
-          style={{
-            paddingTop:
-              "calc(var(--gap-large) + var(--gap-small))",
-          }}
-        >
+        <header className="sheet__header">
           <h1 id={titleId}>{heading}</h1>
+          {subtitle && <p className="sheet__subtitle">{subtitle}</p>}
+          <button
+            type="button"
+            className="sheet__close"
+            aria-label="关闭"
+            onClick={onClose}
+          >
+            <Icon name="x" size={22} />
+          </button>
         </header>
-        <div
-          className="sheet__body"
-          style={{
-            flex: 1,
-            minHeight: 0,
-            overflowY: "auto",
-            paddingBottom: "var(--gap-large)",
-          }}
-        >
-          {children}
-        </div>
+        <div className="sheet__body">{children}</div>
+        {footer && <div className="sheet__foot">{footer}</div>}
       </section>
     </>,
     document.body,

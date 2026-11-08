@@ -43,6 +43,26 @@ import {
   type ShoppingEntry,
 } from "../domain/shopping-list.js";
 import { totalAmount } from "../domain/quantity.js";
+import { sameStatusState } from "../domain/undo.js";
+
+const UNDO_TTL_MS = 30_000;
+const UNDO_CAPACITY = 20;
+
+interface UndoEntry {
+  expiresAt: number;
+  before: FridgeItem[];
+  after: FridgeItem[];
+  overridesBefore: Map<string, PantryOverride | null>;
+  createdSuggestionIds: number[];
+}
+
+export interface UndoableResult {
+  ok: boolean;
+  token: string;
+  suggestions: string[];
+}
+
+export type UndoOutcome = "ok" | "expired" | "changed";
 
 export interface KitchenServiceOptions {
   store: Store;
@@ -79,6 +99,8 @@ export class KitchenService {
   private readonly store: Store;
   private readonly builtin: BuiltinData;
   private readonly clock: Clock;
+  private readonly undoJournal = new Map<string, UndoEntry>();
+  private undoCounter = 0;
 
   constructor({ store, builtin, clock }: KitchenServiceOptions) {
     this.store = store;
@@ -311,6 +333,120 @@ export class KitchenService {
       }
       return true;
     });
+  }
+
+  runUndoable(
+    ids: readonly number[],
+    action: () => boolean,
+  ): UndoableResult {
+    const before = ids.flatMap((id) => {
+      const item = this.store.item(id);
+      return item ? [structuredClone(item)] : [];
+    });
+    const names = new Set(
+      before.map((item) => item.canonicalName ?? ""),
+    );
+    const overridesFor = (): Map<string, PantryOverride | null> => {
+      const overrides = this.store.pantryOverrides();
+      return new Map(
+        [...names].map((name) => [
+          name,
+          overrides.find((override) => override.name === name) ?? null,
+        ]),
+      );
+    };
+    const overridesBefore = overridesFor();
+    const pendingBefore = new Set(
+      this.store.pendingSuggestions().map((suggestion) => suggestion.id),
+    );
+
+    if (!action()) {
+      return { ok: false, token: "", suggestions: [] };
+    }
+
+    const overridesAfter = overridesFor();
+    const changedOverrides = new Map(
+      [...overridesBefore].filter(
+        ([name, prior]) =>
+          JSON.stringify(prior) !== JSON.stringify(overridesAfter.get(name)),
+      ),
+    );
+    const pending = this.store.pendingSuggestions();
+    const suggestions = [
+      ...new Set(
+        pending
+          .filter(
+            (suggestion) =>
+              suggestion.kind === SuggestionKind.AddToShopping &&
+              names.has(suggestion.name),
+          )
+          .map((suggestion) => suggestion.name),
+      ),
+    ];
+    const now = this.clock.now().getTime();
+    for (const [token, entry] of this.undoJournal) {
+      if (entry.expiresAt <= now) {
+        this.undoJournal.delete(token);
+      }
+    }
+    while (this.undoJournal.size >= UNDO_CAPACITY) {
+      const oldest = this.undoJournal.keys().next().value;
+      if (oldest === undefined) {
+        break;
+      }
+      this.undoJournal.delete(oldest);
+    }
+    this.undoCounter += 1;
+    const token = `u${this.undoCounter}`;
+    this.undoJournal.set(token, {
+      expiresAt: now + UNDO_TTL_MS,
+      before,
+      after: before.flatMap((item) => {
+        const current = this.store.item(item.id ?? 0);
+        return current ? [current] : [];
+      }),
+      overridesBefore: changedOverrides,
+      createdSuggestionIds: pending
+        .filter((suggestion) => !pendingBefore.has(suggestion.id))
+        .flatMap((suggestion) =>
+          suggestion.id === undefined ? [] : [suggestion.id],
+        ),
+    });
+    return { ok: true, token, suggestions };
+  }
+
+  undo(token: string): UndoOutcome {
+    const entry = this.undoJournal.get(token);
+    this.undoJournal.delete(token);
+    if (!entry || entry.expiresAt <= this.clock.now().getTime()) {
+      return "expired";
+    }
+    for (const expected of entry.after) {
+      const current = this.store.item(expected.id ?? 0);
+      if (!current || !sameStatusState(current, expected)) {
+        return "changed";
+      }
+    }
+    const restored = this.transaction(() => {
+      for (const item of entry.before) {
+        if (!this.store.updateItem(structuredClone(item))) {
+          return false;
+        }
+      }
+      for (const [name, prior] of entry.overridesBefore) {
+        const done = prior
+          ? this.store.savePantryOverride(prior)
+          : this.store.deletePantryOverride(name);
+        if (!done) {
+          return false;
+        }
+      }
+      for (const id of entry.createdSuggestionIds) {
+        this.store.deleteSuggestion(id);
+      }
+      return true;
+    });
+    return restored ? "ok" : "changed";
   }
 
   setUseFirst(id: number, enabled: boolean): boolean {

@@ -67,6 +67,8 @@ export interface WebRecipeSummaryDto {
 
 export interface WebRecipeIngredientDto {
   raw: string;
+  name: string;
+  amount: string;
 }
 
 export interface WebRecipeStepDto {
@@ -161,6 +163,15 @@ export interface SaveItemResult {
 
 export interface ActionResult {
   ok: boolean;
+}
+
+export interface ItemActionResult extends ActionResult {
+  undoToken: string;
+  suggestions: string[];
+}
+
+export interface UndoItemRequest {
+  token: string;
 }
 
 export type ServiceSource = "user" | "builtin" | "none";
@@ -389,19 +400,19 @@ export const apiRoutes = {
     "PATCH",
     "/api/items/:id",
   ),
-  useItem: route<ItemRequest, ActionResult>(
+  useItem: route<ItemRequest, ItemActionResult>(
     "POST",
     "/api/items/:id/use",
   ),
-  markItemAbsent: route<ItemRequest, ActionResult>(
+  markItemAbsent: route<ItemRequest, ItemActionResult>(
     "POST",
     "/api/items/:id/absent",
   ),
-  discardItem: route<ItemRequest, ActionResult>(
+  discardItem: route<ItemRequest, ItemActionResult>(
     "POST",
     "/api/items/:id/discard",
   ),
-  snoozeItem: route<ItemRequest, ActionResult>(
+  snoozeItem: route<ItemRequest, ItemActionResult>(
     "POST",
     "/api/items/:id/snooze",
   ),
@@ -409,9 +420,13 @@ export const apiRoutes = {
     "POST",
     "/api/items/:id/first",
   ),
-  removeItems: route<RemoveItemsRequest, ActionResult>(
+  removeItems: route<RemoveItemsRequest, ItemActionResult>(
     "POST",
     "/api/items/remove",
+  ),
+  undoItemAction: route<UndoItemRequest, ActionResult>(
+    "POST",
+    "/api/items/undo",
   ),
   confirmRememberedRules: route<void, ActionResult>(
     "POST",

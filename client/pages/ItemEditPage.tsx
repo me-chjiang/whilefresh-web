@@ -127,19 +127,11 @@ export function ItemEditPage({ item }: ItemEditPageProps) {
     item.source === "package" ? sourceLabel : `${sourceLabel} · 估计`;
 
   return (
-    <section
-      className="page"
-      style={{
-        minHeight: "calc(100dvh - var(--nav-height) - var(--gap-large))",
-        margin: "var(--gap-small) var(--gap) var(--gap-large)",
-        paddingInline: "var(--section-padding)",
-      }}
-    >
+    <section className="page-shell">
       <PageHeader
         heading="编辑食材"
         backVisible
         onBack={goBack}
-        style={{ marginInline: "calc(-1 * var(--section-padding))" }}
       />
 
       <form

@@ -32,19 +32,11 @@ export function ServicesPage() {
   }, []);
 
   return (
-    <section
-      className="page"
-      style={{
-        minHeight: "calc(100dvh - var(--nav-height) - var(--gap-large))",
-        margin: "var(--gap-small) var(--gap) var(--gap-large)",
-        paddingInline: "var(--section-padding)",
-      }}
-    >
+    <section className="page-shell">
       <PageHeader
         heading="服务"
         actionText="返回"
         onAction={goBack}
-        style={{ marginInline: "calc(-1 * var(--section-padding))" }}
       />
 
       <div

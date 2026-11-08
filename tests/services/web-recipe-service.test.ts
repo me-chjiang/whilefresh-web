@@ -58,9 +58,9 @@ describe("web recipe service", () => {
       rating: 8.1,
       partial: false,
       ingredients: [
-        { raw: "鸡蛋 4个" },
-        { raw: "虾仁 200克" },
-        { raw: "葱 1束" },
+        { raw: "鸡蛋 4个", name: "鸡蛋", amount: "4个" },
+        { raw: "虾仁 200克", name: "虾仁", amount: "200克" },
+        { raw: "葱 1束", name: "葱", amount: "1束" },
       ],
       steps: [
         { order: 1, text: "准备食材" },

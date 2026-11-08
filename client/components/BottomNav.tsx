@@ -57,8 +57,8 @@ export function BottomNav({
               style={{
                 position: "relative",
                 display: "flex",
+                alignSelf: "stretch",
                 justifyContent: "center",
-                minHeight: "var(--nav-height)",
               }}
             >
               <button
@@ -69,7 +69,7 @@ export function BottomNav({
                 onClick={() => onSelect(2)}
                 style={{
                   position: "absolute",
-                  top: -34,
+                  top: "calc(-1 * (var(--stamp-rise) + var(--gap-small)))",
                   width: "var(--stamp-diameter)",
                   height: "var(--stamp-diameter)",
                   minWidth: "var(--stamp-diameter)",
@@ -100,6 +100,10 @@ export function BottomNav({
                       height: 28,
                       paddingInline: 4,
                       border: "2px solid white",
+                      fontFamily: "var(--font-sans)",
+                      fontSize: 13,
+                      fontWeight: "var(--weight-strong)",
+                      letterSpacing: 0,
                       transform: "rotate(-8deg)",
                     }}
                   >

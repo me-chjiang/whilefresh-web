@@ -1641,6 +1641,17 @@ export class Store {
     }
   }
 
+  deleteSuggestion(id: number): boolean {
+    try {
+      const result = this.database
+        .prepare("DELETE FROM suggestions WHERE id = ? AND status = 'pending'")
+        .run(id);
+      return number(result.changes) === 1;
+    } catch {
+      return false;
+    }
+  }
+
   addShoppingEntry(entry: ShoppingEntry): number {
     if (entry.names.length === 0) {
       return 0;

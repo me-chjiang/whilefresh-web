@@ -15,6 +15,7 @@
   --nav-rule: #d6c196;
   --chip-outline: #c9b77a;
   --chip-muted: #9a8b5c;
+  --tag-ink: #7a6648;
   --tomato: #d5432b;
   --green: #3e7f69;
   --mustard: #edbe4c;
@@ -87,12 +88,19 @@
   --nav-height: 80px;
   --section-gap: 20px;
   --section-padding: 12px;
+  --page-inset: 14px;
+  --top-inset-start: 22px;
+  --top-inset-end: 16px;
+  --compact-control: 34px;
   --row-height: 54px;
+  --row-gap: 10px;
+  --swipe-inset: 3px;
   --item-dot: 17px;
   --stamp-height: 22px;
   --badge-height: 19px;
   --tape-height: 26px;
   --recipe-height: 68px;
   --stamp-diameter: 84px;
+  --stamp-rise: 36px;
   --app-max-width: 480px;
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import type { WebRecipeSummaryDto } from "../../shared/api";
 import { useAppShell } from "../App";
@@ -9,11 +9,21 @@ import { InkButton } from "../components/InkButton";
 import { PageHeader } from "../components/PageHeader";
 import { WebRecipeDetailPage } from "./WebRecipeDetailPage";
 
-export interface RecipesPageProps {
-  initialKeyword?: string;
+export type RecipeSearchState = "idle" | "busy" | "done" | "error";
+
+export interface RecipeSearch {
+  query: string;
+  results: WebRecipeSummaryDto[];
+  state: RecipeSearchState;
+  error: string;
 }
 
-type SearchState = "idle" | "busy" | "done" | "error";
+const idleSearch: RecipeSearch = {
+  query: "",
+  results: [],
+  state: "idle",
+  error: "",
+};
 
 function errorMessage(error: unknown): string {
   if (error instanceof Error && error.message) {
@@ -22,100 +32,100 @@ function errorMessage(error: unknown): string {
   return "请稍后重试";
 }
 
-export function RecipesPage({ initialKeyword = "" }: RecipesPageProps) {
-  const { goBack, pushPage } = useAppShell();
-  const [query, setQuery] = useState(initialKeyword);
-  const [results, setResults] = useState<WebRecipeSummaryDto[]>([]);
-  const [searchState, setSearchState] = useState<SearchState>("idle");
-  const [searchError, setSearchError] = useState("");
-  const activeSearch = useRef<AbortController | null>(null);
-  const trimmedQuery = query.trim();
+export function useRecipeSearch() {
+  const [search, setSearch] = useState<RecipeSearch>(idleSearch);
+  const active = useRef<AbortController | null>(null);
 
-  const searchRecipes = useCallback(async (keyword: string) => {
+  const setQuery = useCallback((query: string) => {
+    setSearch((current) => ({ ...current, query }));
+  }, []);
+
+  const run = useCallback(async (keyword: string) => {
     const trimmed = keyword.trim();
     if (!trimmed) {
       return;
     }
 
-    activeSearch.current?.abort();
+    active.current?.abort();
     const controller = new AbortController();
-    activeSearch.current = controller;
-    setResults([]);
-    setSearchError("");
-    setSearchState("busy");
+    active.current = controller;
+    setSearch({ query: keyword, results: [], state: "busy", error: "" });
 
     try {
-      const next = await api.webRecipes(trimmed, 1, controller.signal);
-      if (activeSearch.current !== controller) {
+      const results = await api.webRecipes(trimmed, 1, controller.signal);
+      if (active.current !== controller) {
         return;
       }
-      setResults(next);
-      setSearchState("done");
+      setSearch((current) => ({ ...current, results, state: "done" }));
     } catch (error) {
-      if (activeSearch.current !== controller) {
+      if (active.current !== controller) {
         return;
       }
-      setSearchError(errorMessage(error));
-      setSearchState("error");
+      setSearch((current) => ({
+        ...current,
+        error: errorMessage(error),
+        state: "error",
+      }));
     } finally {
-      if (activeSearch.current === controller) {
-        activeSearch.current = null;
+      if (active.current === controller) {
+        active.current = null;
       }
     }
   }, []);
 
-  const cancelSearch = useCallback(() => {
-    const controller = activeSearch.current;
-    activeSearch.current = null;
+  const cancel = useCallback(() => {
+    const controller = active.current;
+    active.current = null;
     controller?.abort();
-    setSearchError("");
-    setSearchState("idle");
+    setSearch((current) => ({ ...current, error: "", state: "idle" }));
   }, []);
 
-  useEffect(() => {
-    if (initialKeyword.trim()) {
-      setQuery(initialKeyword);
-      void searchRecipes(initialKeyword);
-    }
-  }, [initialKeyword, searchRecipes]);
+  const reset = useCallback(() => {
+    const controller = active.current;
+    active.current = null;
+    controller?.abort();
+    setSearch(idleSearch);
+  }, []);
 
-  useEffect(
-    () => () => {
-      activeSearch.current?.abort();
-      activeSearch.current = null;
-    },
-    [],
-  );
+  return { search, setQuery, run, cancel, reset };
+}
+
+export function RecipesPage() {
+  const {
+    goBack,
+    pushPage,
+    recipeSearch: { search, setQuery, run, cancel },
+  } = useAppShell();
+  const [needKeyword, setNeedKeyword] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const busy = search.state === "busy";
 
   const submitSearch = () => {
-    if (searchState === "busy") {
-      cancelSearch();
-    } else {
-      void searchRecipes(query);
+    if (busy) {
+      cancel();
+      return;
     }
+    if (!search.query.trim()) {
+      setNeedKeyword(true);
+      inputRef.current?.focus();
+      return;
+    }
+    void run(search.query);
   };
 
   return (
-    <section
-      className="page"
-      style={{
-        minHeight: "calc(100dvh - var(--nav-height) - var(--gap-large))",
-        margin: "var(--gap-small) var(--gap) var(--gap-large)",
-        paddingInline: "var(--section-padding)",
-      }}
-    >
+    <section className="page-shell">
       <PageHeader
         heading="菜谱"
         subtitle="下厨房"
-        style={{ marginInline: "calc(-1 * var(--section-padding))" }}
       />
 
       <form
         role="search"
         onSubmit={(event) => {
           event.preventDefault();
-          if (searchState !== "busy") {
-            void searchRecipes(query);
+          if (!busy) {
+            submitSearch();
           }
         }}
         style={{
@@ -130,13 +140,18 @@ export function RecipesPage({ initialKeyword = "" }: RecipesPageProps) {
           background: "var(--card)",
         }}
       >
-        <Icon name="notes" size={22} color="var(--muted)" />
+        <Icon name="search" size={22} color="var(--muted)" />
         <input
+          ref={inputRef}
           type="search"
           aria-label="搜索菜名"
+          aria-invalid={needKeyword}
           placeholder="搜索菜名"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          value={search.query}
+          onChange={(event) => {
+            setNeedKeyword(false);
+            setQuery(event.target.value);
+          }}
           style={{
             width: "100%",
             minWidth: 0,
@@ -150,104 +165,83 @@ export function RecipesPage({ initialKeyword = "" }: RecipesPageProps) {
           }}
         />
       </form>
+      {needKeyword && (
+        <p role="status" className="field-hint">
+          请输入菜名或食材
+        </p>
+      )}
 
       <InkButton
         fullWidth
-        text={searchState === "busy" ? "取消搜索" : "搜下厨房"}
-        iconName="notes"
-        outline={searchState === "busy"}
-        disabled={searchState !== "busy" && !trimmedQuery}
+        text={busy ? "取消搜索" : "搜下厨房"}
+        iconName={busy ? "x" : "search"}
+        outline={busy}
         onClick={submitSearch}
         style={{ marginTop: "var(--gap)" }}
       />
 
-      <div
-        style={{
-          display: "grid",
-          gap: "var(--gap-small)",
-          marginTop: "var(--gap)",
-        }}
-      >
-        {(searchState === "busy" || searchState === "error") && (
-          <p
-            role={searchState === "error" ? "alert" : "status"}
-            aria-live="polite"
-            style={{
-              margin: 0,
-              color:
-                searchState === "error"
-                  ? "var(--nearing)"
-                  : "var(--muted)",
-              fontSize: "var(--text-subtitle)",
-            }}
-          >
-            {searchState === "busy" ? "搜索中…" : searchError}
-          </p>
-        )}
+      {(search.state === "busy" || search.state === "error") && (
+        <p
+          role={search.state === "error" ? "alert" : "status"}
+          aria-live="polite"
+          style={{
+            margin: "var(--gap) 0 0",
+            color:
+              search.state === "error" ? "var(--nearing)" : "var(--muted)",
+            fontSize: "var(--text-subtitle)",
+          }}
+        >
+          {busy ? "搜索中…" : search.error}
+        </p>
+      )}
 
-        {searchState === "done" && results.length === 0 && (
-          <EmptyState
-            iconName="book-2"
-            heading="没有找到菜谱"
-            detail=""
-            style={{ paddingBlock: "calc(var(--gap-large) * 2)" }}
-          />
-        )}
+      {search.state === "done" && search.results.length === 0 && (
+        <EmptyState
+          iconName="book-2"
+          heading="没有找到菜谱"
+          detail=""
+          style={{
+            marginTop: "var(--gap)",
+            paddingBlock: "calc(var(--gap-large) * 2)",
+          }}
+        />
+      )}
 
-        {results.map((recipe) => (
-          <button
-            key={recipe.id}
-            type="button"
-            onClick={() =>
-              pushPage({
-                key: `web-recipe-detail-${recipe.id}`,
-                title: "菜谱卡",
-                element: (
-                  <WebRecipeDetailPage
-                    recipeId={recipe.id}
-                    onBack={goBack}
-                  />
-                ),
-              })
-            }
-            style={{
-              display: "flex",
-              alignItems: "center",
-              width: "100%",
-              minHeight: "calc(var(--touch) + var(--gap-small))",
-              gap: "var(--gap-small)",
-              paddingInline: "var(--gap)",
-              border: "1px solid var(--outline)",
-              borderRadius: "var(--radius-row)",
-              color: "var(--ink)",
-              background: "var(--card)",
-              textAlign: "left",
-            }}
-          >
-            <span
-              style={{
-                flex: 1,
-                minWidth: 0,
-                overflow: "hidden",
-                fontSize: "var(--text-recipe)",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {recipe.name}
-            </span>
-            <span
-              style={{
-                flex: "none",
-                color: "var(--muted)",
-                fontSize: "var(--text-meta)",
-              }}
-            >
-              下厨房
-            </span>
-          </button>
-        ))}
-      </div>
+      {search.results.length > 0 && (
+        <ul className="recipe-list">
+          {search.results.map((recipe) => (
+            <li key={recipe.id}>
+              <button
+                type="button"
+                className="recipe-card"
+                onClick={() =>
+                  pushPage({
+                    key: `web-recipe-detail-${recipe.id}`,
+                    title: "菜谱卡",
+                    element: (
+                      <WebRecipeDetailPage
+                        recipeId={recipe.id}
+                        onBack={goBack}
+                      />
+                    ),
+                  })
+                }
+              >
+                <span className="recipe-card__main">
+                  <span className="recipe-card__title">{recipe.name}</span>
+                  <span className="recipe-card__meta">
+                    <span className="src-tag">
+                      <Icon name="book-2" size={13} />
+                      下厨房
+                    </span>
+                  </span>
+                </span>
+                <Icon name="chevron-right" size={20} color="var(--outline)" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

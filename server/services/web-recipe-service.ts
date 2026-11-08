@@ -16,6 +16,8 @@ export interface WebRecipeSummaryDto {
 
 export interface WebRecipeIngredientDto {
   raw: string;
+  name: string;
+  amount: string;
 }
 
 export interface WebRecipeStepDto {
@@ -77,7 +79,11 @@ function detailDto(recipe: WebRecipe): WebRecipeDetailDto {
     name: recipe.name,
     imageUrl: recipe.imageUrl,
     rating: recipe.rating ?? 0,
-    ingredients: recipe.ingredients.map(({ raw }) => ({ raw })),
+    ingredients: recipe.ingredients.map(({ raw, name, amount }) => ({
+      raw,
+      name,
+      amount,
+    })),
     steps: recipe.steps.map(({ order, text, imageUrl }) => ({
       order,
       text,

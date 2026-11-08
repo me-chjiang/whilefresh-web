@@ -6,6 +6,7 @@ export interface PageHeaderProps {
   heading: string;
   subtitle?: string;
   actionText?: string;
+  actionIcon?: string;
   backVisible?: boolean;
   onBack?: () => void;
   onAction?: () => void;
@@ -14,14 +15,23 @@ export interface PageHeaderProps {
 }
 
 const actionStyle: CSSProperties = {
+  display: "inline-flex",
   flex: "none",
-  width: "auto",
+  alignItems: "center",
+  minWidth: 0,
   minHeight: "var(--touch)",
-  paddingInline: "var(--gap-large)",
-  border: "1px solid var(--outline)",
+};
+
+const actionTagStyle: CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  height: "var(--compact-control)",
+  padding: "0 var(--gap) 0 var(--gap-small)",
+  gap: 2,
+  border: "1.5px dashed var(--outline)",
   borderRadius: "var(--radius-row)",
   color: "var(--muted)",
-  background: "var(--selected-paper)",
+  background: "rgb(255 251 240 / 0.7)",
   fontSize: "var(--text-control)",
   fontWeight: "var(--weight-bold)",
 };
@@ -30,6 +40,7 @@ export function PageHeader({
   heading,
   subtitle = "",
   actionText = "",
+  actionIcon,
   backVisible = false,
   onBack,
   onAction,
@@ -41,7 +52,6 @@ export function PageHeader({
       className={["top-bar", className].filter(Boolean).join(" ")}
       style={{
         minHeight: "var(--top-height)",
-        paddingInline: 0,
         gap: "var(--gap-small)",
         ...style,
       }}
@@ -79,7 +89,8 @@ export function PageHeader({
           style={{
             flex: "0 1 auto",
             minWidth: 0,
-            margin: 0,
+            margin: "0 calc(-1 * var(--gap-tiny))",
+            paddingInline: "var(--gap-tiny)",
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
@@ -106,7 +117,10 @@ export function PageHeader({
 
       {actionText && (
         <button type="button" onClick={onAction} style={actionStyle}>
-          {actionText}
+          <span style={actionTagStyle}>
+            {actionIcon && <Icon name={actionIcon} size={18} />}
+            {actionText}
+          </span>
         </button>
       )}
     </header>

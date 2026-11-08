@@ -6,9 +6,11 @@ import { DateOrigin } from "../../shared/enums.js";
 import type {
   ActionResult,
   AddManualItemRequest,
+  ItemActionResult,
   ItemEdits,
   RemoveItemsRequest,
   SaveItemResult,
+  UndoItemRequest,
   UpdateItemRequest,
   UseFirstRequest,
 } from "../../shared/api.js";
@@ -258,10 +260,18 @@ export function registerItemRoutes(
       if (request.body.id !== request.params.id) {
         return fail(reply, 400, "请求参数不一致");
       }
-      if (!context.state.activeKitchen.useItem(request.params.id)) {
+      const kitchen = context.state.activeKitchen;
+      const result = kitchen.runUndoable([request.params.id], () =>
+        kitchen.useItem(request.params.id),
+      );
+      if (!result.ok) {
         return fail(reply, 404, "食材不存在或已处理");
       }
-      return { ok: true } satisfies ActionResult;
+      return {
+        ok: true,
+        undoToken: result.token,
+        suggestions: result.suggestions,
+      } satisfies ItemActionResult;
     },
   );
 
@@ -282,10 +292,18 @@ export function registerItemRoutes(
       if (request.body.id !== request.params.id) {
         return fail(reply, 400, "请求参数不一致");
       }
-      if (!context.state.activeKitchen.markAbsent(request.params.id)) {
+      const kitchen = context.state.activeKitchen;
+      const result = kitchen.runUndoable([request.params.id], () =>
+        kitchen.markAbsent(request.params.id),
+      );
+      if (!result.ok) {
         return fail(reply, 404, "食材不存在");
       }
-      return { ok: true } satisfies ActionResult;
+      return {
+        ok: true,
+        undoToken: result.token,
+        suggestions: result.suggestions,
+      } satisfies ItemActionResult;
     },
   );
 
@@ -309,10 +327,18 @@ export function registerItemRoutes(
       if (!context.state.activeStore.item(request.params.id)) {
         return fail(reply, 404, "食材不存在");
       }
-      if (!context.state.activeKitchen.discardItem(request.params.id)) {
+      const kitchen = context.state.activeKitchen;
+      const result = kitchen.runUndoable([request.params.id], () =>
+        kitchen.discardItem(request.params.id),
+      );
+      if (!result.ok) {
         return fail(reply, 409, "食材已处理");
       }
-      return { ok: true } satisfies ActionResult;
+      return {
+        ok: true,
+        undoToken: result.token,
+        suggestions: result.suggestions,
+      } satisfies ItemActionResult;
     },
   );
 
@@ -336,10 +362,18 @@ export function registerItemRoutes(
       if (!context.state.activeStore.item(request.params.id)) {
         return fail(reply, 404, "食材不存在");
       }
-      if (!context.state.activeKitchen.snoozeItem(request.params.id)) {
+      const kitchen = context.state.activeKitchen;
+      const result = kitchen.runUndoable([request.params.id], () =>
+        kitchen.snoozeItem(request.params.id),
+      );
+      if (!result.ok) {
         return fail(reply, 409, "只能忽略临期食材");
       }
-      return { ok: true } satisfies ActionResult;
+      return {
+        ok: true,
+        undoToken: result.token,
+        suggestions: result.suggestions,
+      } satisfies ItemActionResult;
     },
   );
 
@@ -395,10 +429,47 @@ export function registerItemRoutes(
       },
     },
     async (request, reply) => {
-      for (const id of request.body.ids) {
-        if (!context.state.activeKitchen.markAbsent(id)) {
-          return fail(reply, 404, "部分食材不存在");
-        }
+      if (
+        request.body.ids.some((id) => !context.state.activeStore.item(id))
+      ) {
+        return fail(reply, 404, "部分食材不存在");
+      }
+      const kitchen = context.state.activeKitchen;
+      const result = kitchen.runUndoable(request.body.ids, () =>
+        request.body.ids.every((id) => kitchen.markAbsent(id)),
+      );
+      if (!result.ok) {
+        return fail(reply, 404, "部分食材不存在");
+      }
+      return {
+        ok: true,
+        undoToken: result.token,
+        suggestions: result.suggestions,
+      } satisfies ItemActionResult;
+    },
+  );
+
+  app.post<{ Body: UndoItemRequest }>(
+    "/api/items/undo",
+    {
+      schema: {
+        body: {
+          type: "object",
+          additionalProperties: false,
+          required: ["token"],
+          properties: {
+            token: { type: "string", minLength: 1, maxLength: 64 },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const outcome = context.state.activeKitchen.undo(request.body.token);
+      if (outcome === "expired") {
+        return fail(reply, 404, "撤销已过期");
+      }
+      if (outcome === "changed") {
+        return fail(reply, 409, "食材状态已变化，无法撤销");
       }
       return { ok: true } satisfies ActionResult;
     },

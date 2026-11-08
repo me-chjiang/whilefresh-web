@@ -575,6 +575,25 @@ describe("store", () => {
     expect(harness.store.addSuggestion({ ...first })).not.toBe(id);
   });
 
+  it("deletes only pending suggestions", () => {
+    const pending: StoredSuggestion = {
+      kind: SuggestionKind.AddToShopping,
+      name: "盐",
+      message: "加入待买吗？",
+    };
+    const pendingId = harness.store.addSuggestion(pending);
+    expect(harness.store.deleteSuggestion(pendingId)).toBe(true);
+    expect(harness.store.pendingSuggestions()).toEqual([]);
+
+    const resolvedId = harness.store.addSuggestion({ ...pending });
+    expect(harness.store.resolveSuggestion(resolvedId, true)).toBe(true);
+    expect(harness.store.deleteSuggestion(resolvedId)).toBe(false);
+    const row = harness.database
+      .prepare("SELECT COUNT(*) AS n FROM suggestions WHERE id = ?")
+      .get(resolvedId) as { n: number };
+    expect(row.n).toBe(1);
+  });
+
   it("deduplicates and removes shopping entries", () => {
     const first = makeShoppingEntry(
       ["牛奶", "淡奶油"],

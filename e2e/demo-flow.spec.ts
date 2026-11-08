@@ -33,6 +33,12 @@ test("演示模式完成入库到清空数据的完整流程", async ({ page }) 
     consoleErrors.push(error.message);
   });
 
+  let searchRequests = 0;
+  page.on("request", (request) => {
+    if (request.url().includes("/api/web-recipes?")) {
+      searchRequests += 1;
+    }
+  });
   await page.route("**/api/web-recipes**", async (route) => {
     await route.fulfill({
       status: 200,
@@ -56,7 +62,10 @@ test("演示模式完成入库到清空数据的完整流程", async ({ page }) 
         name: "五花肉炒时蔬",
         imageUrl: "",
         rating: 8.6,
-        ingredients: [{ raw: "五花肉 300g" }, { raw: "时蔬 200g" }],
+        ingredients: [
+          { raw: "五花肉 300g", name: "五花肉", amount: "300g" },
+          { raw: "时蔬 200g", name: "时蔬", amount: "200g" },
+        ],
         steps: [
           { order: 1, text: "五花肉切片。", imageUrl: "" },
           { order: 2, text: "下锅炒熟。", imageUrl: "" },
@@ -74,7 +83,7 @@ test("演示模式完成入库到清空数据的完整流程", async ({ page }) 
 
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: /^冰箱 · 共 \d+ 件$/ }),
+    page.getByText(/^共 \d+ 件$/),
   ).toBeVisible();
 
   await page.getByRole("button", { name: "我的", exact: true }).click();
@@ -82,8 +91,10 @@ test("演示模式完成入库到清空数据的完整流程", async ({ page }) 
   await expect(
     page.getByText("演示模式 · 示例数据，识别为预设结果，不联网"),
   ).toBeVisible();
+  await expect(page.getByText("已开启演示模式", { exact: true })).toBeVisible();
 
-  await page.getByRole("button", { name: "＋ 入库" }).click();
+  await page.getByRole("button", { name: "冰箱", exact: true }).click();
+  await page.getByRole("button", { name: "入库", exact: true }).click();
   await page
     .getByRole("button", { name: "相册截图 · 可多选", exact: true })
     .click();
@@ -96,45 +107,31 @@ test("演示模式完成入库到清空数据的完整流程", async ({ page }) 
   await fileChooser.setFiles(screenshotPath);
 
   await expect(
-    page.getByRole("button", { name: "同意并识别", exact: true }),
-  ).toBeVisible();
-  await page
-    .getByRole("button", { name: "同意并识别", exact: true })
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "请检查并修改", exact: true }),
+    page.getByRole("heading", { name: "确认入库", exact: true }),
   ).toBeVisible({ timeout: 15_000 });
   await expect(
     page.getByRole("heading", { name: "食材 · 3 项", exact: true }),
   ).toBeVisible();
 
-  const eggCard = page
-    .locator("article")
-    .filter({ has: page.getByLabel("鸡蛋的名称", { exact: true }) });
-  await eggCard
-    .getByRole("button", { name: "移入调料", exact: true })
-    .click();
+  const egg = page.locator("li.ing").filter({ hasText: "鸡蛋" });
+  await egg.getByRole("button", { name: "鸡蛋，点按修改", exact: true }).click();
+  await egg.getByRole("button", { name: "移入调料", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "常备调料 · 1 项", exact: true }),
   ).toBeVisible();
 
-  const tofuCard = page
-    .locator("article")
-    .filter({ has: page.getByLabel("豆腐的名称", { exact: true }) });
-  await tofuCard
-    .getByRole("button", { name: "移入已忽略", exact: true })
-    .click();
+  const tofu = page.locator("li.ing").filter({ hasText: "豆腐" });
+  await tofu.getByRole("button", { name: "豆腐，点按修改", exact: true }).click();
+  await tofu.getByRole("button", { name: "移入已忽略", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "已忽略 · 1 项", exact: true }),
+    page.getByRole("button", { name: "已忽略 · 1 项", exact: true }),
   ).toBeVisible();
 
   await page
     .getByRole("button", { name: "确认入库 · 1 项食材", exact: true })
     .click();
   await expect(page.getByText("已加入冰箱", { exact: true })).toBeVisible();
-  const fridgeHeading = page.getByRole("heading", {
-    name: /^冰箱 · 共 \d+ 件$/,
-  });
+  const fridgeHeading = page.getByText(/^共 \d+ 件$/);
   await expect(fridgeHeading).toBeVisible();
   await expect(page.locator(".freshness-stamp").first()).toBeVisible();
   const seasoningTape = page
@@ -156,11 +153,20 @@ test("演示模式完成入库到清空数据的完整流程", async ({ page }) 
   await expect(discardButton).toBeEnabled();
   await discardButton.click();
   await expect(discardedRow).toHaveCount(0);
+  await expect(page.getByText("已扔掉「鸡蛋」", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "撤销", exact: true }).click();
+  await expect(page.getByText("已撤销", { exact: true })).toBeVisible();
+  await expect(discardedRow).toHaveCount(1);
   await expect(
-    page.getByRole("heading", {
-      name: `冰箱 · 共 ${importedCount - 1} 件`,
-      exact: true,
-    }),
+    page.getByText(`共 ${importedCount} 件`, { exact: true }),
+  ).toBeVisible();
+
+  await swipeLeft(page, discardedRow);
+  await expect(discardButton).toBeEnabled();
+  await discardButton.click();
+  await expect(discardedRow).toHaveCount(0);
+  await expect(
+    page.getByText(`共 ${importedCount - 1} 件`, { exact: true }),
   ).toBeVisible();
 
   await page.getByRole("button", { name: /^蓝莓，/ }).click();
@@ -180,7 +186,7 @@ test("演示模式完成入库到清空数据的完整流程", async ({ page }) 
     .getByRole("button", { name: "记住这个设置", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: /^冰箱 · 共 \d+ 件$/ }),
+    page.getByText(/^共 \d+ 件$/),
   ).toBeVisible();
 
   await page.getByRole("button", { name: "我的", exact: true }).click();
@@ -222,6 +228,12 @@ test("演示模式完成入库到清空数据的完整流程", async ({ page }) 
     "href",
     "https://www.xiachufang.com/recipe/103468406/",
   );
+  await page.goBack();
+  await expect(
+    page.getByRole("button", { name: /^五花肉炒时蔬/ }),
+  ).toBeVisible();
+  await expect(page.getByLabel("搜索菜名")).toHaveValue("五花肉");
+  expect(searchRequests).toBe(1);
 
   await page.getByRole("button", { name: "待买", exact: true }).click();
   await expect(
@@ -296,7 +308,7 @@ test("演示模式完成入库到清空数据的完整流程", async ({ page }) 
 
   await page.getByRole("button", { name: "冰箱", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "冰箱 · 共 0 件", exact: true }),
+    page.getByText("共 0 件", { exact: true }),
   ).toBeVisible();
   expect(consoleErrors).toEqual([]);
 });

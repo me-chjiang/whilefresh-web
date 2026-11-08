@@ -1,7 +1,8 @@
-import { useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 import type { CategoryCode } from "../../shared/enums";
 import { api, ApiError } from "../api";
+import { BottomSheet } from "../components/BottomSheet";
 import { CategoryDot } from "../components/CategoryDot";
 import { EmptyState } from "../components/EmptyState";
 import { Icon } from "../components/Icon";
@@ -44,20 +45,62 @@ function messageFor(error: unknown): string {
   return "请稍后重试";
 }
 
-async function writeClipboard(text: string): Promise<void> {
-  if (
-    !navigator.clipboard ||
-    typeof navigator.clipboard.writeText !== "function"
-  ) {
-    throw new Error("当前浏览器不支持复制");
+function legacyCopy(text: string): boolean {
+  const area = document.createElement("textarea");
+  area.value = text;
+  area.setAttribute("aria-hidden", "true");
+  area.style.cssText =
+    "position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;font-size:16px";
+  document.body.appendChild(area);
+  try {
+    area.focus();
+    area.select();
+    area.setSelectionRange(0, text.length);
+    return document.execCommand("copy");
+  } catch {
+    return false;
+  } finally {
+    area.remove();
   }
-  await navigator.clipboard.writeText(text);
+}
+
+async function copyText(text: string): Promise<boolean> {
+  if (window.isSecureContext && navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // Permission denied or unfocused page: try the legacy path next.
+    }
+  }
+  return legacyCopy(text);
 }
 
 export function ShoppingPage() {
   const { state, refresh, notify } = useAppShell();
   const [removingId, setRemovingId] = useState<number | null>(null);
   const [sharing, setSharing] = useState<"copy" | "share" | null>(null);
+  const [listText, setListText] = useState<string | null>(null);
+  const [manualText, setManualText] = useState<string | null>(null);
+  const manualRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    let current = true;
+    api
+      .shoppingText()
+      .then(({ text }) => current && setListText(text))
+      .catch(() => current && setListText(null));
+    return () => {
+      current = false;
+    };
+  }, [state.shopping]);
+
+  useEffect(() => {
+    if (manualText !== null) {
+      manualRef.current?.focus();
+      manualRef.current?.select();
+    }
+  }, [manualText]);
 
   const removeItem = async (id: number) => {
     if (removingId !== null) {
@@ -74,10 +117,16 @@ export function ShoppingPage() {
     }
   };
 
-  const copyList = async (message = "已复制待买清单") => {
-    const { text } = await api.shoppingText();
-    await writeClipboard(text);
-    notify(message);
+  const loadText = async (): Promise<string> =>
+    listText ?? (await api.shoppingText()).text;
+
+  const copyOrShow = async (message: string) => {
+    const text = await loadText();
+    if (await copyText(text)) {
+      notify(message);
+    } else {
+      setManualText(text);
+    }
   };
 
   const copy = async () => {
@@ -86,9 +135,11 @@ export function ShoppingPage() {
     }
     setSharing("copy");
     try {
-      await copyList();
+      await copyOrShow("已复制待买清单");
     } catch (error) {
-      notify(`复制失败：${messageFor(error)}`);
+      notify(
+        error instanceof ApiError ? error.message : "复制失败，请手动复制",
+      );
     } finally {
       setSharing(null);
     }
@@ -100,10 +151,10 @@ export function ShoppingPage() {
     }
     setSharing("share");
     try {
-      const { text } = await api.shoppingText();
+      const text = await loadText();
+      const fallback = "当前浏览器不支持系统分享，已复制待买清单";
       if (typeof navigator.share !== "function") {
-        await writeClipboard(text);
-        notify("当前浏览器不支持分享，已复制待买清单");
+        await copyOrShow(fallback);
         return;
       }
       try {
@@ -112,11 +163,12 @@ export function ShoppingPage() {
         if (error instanceof DOMException && error.name === "AbortError") {
           return;
         }
-        await writeClipboard(text);
-        notify("无法打开系统分享，已复制待买清单");
+        await copyOrShow(fallback);
       }
     } catch (error) {
-      notify(`分享失败：${messageFor(error)}`);
+      notify(
+        error instanceof ApiError ? error.message : "分享失败，请稍后重试",
+      );
     } finally {
       setSharing(null);
     }
@@ -132,18 +184,10 @@ export function ShoppingPage() {
     .filter((section) => section.entries.length > 0);
 
   return (
-    <section
-      className="page"
-      style={{
-        minHeight: "calc(100dvh - var(--nav-height) - var(--gap-large))",
-        margin: "var(--gap-small) var(--gap) var(--gap-large)",
-        paddingInline: "var(--section-padding)",
-      }}
-    >
+    <section className="page-shell">
       <PageHeader
         heading="待买"
         subtitle="做菜缺的料"
-        style={{ marginInline: "calc(-1 * var(--section-padding))" }}
       />
 
       {state.shopping.length === 0 ? (
@@ -238,7 +282,7 @@ export function ShoppingPage() {
           >
             <InkButton
               fullWidth
-              iconName="notes"
+              iconName="copy"
               text={sharing === "copy" ? "正在复制…" : "复制清单"}
               disabled={sharing !== null}
               onClick={() => void copy()}
@@ -246,7 +290,7 @@ export function ShoppingPage() {
             <InkButton
               fullWidth
               outline
-              iconName="list-check"
+              iconName="share"
               text={sharing === "share" ? "正在分享…" : "分享清单"}
               disabled={sharing !== null}
               onClick={() => void share()}
@@ -254,6 +298,28 @@ export function ShoppingPage() {
           </div>
         </>
       )}
+
+      <BottomSheet
+        open={manualText !== null}
+        heading="复制待买清单"
+        tapeText="待买清单"
+        subtitle="请长按文字，全选后复制"
+        sheetHeight={420}
+        onClose={() => setManualText(null)}
+        footer={
+          <InkButton fullWidth text="关闭" onClick={() => setManualText(null)} />
+        }
+      >
+        <textarea
+          ref={manualRef}
+          className="field-input"
+          readOnly
+          rows={8}
+          aria-label="待买清单文本"
+          value={manualText ?? ""}
+          style={{ width: "100%", resize: "none" }}
+        />
+      </BottomSheet>
     </section>
   );
 }

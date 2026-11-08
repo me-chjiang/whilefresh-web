@@ -1,7 +1,8 @@
-import { useState, type CSSProperties } from "react";
+import { useEffect, useState } from "react";
 
-import type { ItemDto } from "../../shared/api";
+import type { ItemActionResult, ItemDto } from "../../shared/api";
 import { api, ApiError } from "../api";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import { EmptyState } from "../components/EmptyState";
 import { InkButton } from "../components/InkButton";
 import { PageHeader } from "../components/PageHeader";
@@ -38,14 +39,6 @@ const sections = [
   },
 ] as const;
 
-const cardStyle: CSSProperties = {
-  position: "relative",
-  marginTop: "var(--gap-large)",
-  borderRadius: "var(--radius-card)",
-  background: "var(--card)",
-  boxShadow: "var(--shadow-one)",
-};
-
 function messageFor(error: unknown): string {
   if (error instanceof ApiError) {
     return error.message;
@@ -67,6 +60,8 @@ export function FridgePage() {
   const [multiSelect, setMultiSelect] = useState(false);
   const [checkedIds, setCheckedIds] = useState<number[]>([]);
   const [removing, setRemoving] = useState(false);
+  const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false);
+  const [openRowId, setOpenRowId] = useState<number | null>(null);
   const [importActionBusy, setImportActionBusy] = useState(false);
 
   const toggleSelection = (item: ItemDto) => {
@@ -83,6 +78,19 @@ export function FridgePage() {
     setCheckedIds([]);
   };
 
+  useEffect(() => {
+    if (!multiSelect) {
+      return;
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !removeConfirmOpen) {
+        finishSelection();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [multiSelect, removeConfirmOpen]);
+
   const editItem = (item: ItemDto) => {
     pushPage({
       key: `edit-item-${item.id}`,
@@ -91,30 +99,68 @@ export function FridgePage() {
     });
   };
 
+  const undo = async (token: string) => {
+    try {
+      await api.undoItemAction({ token });
+      await refresh();
+      notify("已撤销");
+    } catch (error) {
+      notify(messageFor(error));
+    }
+  };
+
   const runItemAction = async (
-    action: () => Promise<unknown>,
-    successMessage?: string,
+    action: () => Promise<ItemActionResult>,
+    describe: (result: ItemActionResult) => { message: string; undo: boolean },
   ) => {
     try {
-      await action();
+      const result = await action();
       await refresh();
-      if (successMessage) {
-        notify(successMessage);
-      }
+      const { message, undo: undoable } = describe(result);
+      notify(
+        message,
+        undoable && result.undoToken
+          ? { label: "撤销", run: () => void undo(result.undoToken) }
+          : undefined,
+      );
+    } catch (error) {
+      notify(messageFor(error));
+    }
+  };
+
+  const setFirst = async (ingredient: ItemDto) => {
+    try {
+      await api.setItemUseFirst({
+        id: ingredient.id,
+        enabled: !ingredient.first,
+      });
+      await refresh();
     } catch (error) {
       notify(messageFor(error));
     }
   };
 
   const removeSelected = async () => {
+    setRemoveConfirmOpen(false);
     if (checkedIds.length === 0 || removing) {
       return;
     }
     setRemoving(true);
     try {
-      await api.removeItems({ ids: checkedIds });
+      const count = checkedIds.length;
+      const result = await api.removeItems({ ids: checkedIds });
       finishSelection();
       await refresh();
+      const note =
+        result.suggestions.length > 0
+          ? `，其中 ${result.suggestions.length} 件已在「我的」生成待买建议`
+          : "";
+      notify(
+        `已移除 ${count} 件${note}`,
+        result.undoToken
+          ? { label: "撤销", run: () => void undo(result.undoToken) }
+          : undefined,
+      );
     } catch (error) {
       notify(`移除失败：${messageFor(error)}`);
     } finally {
@@ -153,19 +199,13 @@ export function FridgePage() {
   };
 
   return (
-    <section
-      className="page"
-      style={{
-        minHeight: "calc(100dvh - var(--nav-height) - var(--gap-large))",
-        margin: "var(--gap-small) var(--gap) var(--gap-large)",
-        paddingInline: "var(--section-padding)",
-      }}
-    >
+    <section className="page-shell">
       <PageHeader
-        heading={`冰箱 · 共 ${state.items.length} 件`}
-        actionText="＋ 入库"
+        heading="冰箱"
+        subtitle={`共 ${state.items.length} 件`}
+        actionIcon="plus"
+        actionText="入库"
         onAction={openImport}
-        style={{ marginInline: "calc(-1 * var(--section-padding))" }}
       />
 
       {state.hasUnfinishedImport && (
@@ -218,7 +258,7 @@ export function FridgePage() {
           style={{ paddingBlock: "calc(var(--gap-large) * 2)" }}
         />
       ) : (
-        <div style={{ paddingBottom: "var(--gap-small)" }}>
+        <div style={{ paddingTop: "var(--gap)" }}>
           {sections.map((section) => {
             const items = state.items.filter(
               (item) => item.group === section.location,
@@ -228,13 +268,13 @@ export function FridgePage() {
             }
 
             return (
-              <div key={section.location} style={cardStyle}>
+              <div key={section.location} className="page">
                 <div
                   style={{
                     position: "absolute",
                     zIndex: 2,
                     top: "calc(-1 * var(--tape-height) / 2)",
-                    left: "var(--gap-large)",
+                    left: "var(--page-inset)",
                   }}
                 >
                   <SectionTape
@@ -244,52 +284,72 @@ export function FridgePage() {
                     tapeColor={section.tapeColor}
                   />
                 </div>
-                <div
-                  style={{
-                    display: "grid",
-                    gap: 2,
-                    padding:
-                      "calc(var(--tape-height) / 2 + var(--gap-large)) var(--gap) var(--gap)",
-                  }}
-                >
+                <div style={{ display: "grid" }}>
                   {items.map((item) => (
                     <PantryRow
                       key={item.id}
                       ingredient={item}
                       multiSelect={multiSelect}
                       checked={checkedIds.includes(item.id)}
+                      forceClosed={openRowId !== null && openRowId !== item.id}
+                      onOpenChange={(open) =>
+                        setOpenRowId((current) =>
+                          open
+                            ? item.id
+                            : current === item.id
+                              ? null
+                              : current,
+                        )
+                      }
                       onEditRequested={editItem}
                       onSelectionRequested={toggleSelection}
                       onUsed={(ingredient) =>
                         void runItemAction(
                           () => api.useItem({ id: ingredient.id }),
-                          ingredient.bulk
-                            ? `${ingredient.name}默认存量多，已保留；需要时请标记家里没有`
-                            : undefined,
+                          () =>
+                            ingredient.bulk
+                              ? {
+                                  message: `「${ingredient.name}」默认存量多，已保留；需要时请标记家里没有`,
+                                  undo: false,
+                                }
+                              : {
+                                  message: `已用掉「${ingredient.name}」`,
+                                  undo: true,
+                                },
                         )
                       }
                       onUnavailable={(ingredient) =>
-                        void runItemAction(() =>
-                          api.markItemAbsent({ id: ingredient.id }),
+                        void runItemAction(
+                          () => api.markItemAbsent({ id: ingredient.id }),
+                          (result) => ({
+                            message:
+                              result.suggestions.length > 0
+                                ? `「${ingredient.name}」家里没有，已在「我的」生成加入待买的建议`
+                                : `「${ingredient.name}」已标记为家里没有`,
+                            undo: true,
+                          }),
                         )
                       }
                       onDiscarded={(ingredient) =>
-                        void runItemAction(() =>
-                          api.discardItem({ id: ingredient.id }),
+                        void runItemAction(
+                          () => api.discardItem({ id: ingredient.id }),
+                          () => ({
+                            message: `已扔掉「${ingredient.name}」`,
+                            undo: true,
+                          }),
                         )
                       }
                       onSnoozed={(ingredient) =>
-                        void runItemAction(() =>
-                          api.snoozeItem({ id: ingredient.id }),
+                        void runItemAction(
+                          () => api.snoozeItem({ id: ingredient.id }),
+                          () => ({
+                            message: `已忽略「${ingredient.name}」的临期提醒，明天再提醒`,
+                            undo: true,
+                          }),
                         )
                       }
                       onFirstRequested={(ingredient) =>
-                        void runItemAction(() =>
-                          api.setItemUseFirst({
-                            id: ingredient.id,
-                            enabled: !ingredient.first,
-                          }),
-                        )
+                        void setFirst(ingredient)
                       }
                     />
                   ))}
@@ -301,19 +361,13 @@ export function FridgePage() {
       )}
 
       {multiSelect && (
-        <div
-          style={{
-            display: "grid",
-            gap: "var(--gap-small)",
-            marginTop: "var(--gap-large)",
-          }}
-        >
+        <div className="select-tray">
           <InkButton
             fullWidth
             text={`移除选中 ${checkedIds.length} 件`}
             accent="var(--tomato)"
             disabled={checkedIds.length === 0 || removing}
-            onClick={() => void removeSelected()}
+            onClick={() => setRemoveConfirmOpen(true)}
           />
           <InkButton
             fullWidth
@@ -323,6 +377,15 @@ export function FridgePage() {
           />
         </div>
       )}
+
+      <ConfirmDialog
+        open={removeConfirmOpen}
+        message={`移除选中的 ${checkedIds.length} 件食材？它们会被标记为家里没有。`}
+        confirmText="移除"
+        destructive
+        onCancel={() => setRemoveConfirmOpen(false)}
+        onConfirm={() => void removeSelected()}
+      />
     </section>
   );
 }
