@@ -768,8 +768,7 @@ export function ProfilePage() {
             SIL OFL 1.1。许可文本随 App 附带。
           </p>
           <p style={{ margin: 0 }}>
-            基于 Qt 6.8.2（LGPL v3，动态链接，源码见 qt.io）与 OpenSSL
-            3（Apache 2.0）构建。
+            菜谱内容来自下厨房，仅限试用，不缓存正文。
           </p>
         </div>
       </div>

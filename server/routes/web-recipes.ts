@@ -42,6 +42,10 @@ function fail(
   return reply.code(status).send({ error });
 }
 
+function failureStatus(context: RouteContext): number {
+  return context.state.web.isConfigured() ? 502 : 503;
+}
+
 function abortOnClose(
   request: FastifyRequest,
   controller: AbortController,
@@ -76,7 +80,7 @@ export function registerWebRecipeRoutes(
         if (context.state.web.searchState() === "error") {
           return fail(
             reply,
-            502,
+            failureStatus(context),
             context.state.web.searchError() || "菜谱源不可用",
           );
         }
@@ -114,7 +118,7 @@ export function registerWebRecipeRoutes(
         }
         return fail(
           reply,
-          502,
+          failureStatus(context),
           context.state.web.detailError() || "菜谱源不可用",
         );
       } catch {

@@ -7,7 +7,7 @@
 - 趁鲜 WhileFresh 的 Web 版：TypeScript + Node.js + 本地 SQLite，手机浏览器访问，密钥留在服务端。
 - 由 Qt / Android 版（[me-chjiang/whilefresh](https://github.com/me-chjiang/whilefresh) 的 `app/`）重写而来；行为规格以原 Qt 工程为准，代码注释中的 `app/src/...` 行号即出处。
 - 已对齐 Qt main 第二轮 T13–T17、T18b，T18–T21 未开始。
-- 目录与放置规则见 `FHS.md`，命令见 `docs/development.md`。
+- 目录与放置规则见 `FHS.md`，命令见 `docs/development.md`；未决问题与待定事项见 `docs/handoff.md`，新会话开工前先读。
 
 ## 开发与验证
 

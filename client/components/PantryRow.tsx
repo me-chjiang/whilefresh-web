@@ -368,7 +368,11 @@ export function PantryRow({
       <button
         type="button"
         aria-pressed={multiSelect ? checked : undefined}
-        aria-label={`${ingredient.name}，${ingredient.days}`}
+        aria-label={
+          ingredient.days
+            ? `${ingredient.name}，${ingredient.days}`
+            : ingredient.name
+        }
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}

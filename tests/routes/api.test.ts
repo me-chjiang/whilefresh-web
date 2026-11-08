@@ -37,7 +37,10 @@ import { SqliteNameMappingStore } from "../../server/data/store.js";
 import { fixedClock } from "../../server/domain/clock.js";
 import { ResumableJob } from "../../server/domain/resumable-job.js";
 import { DemoRecognizer } from "../../server/recognition/replay.js";
-import type { RecipeSource } from "../../server/recipes/types.js";
+import {
+  RecipeErrorKind,
+  type RecipeSource,
+} from "../../server/recipes/types.js";
 import { registerImportRoutes } from "../../server/routes/import.js";
 import { registerItemRoutes } from "../../server/routes/items.js";
 import { registerProfileRoutes } from "../../server/routes/profile.js";
@@ -395,6 +398,36 @@ describe("HTTP API routes", () => {
     });
     expect(detail.statusCode).toBe(502);
     expect(detail.json()).toEqual({ error: "菜谱源不可用" });
+  });
+
+  it("reports an unconfigured recipe source as unavailable rather than upstream failure", async () => {
+    const notConfigured = () =>
+      Promise.reject(
+        Object.assign(new Error("not configured"), {
+          kind: RecipeErrorKind.NotConfigured,
+        }),
+      );
+    await replaceHarness({
+      recipeSource: {
+        isConfigured: () => false,
+        search: notConfigured,
+        detail: notConfigured,
+      },
+    });
+
+    const search = await harness.app.inject({
+      method: "GET",
+      url: `/api/web-recipes?keyword=${encodeURIComponent("土豆")}`,
+    });
+    expect(search.statusCode).toBe(503);
+    expect(search.json()).toEqual({ error: "未配置 Lexmount" });
+
+    const detail = await harness.app.inject({
+      method: "GET",
+      url: "/api/web-recipes/107722218",
+    });
+    expect(detail.statusCode).toBe(503);
+    expect(detail.json()).toEqual({ error: "未配置 Lexmount" });
   });
 
   it("manages service sources and their stored secret", async () => {

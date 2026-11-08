@@ -154,6 +154,10 @@ export class WebRecipeService {
     return this.searchErrorValue;
   }
 
+  isConfigured(): boolean {
+    return this.source.isConfigured();
+  }
+
   detailState(): WebRecipeRequestState {
     return this.detailStateValue;
   }

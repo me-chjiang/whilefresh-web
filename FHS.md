@@ -13,7 +13,8 @@
 ├── package.json               # 依赖与脚本（typecheck / test / dev / build / start / e2e）
 ├── docs/
 │   ├── codex-plan.md          # 移植计划与逐步执行约定
-│   └── development.md         # 开发文档：环境、运行、数据目录、安全、测试
+│   ├── development.md         # 开发文档：环境、运行、数据目录、安全、测试
+│   └── handoff.md             # 交接文档：跨会话的未决问题与待定事项
 ├── server/
 │   ├── main.ts / config.ts    # Fastify 装配与配置（环境变量 WHILEFRESH_*）
 │   ├── domain/                # 纯函数领域逻辑：日期、新鲜度、词表、保质期链、常备、待买、重复检测
@@ -70,3 +71,4 @@
 
 - 2026-11-01 — 初版：从 whilefresh 仓库 `feat/web-rewrite` 分支的 `web/` 拆出为独立仓库，`app/assets` 改为 `assets/`，`test-data/` 随迁。
 - 2026-11-01 — 对齐 Qt 第二轮 T13–T17、T18b：补充 AI、下厨房菜谱、测试辅助与移植计划的目录及分层规则。
+- 2026-11-03 — 新增 `docs/handoff.md`，记录跨会话的未决问题。
